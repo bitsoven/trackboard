@@ -52,6 +52,56 @@ export class ProjectSchema extends BaseModel {
   declare updatedAt: DateTime | null
 }
 
+export class ReportTemplateSchema extends BaseModel {
+  static $columns = ['createdAt', 'id', 'isDefault', 'name', 'projectId', 'updatedAt'] as const
+  $columns = ReportTemplateSchema.$columns
+  @column.dateTime({ autoCreate: true })
+  declare createdAt: DateTime
+  @column({ isPrimary: true })
+  declare id: number
+  @column()
+  declare isDefault: boolean
+  @column()
+  declare name: string
+  @column()
+  declare projectId: number
+  @column.dateTime({ autoCreate: true, autoUpdate: true })
+  declare updatedAt: DateTime | null
+}
+
+export class TemplateFieldSchema extends BaseModel {
+  static $columns = [
+    'id',
+    'isRequired',
+    'key',
+    'label',
+    'options',
+    'reportTemplateId',
+    'showIf',
+    'sortOrder',
+    'type',
+  ] as const
+  $columns = TemplateFieldSchema.$columns
+  @column({ isPrimary: true })
+  declare id: number
+  @column()
+  declare isRequired: boolean
+  @column()
+  declare key: string
+  @column()
+  declare label: string
+  @column()
+  declare options: any | null
+  @column()
+  declare reportTemplateId: number
+  @column()
+  declare showIf: any | null
+  @column()
+  declare sortOrder: number
+  @column()
+  declare type: string
+}
+
 export class UserSchema extends BaseModel {
   static $columns = [
     'createdAt',

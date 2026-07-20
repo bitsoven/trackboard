@@ -42,6 +42,7 @@
     "@adonisjs/eslint-config": "^3.1.0",
     "@adonisjs/prettier-config": "^1.5.0",
     "@adonisjs/tsconfig": "^2.0.0",
+    "@japa/api-client": "^3.2.1",
     "@japa/assert": "^4.2.0",
     "@japa/browser-client": "^2.3.0",
     "@japa/plugin-adonisjs": "^5.2.0",
@@ -85,6 +86,7 @@
     "pg": "^8.23.0",
     "reflect-metadata": "^0.2.2",
     "vue": "^3.5.41",
+    "vue-draggable-next": "^2.3.0",
     "vue-sonner": "^2.0.9"
   },
   "hotHook": {

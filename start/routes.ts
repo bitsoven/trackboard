@@ -13,6 +13,14 @@ import router from '@adonisjs/core/services/router'
 
 router.on('/').renderInertia('home', {}).as('home')
 
+// Public widget template endpoint (no auth, key via query)
+router
+  .get('/api/public/widget/templates', [
+    () => import('#controllers/widget_templates_controller'),
+    'show',
+  ])
+  .as('api.public.widget.templates')
+
 router
   .group(() => {
     router.get('signup', [controllers.NewAccount, 'create'])
@@ -26,5 +34,74 @@ router
 router
   .group(() => {
     router.post('logout', [controllers.Session, 'destroy'])
+  })
+  .use(middleware.auth())
+
+// Admin template management (requires session auth) — JSON API
+router
+  .group(() => {
+    router
+      .get('/api/projects/:id/templates', [
+        () => import('#controllers/report_templates_controller'),
+        'index',
+      ])
+      .as('api.projects.templates.index')
+    router
+      .post('/api/projects/:id/templates', [
+        () => import('#controllers/report_templates_controller'),
+        'store',
+      ])
+      .as('api.projects.templates.store')
+    router
+      .put('/api/templates/:id', [
+        () => import('#controllers/report_templates_controller'),
+        'update',
+      ])
+      .as('api.templates.update')
+    router
+      .delete('/api/templates/:id', [
+        () => import('#controllers/report_templates_controller'),
+        'destroy',
+      ])
+      .as('api.templates.destroy')
+  })
+  .use(middleware.auth())
+
+// Admin template UI (Inertia pages)
+router
+  .group(() => {
+    router
+      .get('/projects/:projectId/templates', [
+        () => import('#controllers/template_pages_controller'),
+        'index',
+      ])
+      .as('templates.index')
+    router
+      .get('/projects/:projectId/templates/create', [
+        () => import('#controllers/template_pages_controller'),
+        'create',
+      ])
+      .as('templates.create')
+    router
+      .get('/projects/:projectId/create', [
+        () => import('#controllers/template_pages_controller'),
+        'create',
+      ])
+      .as('templates.create.alias')
+    router
+      .post('/projects/:projectId/templates', [
+        () => import('#controllers/template_pages_controller'),
+        'store',
+      ])
+      .as('templates.store')
+    router
+      .get('/templates/:id/edit', [() => import('#controllers/template_pages_controller'), 'edit'])
+      .as('templates.edit')
+    router
+      .put('/templates/:id', [() => import('#controllers/template_pages_controller'), 'update'])
+      .as('templates.update')
+    router
+      .delete('/templates/:id', [() => import('#controllers/template_pages_controller'), 'destroy'])
+      .as('templates.destroy')
   })
   .use(middleware.auth())

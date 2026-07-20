@@ -5,5 +5,8 @@
 
 export const controllers = {
   NewAccount: () => import('#controllers/new_account_controller'),
+  ReportTemplates: () => import('#controllers/report_templates_controller'),
   Session: () => import('#controllers/session_controller'),
+  TemplatePages: () => import('#controllers/template_pages_controller'),
+  WidgetTemplates: () => import('#controllers/widget_templates_controller'),
 }

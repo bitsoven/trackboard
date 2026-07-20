@@ -19,6 +19,18 @@ export interface Registry {
       errorResponse: unknown
     }
   }
+  'api.public.widget.templates': {
+    methods: ["GET","HEAD"]
+    pattern: '/api/public/widget/templates'
+    types: {
+      body: {}
+      paramsTuple: []
+      params: {}
+      query: {}
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/widget_templates_controller').default['show']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/widget_templates_controller').default['show']>>>
+    }
+  }
   'new_account.create': {
     methods: ["GET","HEAD"]
     pattern: '/signup'
@@ -77,6 +89,138 @@ export interface Registry {
       query: {}
       response: ExtractResponse<Awaited<ReturnType<import('#controllers/session_controller').default['destroy']>>>
       errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/session_controller').default['destroy']>>>
+    }
+  }
+  'api.projects.templates.index': {
+    methods: ["GET","HEAD"]
+    pattern: '/api/projects/:id/templates'
+    types: {
+      body: {}
+      paramsTuple: [ParamValue]
+      params: { id: ParamValue }
+      query: {}
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/report_templates_controller').default['index']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/report_templates_controller').default['index']>>>
+    }
+  }
+  'api.projects.templates.store': {
+    methods: ["POST"]
+    pattern: '/api/projects/:id/templates'
+    types: {
+      body: ExtractBody<InferInput<(typeof import('#validators/template').createTemplateValidator)>>
+      paramsTuple: [ParamValue]
+      params: { id: ParamValue }
+      query: ExtractQuery<InferInput<(typeof import('#validators/template').createTemplateValidator)>>
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/report_templates_controller').default['store']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/report_templates_controller').default['store']>>> | { status: 422; response: { errors: SimpleError[] } }
+    }
+  }
+  'api.templates.update': {
+    methods: ["PUT"]
+    pattern: '/api/templates/:id'
+    types: {
+      body: ExtractBody<InferInput<(typeof import('#validators/template').updateTemplateValidator)>>
+      paramsTuple: [ParamValue]
+      params: { id: ParamValue }
+      query: ExtractQuery<InferInput<(typeof import('#validators/template').updateTemplateValidator)>>
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/report_templates_controller').default['update']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/report_templates_controller').default['update']>>> | { status: 422; response: { errors: SimpleError[] } }
+    }
+  }
+  'api.templates.destroy': {
+    methods: ["DELETE"]
+    pattern: '/api/templates/:id'
+    types: {
+      body: {}
+      paramsTuple: [ParamValue]
+      params: { id: ParamValue }
+      query: {}
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/report_templates_controller').default['destroy']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/report_templates_controller').default['destroy']>>>
+    }
+  }
+  'templates.index': {
+    methods: ["GET","HEAD"]
+    pattern: '/projects/:projectId/templates'
+    types: {
+      body: {}
+      paramsTuple: [ParamValue]
+      params: { projectId: ParamValue }
+      query: {}
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/template_pages_controller').default['index']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/template_pages_controller').default['index']>>>
+    }
+  }
+  'templates.create': {
+    methods: ["GET","HEAD"]
+    pattern: '/projects/:projectId/templates/create'
+    types: {
+      body: {}
+      paramsTuple: [ParamValue]
+      params: { projectId: ParamValue }
+      query: {}
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/template_pages_controller').default['create']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/template_pages_controller').default['create']>>>
+    }
+  }
+  'templates.create.alias': {
+    methods: ["GET","HEAD"]
+    pattern: '/projects/:projectId/create'
+    types: {
+      body: {}
+      paramsTuple: [ParamValue]
+      params: { projectId: ParamValue }
+      query: {}
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/template_pages_controller').default['create']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/template_pages_controller').default['create']>>>
+    }
+  }
+  'templates.store': {
+    methods: ["POST"]
+    pattern: '/projects/:projectId/templates'
+    types: {
+      body: {}
+      paramsTuple: [ParamValue]
+      params: { projectId: ParamValue }
+      query: {}
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/template_pages_controller').default['store']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/template_pages_controller').default['store']>>>
+    }
+  }
+  'templates.edit': {
+    methods: ["GET","HEAD"]
+    pattern: '/templates/:id/edit'
+    types: {
+      body: {}
+      paramsTuple: [ParamValue]
+      params: { id: ParamValue }
+      query: {}
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/template_pages_controller').default['edit']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/template_pages_controller').default['edit']>>>
+    }
+  }
+  'templates.update': {
+    methods: ["PUT"]
+    pattern: '/templates/:id'
+    types: {
+      body: {}
+      paramsTuple: [ParamValue]
+      params: { id: ParamValue }
+      query: {}
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/template_pages_controller').default['update']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/template_pages_controller').default['update']>>>
+    }
+  }
+  'templates.destroy': {
+    methods: ["DELETE"]
+    pattern: '/templates/:id'
+    types: {
+      body: {}
+      paramsTuple: [ParamValue]
+      params: { id: ParamValue }
+      query: {}
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/template_pages_controller').default['destroy']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/template_pages_controller').default['destroy']>>>
     }
   }
 }
