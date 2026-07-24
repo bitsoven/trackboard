@@ -223,4 +223,112 @@ export interface Registry {
       errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/template_pages_controller').default['destroy']>>>
     }
   }
+  'public_reports.store': {
+    methods: ["POST"]
+    pattern: '/api/public/reports'
+    types: {
+      body: {}
+      paramsTuple: []
+      params: {}
+      query: {}
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/public_reports_controller').default['store']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/public_reports_controller').default['store']>>>
+    }
+  }
+  'public_reports.presign': {
+    methods: ["GET","HEAD"]
+    pattern: '/api/public/reports/presign'
+    types: {
+      body: {}
+      paramsTuple: []
+      params: {}
+      query: {}
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/public_reports_controller').default['presign']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/public_reports_controller').default['presign']>>>
+    }
+  }
+  'public_reports.proxy_image': {
+    methods: ["GET","HEAD"]
+    pattern: '/api/public/proxy-image'
+    types: {
+      body: {}
+      paramsTuple: []
+      params: {}
+      query: {}
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/public_reports_controller').default['proxyImage']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/public_reports_controller').default['proxyImage']>>>
+    }
+  }
+  'api.reports.index': {
+    methods: ["GET","HEAD"]
+    pattern: '/api/reports'
+    types: {
+      body: {}
+      paramsTuple: []
+      params: {}
+      query: {}
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/admin_reports_controller').default['index']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/admin_reports_controller').default['index']>>>
+    }
+  }
+  'api.reports.show': {
+    methods: ["GET","HEAD"]
+    pattern: '/api/reports/:id'
+    types: {
+      body: {}
+      paramsTuple: [ParamValue]
+      params: { id: ParamValue }
+      query: {}
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/admin_reports_controller').default['show']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/admin_reports_controller').default['show']>>>
+    }
+  }
+  'api.reports.update': {
+    methods: ["PATCH"]
+    pattern: '/api/reports/:id'
+    types: {
+      body: {}
+      paramsTuple: [ParamValue]
+      params: { id: ParamValue }
+      query: {}
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/admin_reports_controller').default['update']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/admin_reports_controller').default['update']>>>
+    }
+  }
+  'reports.index': {
+    methods: ["GET","HEAD"]
+    pattern: '/reports'
+    types: {
+      body: {}
+      paramsTuple: []
+      params: {}
+      query: {}
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/report_pages_controller').default['index']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/report_pages_controller').default['index']>>>
+    }
+  }
+  'reports.show': {
+    methods: ["GET","HEAD"]
+    pattern: '/reports/:id'
+    types: {
+      body: {}
+      paramsTuple: [ParamValue]
+      params: { id: ParamValue }
+      query: {}
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/report_pages_controller').default['show']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/report_pages_controller').default['show']>>>
+    }
+  }
+  'reports.update': {
+    methods: ["PATCH"]
+    pattern: '/reports/:id'
+    types: {
+      body: {}
+      paramsTuple: [ParamValue]
+      params: { id: ParamValue }
+      query: {}
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/report_pages_controller').default['update']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/report_pages_controller').default['update']>>>
+    }
+  }
 }

@@ -22,6 +22,12 @@ export type ScannedRoutes = {
     'templates.edit': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'templates.update': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'templates.destroy': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
+    'api.reports.index': { paramsTuple?: []; params?: {} }
+    'api.reports.show': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
+    'api.reports.update': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
+    'reports.index': { paramsTuple?: []; params?: {} }
+    'reports.show': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
+    'reports.update': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
   }
   GET: {
     'home': { paramsTuple?: []; params?: {} }
@@ -33,6 +39,10 @@ export type ScannedRoutes = {
     'templates.create': { paramsTuple: [ParamValue]; params: {'projectId': ParamValue} }
     'templates.create.alias': { paramsTuple: [ParamValue]; params: {'projectId': ParamValue} }
     'templates.edit': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
+    'api.reports.index': { paramsTuple?: []; params?: {} }
+    'api.reports.show': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
+    'reports.index': { paramsTuple?: []; params?: {} }
+    'reports.show': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
   }
   HEAD: {
     'home': { paramsTuple?: []; params?: {} }
@@ -44,6 +54,10 @@ export type ScannedRoutes = {
     'templates.create': { paramsTuple: [ParamValue]; params: {'projectId': ParamValue} }
     'templates.create.alias': { paramsTuple: [ParamValue]; params: {'projectId': ParamValue} }
     'templates.edit': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
+    'api.reports.index': { paramsTuple?: []; params?: {} }
+    'api.reports.show': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
+    'reports.index': { paramsTuple?: []; params?: {} }
+    'reports.show': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
   }
   POST: {
     'new_account.store': { paramsTuple?: []; params?: {} }
@@ -59,6 +73,10 @@ export type ScannedRoutes = {
   DELETE: {
     'api.templates.destroy': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'templates.destroy': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
+  }
+  PATCH: {
+    'api.reports.update': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
+    'reports.update': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
   }
 }
 declare module '@adonisjs/core/types/http' {

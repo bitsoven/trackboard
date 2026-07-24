@@ -105,3 +105,46 @@ router
       .as('templates.destroy')
   })
   .use(middleware.auth())
+
+// Reports — public ingest + proxy + presign
+router
+  .post('/api/public/reports', [() => import('#controllers/public_reports_controller'), 'store'])
+  .use([middleware.rateLimit(), middleware.originCheck()])
+router.get('/api/public/reports/presign', [
+  () => import('#controllers/public_reports_controller'),
+  'presign',
+])
+router.get('/api/public/proxy-image', [
+  () => import('#controllers/public_reports_controller'),
+  'proxyImage',
+])
+
+// Reports — admin (requires session auth)
+router
+  .group(() => {
+    router
+      .get('/api/reports', [() => import('#controllers/admin_reports_controller'), 'index'])
+      .as('api.reports.index')
+    router
+      .get('/api/reports/:id', [() => import('#controllers/admin_reports_controller'), 'show'])
+      .as('api.reports.show')
+    router
+      .patch('/api/reports/:id', [() => import('#controllers/admin_reports_controller'), 'update'])
+      .as('api.reports.update')
+  })
+  .use(middleware.auth())
+
+// Reports — UI (Inertia)
+router
+  .group(() => {
+    router
+      .get('/reports', [() => import('#controllers/report_pages_controller'), 'index'])
+      .as('reports.index')
+    router
+      .get('/reports/:id', [() => import('#controllers/report_pages_controller'), 'show'])
+      .as('reports.show')
+    router
+      .patch('/reports/:id', [() => import('#controllers/report_pages_controller'), 'update'])
+      .as('reports.update')
+  })
+  .use(middleware.auth())

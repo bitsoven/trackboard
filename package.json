@@ -76,6 +76,8 @@
     "@aws-sdk/s3-request-presigner": "^3.1120.0",
     "@inertiajs/core": "3.7.0",
     "@inertiajs/vue3": "^3.7.0",
+    "@tanstack/table-core": "^9.2.3",
+    "@tanstack/vue-table": "^9.2.3",
     "@tuyau/core": "^1.2.2",
     "@vinejs/vine": "^4.4.0",
     "@vue/server-renderer": "^3.5.41",

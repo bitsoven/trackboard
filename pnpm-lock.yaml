@@ -49,6 +49,12 @@ importers:
       '@inertiajs/vue3':
         specifier: ^3.7.0
         version: 3.7.0(axios@1.20.0(debug@4.4.3(supports-color@10.2.2))(supports-color@10.2.2))(vue@3.5.42(typescript@6.0.3))
+      '@tanstack/table-core':
+        specifier: ^9.2.3
+        version: 9.2.3
+      '@tanstack/vue-table':
+        specifier: ^9.2.3
+        version: 9.2.3(vue@3.5.42(typescript@6.0.3))
       '@tuyau/core':
         specifier: ^1.2.2
         version: 1.2.2(@adonisjs/assembler@8.5.0(typescript@6.0.3))(@adonisjs/core@7.5.0(@adonisjs/assembler@8.5.0(typescript@6.0.3))(@vinejs/vine@4.4.0)(edge.js@6.5.1)(pino-pretty@13.1.3)(supports-color@10.2.2)(youch@4.1.1))
@@ -1689,6 +1695,28 @@ packages:
       {
         integrity: sha512-V6Mnml8v09QALx6K0elJ7o9K/MkVDtW3t6L+7Ou/JcWtb3xwId2AH4FeOceySd2JaO87IMw4+6vSZxLm34LPbw==,
       }
+
+  '@tanstack/store@0.11.1':
+    resolution:
+      {
+        integrity: sha512-mzTOBhypOuDJAy/D8n2MfUZ1HFkXnmSETviRyhqEC8LUE7/IZQExOTxMANj3KjTofYTkFNpBY67qaVrT41YccA==,
+      }
+
+  '@tanstack/table-core@9.2.3':
+    resolution:
+      {
+        integrity: sha512-3HvxpgBXu5wp8/yNQ0L/7jw6EOu2d7vbdxQlp/Ox2Noqj8MNft0S5lkkicRZxrK5/aV1twtKUCGJUI3io9fBcQ==,
+      }
+    engines: { node: '>=20' }
+
+  '@tanstack/vue-table@9.2.3':
+    resolution:
+      {
+        integrity: sha512-AzRkRxrVlwg2076Ckfjibj9WycwL+9Tw7KbaiCKZSikUeEr2uoaAiJILfKyq7rVCL8tBpEu/8L86pYE5YobWmw==,
+      }
+    engines: { node: '>=20' }
+    peerDependencies:
+      vue: '>=3.2'
 
   '@tokenizer/inflate@0.4.1':
     resolution:
@@ -6371,6 +6399,18 @@ snapshots:
   '@swc/types@0.1.28':
     dependencies:
       '@swc/counter': 0.1.3
+
+  '@tanstack/store@0.11.1': {}
+
+  '@tanstack/table-core@9.2.3':
+    dependencies:
+      '@tanstack/store': 0.11.1
+
+  '@tanstack/vue-table@9.2.3(vue@3.5.42(typescript@6.0.3))':
+    dependencies:
+      '@tanstack/store': 0.11.1
+      '@tanstack/table-core': 9.2.3
+      vue: 3.5.42(typescript@6.0.3)
 
   '@tokenizer/inflate@0.4.1(supports-color@10.2.2)':
     dependencies:

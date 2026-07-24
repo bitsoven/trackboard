@@ -5,6 +5,7 @@ import User from '#models/user'
 import ApiKey from '#models/api_key'
 import AllowedOrigin from '#models/allowed_origin'
 import ReportTemplate from '#models/report_template'
+import Report from '#models/report'
 
 export default class Project extends ProjectSchema {
   @belongsTo(() => User, {
@@ -26,6 +27,11 @@ export default class Project extends ProjectSchema {
     foreignKey: 'projectId',
   })
   declare reportTemplates: HasMany<typeof ReportTemplate>
+
+  @hasMany(() => Report, {
+    foreignKey: 'projectId',
+  })
+  declare reports: HasMany<typeof Report>
 
   /**
    * Check if an origin is allowed for this project.

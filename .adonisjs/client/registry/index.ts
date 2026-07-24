@@ -114,6 +114,60 @@ const routes = {
     tokens: [{"old":"/templates/:id","type":0,"val":"templates","end":""},{"old":"/templates/:id","type":1,"val":"id","end":""}],
     types: placeholder as Registry['templates.destroy']['types'],
   },
+  'public_reports.store': {
+    methods: ["POST"],
+    pattern: '/api/public/reports',
+    tokens: [{"old":"/api/public/reports","type":0,"val":"api","end":""},{"old":"/api/public/reports","type":0,"val":"public","end":""},{"old":"/api/public/reports","type":0,"val":"reports","end":""}],
+    types: placeholder as Registry['public_reports.store']['types'],
+  },
+  'public_reports.presign': {
+    methods: ["GET","HEAD"],
+    pattern: '/api/public/reports/presign',
+    tokens: [{"old":"/api/public/reports/presign","type":0,"val":"api","end":""},{"old":"/api/public/reports/presign","type":0,"val":"public","end":""},{"old":"/api/public/reports/presign","type":0,"val":"reports","end":""},{"old":"/api/public/reports/presign","type":0,"val":"presign","end":""}],
+    types: placeholder as Registry['public_reports.presign']['types'],
+  },
+  'public_reports.proxy_image': {
+    methods: ["GET","HEAD"],
+    pattern: '/api/public/proxy-image',
+    tokens: [{"old":"/api/public/proxy-image","type":0,"val":"api","end":""},{"old":"/api/public/proxy-image","type":0,"val":"public","end":""},{"old":"/api/public/proxy-image","type":0,"val":"proxy-image","end":""}],
+    types: placeholder as Registry['public_reports.proxy_image']['types'],
+  },
+  'api.reports.index': {
+    methods: ["GET","HEAD"],
+    pattern: '/api/reports',
+    tokens: [{"old":"/api/reports","type":0,"val":"api","end":""},{"old":"/api/reports","type":0,"val":"reports","end":""}],
+    types: placeholder as Registry['api.reports.index']['types'],
+  },
+  'api.reports.show': {
+    methods: ["GET","HEAD"],
+    pattern: '/api/reports/:id',
+    tokens: [{"old":"/api/reports/:id","type":0,"val":"api","end":""},{"old":"/api/reports/:id","type":0,"val":"reports","end":""},{"old":"/api/reports/:id","type":1,"val":"id","end":""}],
+    types: placeholder as Registry['api.reports.show']['types'],
+  },
+  'api.reports.update': {
+    methods: ["PATCH"],
+    pattern: '/api/reports/:id',
+    tokens: [{"old":"/api/reports/:id","type":0,"val":"api","end":""},{"old":"/api/reports/:id","type":0,"val":"reports","end":""},{"old":"/api/reports/:id","type":1,"val":"id","end":""}],
+    types: placeholder as Registry['api.reports.update']['types'],
+  },
+  'reports.index': {
+    methods: ["GET","HEAD"],
+    pattern: '/reports',
+    tokens: [{"old":"/reports","type":0,"val":"reports","end":""}],
+    types: placeholder as Registry['reports.index']['types'],
+  },
+  'reports.show': {
+    methods: ["GET","HEAD"],
+    pattern: '/reports/:id',
+    tokens: [{"old":"/reports/:id","type":0,"val":"reports","end":""},{"old":"/reports/:id","type":1,"val":"id","end":""}],
+    types: placeholder as Registry['reports.show']['types'],
+  },
+  'reports.update': {
+    methods: ["PATCH"],
+    pattern: '/reports/:id',
+    tokens: [{"old":"/reports/:id","type":0,"val":"reports","end":""},{"old":"/reports/:id","type":1,"val":"id","end":""}],
+    types: placeholder as Registry['reports.update']['types'],
+  },
 } as const satisfies Record<string, AdonisEndpoint>
 
 export { routes }

@@ -19,6 +19,11 @@ export interface ApiDefinition {
       update: typeof routes['api.templates.update']
       destroy: typeof routes['api.templates.destroy']
     }
+    reports: {
+      index: typeof routes['api.reports.index']
+      show: typeof routes['api.reports.show']
+      update: typeof routes['api.reports.update']
+    }
   }
   newAccount: {
     create: typeof routes['new_account.create']
@@ -38,5 +43,15 @@ export interface ApiDefinition {
     edit: typeof routes['templates.edit']
     update: typeof routes['templates.update']
     destroy: typeof routes['templates.destroy']
+  }
+  publicReports: {
+    store: typeof routes['public_reports.store']
+    presign: typeof routes['public_reports.presign']
+    proxyImage: typeof routes['public_reports.proxy_image']
+  }
+  reports: {
+    index: typeof routes['reports.index']
+    show: typeof routes['reports.show']
+    update: typeof routes['reports.update']
   }
 }

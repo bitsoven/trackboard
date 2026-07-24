@@ -52,6 +52,19 @@ export class ProjectSchema extends BaseModel {
   declare updatedAt: DateTime | null
 }
 
+export class ReportFieldValueSchema extends BaseModel {
+  static $columns = ['fieldKey', 'id', 'reportId', 'value'] as const
+  $columns = ReportFieldValueSchema.$columns
+  @column()
+  declare fieldKey: string
+  @column({ isPrimary: true })
+  declare id: number
+  @column()
+  declare reportId: number
+  @column()
+  declare value: string | null
+}
+
 export class ReportTemplateSchema extends BaseModel {
   static $columns = ['createdAt', 'id', 'isDefault', 'name', 'projectId', 'updatedAt'] as const
   $columns = ReportTemplateSchema.$columns
@@ -65,6 +78,60 @@ export class ReportTemplateSchema extends BaseModel {
   declare name: string
   @column()
   declare projectId: number
+  @column.dateTime({ autoCreate: true, autoUpdate: true })
+  declare updatedAt: DateTime | null
+}
+
+export class ReportSchema extends BaseModel {
+  static $columns = [
+    'assigneeId',
+    'browserInfo',
+    'consoleErrors',
+    'createdAt',
+    'id',
+    'networkErrors',
+    'pageUrl',
+    'priority',
+    'projectId',
+    'reporterEmail',
+    'reporterVerifiedAt',
+    'screenshotUrl',
+    'status',
+    'templateId',
+    'title',
+    'updatedAt',
+  ] as const
+  $columns = ReportSchema.$columns
+  @column()
+  declare assigneeId: number | null
+  @column()
+  declare browserInfo: any | null
+  @column()
+  declare consoleErrors: any | null
+  @column.dateTime({ autoCreate: true })
+  declare createdAt: DateTime
+  @column({ isPrimary: true })
+  declare id: number
+  @column()
+  declare networkErrors: any | null
+  @column()
+  declare pageUrl: string | null
+  @column()
+  declare priority: string
+  @column()
+  declare projectId: number
+  @column()
+  declare reporterEmail: string | null
+  @column.dateTime()
+  declare reporterVerifiedAt: DateTime | null
+  @column()
+  declare screenshotUrl: string | null
+  @column()
+  declare status: string
+  @column()
+  declare templateId: number | null
+  @column()
+  declare title: string
   @column.dateTime({ autoCreate: true, autoUpdate: true })
   declare updatedAt: DateTime | null
 }

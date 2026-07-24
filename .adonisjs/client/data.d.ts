@@ -7,6 +7,7 @@
 import type { InferData, InferVariants } from '@adonisjs/core/types/transformers'
 import type { InferSharedProps, InferFlashData } from '@adonisjs/inertia/types'
 import type ReportTemplateTransformer from '#transformers/report_template_transformer'
+import type ReportTransformer from '#transformers/report_transformer'
 import type TemplateFieldTransformer from '#transformers/template_field_transformer'
 import type UserTransformer from '#transformers/user_transformer'
 import type InertiaMiddleware from '#middleware/inertia_middleware'
@@ -15,6 +16,10 @@ export namespace Data {
   export type ReportTemplate = InferData<ReportTemplateTransformer>
   export namespace ReportTemplate {
     export type Variants = InferVariants<ReportTemplateTransformer>
+  }
+  export type Report = InferData<ReportTransformer>
+  export namespace Report {
+    export type Variants = InferVariants<ReportTransformer>
   }
   export type TemplateField = InferData<TemplateFieldTransformer>
   export namespace TemplateField {
