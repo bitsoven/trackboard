@@ -20,6 +20,7 @@ export default class AdminReportsController {
       priority: qs.priority as string | undefined,
       page: qs.page ? Number(qs.page) : undefined,
       perPage: qs.perPage ? Number(qs.perPage) : qs.per_page ? Number(qs.per_page) : undefined,
+      includePending: qs.include_pending === '1' || qs.includePending === '1',
     }
 
     // Non-admin users only see their own projects

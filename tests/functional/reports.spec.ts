@@ -262,6 +262,91 @@ test.group('Reports', (group) => {
     assert.equal(detail.body().data.screenshotUrl, null)
   })
 
+  test('unverified report hidden until magic link clicked when verification required', async ({
+    client,
+    assert,
+  }) => {
+    const admin = await User.create({
+      email: 'verify-admin@example.com',
+      password: 'password123',
+      fullName: 'VerifyAdmin',
+      role: 'admin',
+    })
+    const project = await Project.create({
+      name: 'Verify Project',
+      slug: 'verify-project',
+      ownerId: admin.id,
+      requireEmailVerification: true,
+    })
+    const { rawKey } = await ApiKey.generate(project.id, 'verify')
+    await AllowedOrigin.create({ projectId: project.id, origin: 'http://localhost:3000' })
+    await ReportTemplate.create({ projectId: project.id, name: 'Tmpl', isDefault: true })
+
+    // Ingest a report — should land in pending_verification
+    const res = await client
+      .post('/api/public/reports?key=' + rawKey)
+      .header('Origin', 'http://localhost:3000')
+      .json({ title: 'Needs verify', reporterEmail: 'reporter@example.com', fieldValues: {} })
+    res.assertStatus(201)
+    assert.equal(res.body().data.status, 'pending_verification')
+
+    const reportId = res.body().data.id
+
+    // Hidden from the active admin queue by default
+    const list = await client.get('/api/reports').loginAs(admin)
+    list.assertStatus(200)
+    assert.lengthOf(list.body().data, 0)
+
+    // Fetch the stored token and click the magic link
+    const stored = await Report.findOrFail(reportId)
+    assert.isString(stored.verificationToken)
+    const verify = await client.get('/api/public/reports/verify/' + stored.verificationToken)
+    verify.assertStatus(200)
+    assert.equal(verify.body().data.status, 'open')
+    assert.isNotNull(verify.body().data.reporterVerifiedAt)
+
+    // Now visible in the active queue
+    const list2 = await client.get('/api/reports').loginAs(admin)
+    list2.assertStatus(200)
+    assert.lengthOf(list2.body().data, 1)
+
+    // Re-using the same token fails (single use)
+    const verifyAgain = await client.get('/api/public/reports/verify/' + stored.verificationToken)
+    verifyAgain.assertStatus(409)
+  })
+
+  test('report is open immediately when email verification not required', async ({
+    client,
+    assert,
+  }) => {
+    const admin = await User.create({
+      email: 'noverify@example.com',
+      password: 'password123',
+      fullName: 'NoVerify',
+      role: 'admin',
+    })
+    const project = await Project.create({
+      name: 'NoVerify Project',
+      slug: 'noverify-project',
+      ownerId: admin.id,
+      requireEmailVerification: false,
+    })
+    const { rawKey } = await ApiKey.generate(project.id, 'noverify')
+    await AllowedOrigin.create({ projectId: project.id, origin: 'http://localhost:3000' })
+    await ReportTemplate.create({ projectId: project.id, name: 'Tmpl', isDefault: true })
+
+    const res = await client
+      .post('/api/public/reports?key=' + rawKey)
+      .header('Origin', 'http://localhost:3000')
+      .json({ title: 'Open now', reporterEmail: 'reporter@example.com', fieldValues: {} })
+    res.assertStatus(201)
+    assert.equal(res.body().data.status, 'open')
+
+    const list = await client.get('/api/reports').loginAs(admin)
+    list.assertStatus(200)
+    assert.lengthOf(list.body().data, 1)
+  })
+
   test('screenshot upload via base64', async ({ client, assert }) => {
     const user = await User.create({
       email: 'screen@example.com',

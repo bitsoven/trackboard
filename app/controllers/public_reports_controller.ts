@@ -3,6 +3,7 @@ import { inject } from '@adonisjs/core'
 import ReportService from '#services/report_service'
 import ReportTransformer from '#transformers/report_transformer'
 import ApiKey from '#models/api_key'
+import ReportVerificationException from '#exceptions/report_verification_exception'
 import { readFile } from 'node:fs/promises'
 
 @inject()
@@ -118,6 +119,18 @@ export default class PublicReportsController {
       return response.send(buffer)
     } catch (error: any) {
       return response.status(500).send({ message: 'Proxy error', error: error.message })
+    }
+  }
+
+  async verify({ params, response }: HttpContext) {
+    try {
+      const report = await this.reportService.verify(params.token as string)
+      return response.json({ data: new ReportTransformer(report as any).toObject() })
+    } catch (error) {
+      if (error instanceof ReportVerificationException) {
+        return response.status(error.status).send({ message: error.message, code: error.code })
+      }
+      throw error
     }
   }
 }

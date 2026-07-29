@@ -1,5 +1,7 @@
 import db from '@adonisjs/lucid/services/db'
+import encryption from '@adonisjs/core/services/encryption'
 import { Exception } from '@adonisjs/core/exceptions'
+import { DateTime } from 'luxon'
 import Report from '#models/report'
 import ReportFieldValue from '#models/report_field_value'
 import Project from '#models/project'
@@ -7,8 +9,17 @@ import ReportTemplate from '#models/report_template'
 import { buildDynamicSchema } from '#services/template_service'
 import { ingestReportValidator, updateReportValidator } from '#validators/report'
 import drive from '@adonisjs/drive/services/main'
+import ReportVerificationException from '#exceptions/report_verification_exception'
+import { sendVerificationMail } from '#mails/verification_mail'
 import { randomUUID } from 'node:crypto'
 import { promises as dns } from 'node:dns'
+
+const VERIFICATION_TOKEN_TTL_HOURS = 24
+
+export type VerificationTokenPayload = {
+  reportId: number
+  exp: number
+}
 
 export type IngestPayload = {
   title: string
@@ -169,13 +180,19 @@ export default class ReportService {
       }
     }
 
-    return db.transaction(async (trx) => {
-      const report = await Report.create(
+    // When the project requires email verification and a reporter email is
+    // present, the report starts in a pending state and is hidden from the
+    // active queue until the reporter clicks the magic link.
+    const requiresVerification = !!project.requireEmailVerification && !!reporterEmail
+    const initialStatus = requiresVerification ? 'pending_verification' : 'open'
+
+    const report = await db.transaction(async (trx) => {
+      const created = await Report.create(
         {
           projectId: project.id,
           templateId: template?.id ?? null,
           title,
-          status: 'open',
+          status: initialStatus,
           priority: (payload as any).priority ?? 'medium',
           reporterEmail,
           pageUrl: pageUrl ?? null,
@@ -192,7 +209,7 @@ export default class ReportService {
           const storedValue = Array.isArray(value) ? JSON.stringify(value) : String(value ?? '')
           await ReportFieldValue.create(
             {
-              reportId: report.id,
+              reportId: created.id,
               fieldKey,
               value: storedValue,
             },
@@ -201,9 +218,84 @@ export default class ReportService {
         }
       }
 
-      await report.load('fieldValues')
-      return report
+      await created.load('fieldValues')
+      return created
     })
+
+    if (requiresVerification && report.reporterEmail) {
+      const token = this.generateVerificationToken(report)
+      report.verificationToken = token
+      report.verificationSentAt = DateTime.now()
+      await report.save()
+      await this.sendVerificationEmail(report, token)
+    }
+
+    return report
+  }
+
+  /**
+   * Build a signed, expiring magic-link token for report verification.
+   */
+  generateVerificationToken(report: Report): string {
+    const payload: VerificationTokenPayload = {
+      reportId: report.id,
+      exp: DateTime.now().plus({ hours: VERIFICATION_TOKEN_TTL_HOURS }).toMillis(),
+    }
+    return encryption.encrypt(payload)
+  }
+
+  /**
+   * Decrypt and validate a verification token. Throws a domain exception when
+   * the token is malformed, expired, or mismatched.
+   */
+  protected decryptVerificationToken(token: string): VerificationTokenPayload {
+    let payload: VerificationTokenPayload | null
+    try {
+      payload = encryption.decrypt(token) as VerificationTokenPayload | null
+    } catch {
+      payload = null
+    }
+    if (!payload || typeof payload.reportId !== 'number' || typeof payload.exp !== 'number') {
+      throw ReportVerificationException.invalidToken()
+    }
+    if (payload.exp < DateTime.now().toMillis()) {
+      throw ReportVerificationException.invalidToken()
+    }
+    return payload
+  }
+
+  /**
+   * Verify a report from its magic-link token: marks it verified and flips the
+   * status out of pending into the active queue.
+   */
+  async verify(token: string): Promise<Report> {
+    const payload = this.decryptVerificationToken(token)
+    const report = await Report.findOrFail(payload.reportId)
+    if (report.reporterVerifiedAt) {
+      throw ReportVerificationException.alreadyVerified()
+    }
+    if (report.verificationToken !== token) {
+      throw ReportVerificationException.invalidToken()
+    }
+    report.reporterVerifiedAt = DateTime.now()
+    report.status = 'open'
+    report.verificationToken = null
+    await report.save()
+    await report.load('fieldValues')
+    await report.load('project')
+    return report
+  }
+
+  protected async sendVerificationEmail(report: Report, token: string): Promise<void> {
+    const appUrl = process.env.APP_URL ?? 'http://localhost:3333'
+    const verifyUrl = `${appUrl.replace(/\/$/, '')}/api/public/reports/verify/${encodeURIComponent(token)}`
+    try {
+      await sendVerificationMail(report, verifyUrl)
+    } catch (error) {
+      // Mail delivery is best-effort: verification still works via the stored
+      // token, so we must not fail the ingest because of a mail error.
+      console.warn('Failed to send verification email', (error as Error)?.message)
+    }
   }
 
   async list(
@@ -213,6 +305,7 @@ export default class ReportService {
       priority?: string
       page?: number
       perPage?: number
+      includePending?: boolean
     },
     userId?: number
   ) {
@@ -224,6 +317,13 @@ export default class ReportService {
     if (filters.projectId) query.where('projectId', filters.projectId)
     if (filters.status) query.where('status', filters.status)
     if (filters.priority) query.where('priority', filters.priority)
+
+    // Unverified reports are hidden from the active queue unless explicitly
+    // requested (e.g. filtering by status or opting in via includePending).
+    const wantsPending = filters.status === 'pending_verification'
+    if (!filters.status && !filters.includePending && !wantsPending) {
+      query.whereNot('status', 'pending_verification')
+    }
 
     // If userId provided and not admin, filter to projects owned by user
     if (userId) {

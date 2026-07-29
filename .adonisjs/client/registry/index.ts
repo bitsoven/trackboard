@@ -132,6 +132,12 @@ const routes = {
     tokens: [{"old":"/api/public/proxy-image","type":0,"val":"api","end":""},{"old":"/api/public/proxy-image","type":0,"val":"public","end":""},{"old":"/api/public/proxy-image","type":0,"val":"proxy-image","end":""}],
     types: placeholder as Registry['public_reports.proxy_image']['types'],
   },
+  'public_reports.verify': {
+    methods: ["GET","HEAD"],
+    pattern: '/api/public/reports/verify/:token',
+    tokens: [{"old":"/api/public/reports/verify/:token","type":0,"val":"api","end":""},{"old":"/api/public/reports/verify/:token","type":0,"val":"public","end":""},{"old":"/api/public/reports/verify/:token","type":0,"val":"reports","end":""},{"old":"/api/public/reports/verify/:token","type":0,"val":"verify","end":""},{"old":"/api/public/reports/verify/:token","type":1,"val":"token","end":""}],
+    types: placeholder as Registry['public_reports.verify']['types'],
+  },
   'api.reports.index': {
     methods: ["GET","HEAD"],
     pattern: '/api/reports',

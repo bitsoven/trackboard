@@ -36,7 +36,15 @@ export class ApiKeySchema extends BaseModel {
 }
 
 export class ProjectSchema extends BaseModel {
-  static $columns = ['createdAt', 'id', 'name', 'ownerId', 'slug', 'updatedAt'] as const
+  static $columns = [
+    'createdAt',
+    'id',
+    'name',
+    'ownerId',
+    'requireEmailVerification',
+    'slug',
+    'updatedAt',
+  ] as const
   $columns = ProjectSchema.$columns
   @column.dateTime({ autoCreate: true })
   declare createdAt: DateTime
@@ -46,6 +54,8 @@ export class ProjectSchema extends BaseModel {
   declare name: string
   @column()
   declare ownerId: number
+  @column()
+  declare requireEmailVerification: boolean
   @column()
   declare slug: string
   @column.dateTime({ autoCreate: true, autoUpdate: true })
@@ -100,6 +110,8 @@ export class ReportSchema extends BaseModel {
     'templateId',
     'title',
     'updatedAt',
+    'verificationSentAt',
+    'verificationToken',
   ] as const
   $columns = ReportSchema.$columns
   @column()
@@ -134,6 +146,10 @@ export class ReportSchema extends BaseModel {
   declare title: string
   @column.dateTime({ autoCreate: true, autoUpdate: true })
   declare updatedAt: DateTime | null
+  @column.dateTime()
+  declare verificationSentAt: DateTime | null
+  @column()
+  declare verificationToken: string | null
 }
 
 export class TemplateFieldSchema extends BaseModel {

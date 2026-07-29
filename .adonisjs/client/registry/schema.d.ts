@@ -259,6 +259,18 @@ export interface Registry {
       errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/public_reports_controller').default['proxyImage']>>>
     }
   }
+  'public_reports.verify': {
+    methods: ["GET","HEAD"]
+    pattern: '/api/public/reports/verify/:token'
+    types: {
+      body: {}
+      paramsTuple: [ParamValue]
+      params: { token: ParamValue }
+      query: {}
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/public_reports_controller').default['verify']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/public_reports_controller').default['verify']>>>
+    }
+  }
   'api.reports.index': {
     methods: ["GET","HEAD"]
     pattern: '/api/reports'

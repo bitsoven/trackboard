@@ -118,6 +118,10 @@ router.get('/api/public/proxy-image', [
   () => import('#controllers/public_reports_controller'),
   'proxyImage',
 ])
+router.get('/api/public/reports/verify/:token', [
+  () => import('#controllers/public_reports_controller'),
+  'verify',
+])
 
 // Reports — admin (requires session auth)
 router

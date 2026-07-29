@@ -48,6 +48,7 @@ export interface ApiDefinition {
     store: typeof routes['public_reports.store']
     presign: typeof routes['public_reports.presign']
     proxyImage: typeof routes['public_reports.proxy_image']
+    verify: typeof routes['public_reports.verify']
   }
   reports: {
     index: typeof routes['reports.index']
