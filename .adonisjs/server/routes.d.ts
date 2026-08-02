@@ -25,6 +25,10 @@ export type ScannedRoutes = {
     'api.reports.index': { paramsTuple?: []; params?: {} }
     'api.reports.show': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'api.reports.update': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
+    'api.reports.messages.store': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
+    'api.webhooks.inbound-email': { paramsTuple?: []; params?: {} }
+    'portal.show': { paramsTuple: [ParamValue]; params: {'reply_to_token': ParamValue} }
+    'portal.messages.store': { paramsTuple: [ParamValue]; params: {'reply_to_token': ParamValue} }
     'reports.index': { paramsTuple?: []; params?: {} }
     'reports.show': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'reports.update': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
@@ -41,6 +45,7 @@ export type ScannedRoutes = {
     'templates.edit': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'api.reports.index': { paramsTuple?: []; params?: {} }
     'api.reports.show': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
+    'portal.show': { paramsTuple: [ParamValue]; params: {'reply_to_token': ParamValue} }
     'reports.index': { paramsTuple?: []; params?: {} }
     'reports.show': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
   }
@@ -56,6 +61,7 @@ export type ScannedRoutes = {
     'templates.edit': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'api.reports.index': { paramsTuple?: []; params?: {} }
     'api.reports.show': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
+    'portal.show': { paramsTuple: [ParamValue]; params: {'reply_to_token': ParamValue} }
     'reports.index': { paramsTuple?: []; params?: {} }
     'reports.show': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
   }
@@ -65,6 +71,9 @@ export type ScannedRoutes = {
     'session.destroy': { paramsTuple?: []; params?: {} }
     'api.projects.templates.store': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'templates.store': { paramsTuple: [ParamValue]; params: {'projectId': ParamValue} }
+    'api.reports.messages.store': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
+    'api.webhooks.inbound-email': { paramsTuple?: []; params?: {} }
+    'portal.messages.store': { paramsTuple: [ParamValue]; params: {'reply_to_token': ParamValue} }
   }
   PUT: {
     'api.templates.update': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }

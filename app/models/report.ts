@@ -1,10 +1,11 @@
 import { ReportSchema } from '#database/schema'
-import type { BelongsTo, HasMany } from '@adonisjs/lucid/types/relations'
-import { belongsTo, hasMany } from '@adonisjs/lucid/orm'
+import type { BelongsTo, HasMany, HasOne } from '@adonisjs/lucid/types/relations'
+import { belongsTo, hasMany, hasOne } from '@adonisjs/lucid/orm'
 import Project from '#models/project'
 import ReportTemplate from '#models/report_template'
 import ReportFieldValue from '#models/report_field_value'
 import User from '#models/user'
+import Conversation from '#models/conversation'
 
 export default class Report extends ReportSchema {
   @belongsTo(() => Project, { foreignKey: 'projectId' })
@@ -18,4 +19,7 @@ export default class Report extends ReportSchema {
 
   @hasMany(() => ReportFieldValue, { foreignKey: 'reportId' })
   declare fieldValues: HasMany<typeof ReportFieldValue>
+
+  @hasOne(() => Conversation, { foreignKey: 'reportId' })
+  declare conversation: HasOne<typeof Conversation>
 }

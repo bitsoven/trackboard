@@ -1,11 +1,15 @@
 import type { HttpContext } from '@adonisjs/core/http'
 import { inject } from '@adonisjs/core'
 import ReportService from '#services/report_service'
+import ConversationService from '#services/conversation_service'
 import Project from '#models/project'
 
 @inject()
 export default class ReportPagesController {
-  constructor(protected reportService: ReportService) {}
+  constructor(
+    protected reportService: ReportService,
+    protected conversationService: ConversationService
+  ) {}
 
   async index({ inertia, request, auth }: HttpContext) {
     const user = auth.user!
@@ -117,7 +121,22 @@ export default class ReportPagesController {
         : null,
     }
 
-    return inertia.render('reports/show' as any, { report: data } as any)
+    const thread = await this.conversationService.getThread(report)
+
+    return inertia.render(
+      'reports/show' as any,
+      {
+        report: data,
+        thread: thread.map((m) => ({
+          id: m.id,
+          direction: m.direction,
+          authorType: m.authorType,
+          authorName: m.authorName,
+          body: m.body,
+          createdAt: m.createdAt,
+        })),
+      } as any
+    )
   }
 
   async update({ params, request, auth, response }: HttpContext) {

@@ -135,8 +135,33 @@ router
     router
       .patch('/api/reports/:id', [() => import('#controllers/admin_reports_controller'), 'update'])
       .as('api.reports.update')
+    router
+      .post('/api/reports/:id/messages', [
+        () => import('#controllers/messages_controller'),
+        'store',
+      ])
+      .as('api.reports.messages.store')
   })
   .use(middleware.auth())
+
+// Inbound email webhook (public, protected by shared secret when configured)
+router
+  .post('/api/webhooks/inbound-email', [
+    () => import('#controllers/webhook_controller'),
+    'inboundEmail',
+  ])
+  .as('api.webhooks.inbound-email')
+
+// Public reporter portal (token-based, no login)
+router
+  .get('/portal/:reply_to_token', [() => import('#controllers/portal_controller'), 'show'])
+  .as('portal.show')
+router
+  .post('/portal/:reply_to_token/messages', [
+    () => import('#controllers/portal_controller'),
+    'store',
+  ])
+  .as('portal.messages.store')
 
 // Reports — UI (Inertia)
 router

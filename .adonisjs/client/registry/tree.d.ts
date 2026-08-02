@@ -23,6 +23,12 @@ export interface ApiDefinition {
       index: typeof routes['api.reports.index']
       show: typeof routes['api.reports.show']
       update: typeof routes['api.reports.update']
+      messages: {
+        store: typeof routes['api.reports.messages.store']
+      }
+    }
+    webhooks: {
+      inboundEmail: typeof routes['api.webhooks.inbound-email']
     }
   }
   newAccount: {
@@ -49,6 +55,12 @@ export interface ApiDefinition {
     presign: typeof routes['public_reports.presign']
     proxyImage: typeof routes['public_reports.proxy_image']
     verify: typeof routes['public_reports.verify']
+  }
+  portal: {
+    show: typeof routes['portal.show']
+    messages: {
+      store: typeof routes['portal.messages.store']
+    }
   }
   reports: {
     index: typeof routes['reports.index']

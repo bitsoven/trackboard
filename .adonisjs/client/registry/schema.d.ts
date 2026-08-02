@@ -307,6 +307,54 @@ export interface Registry {
       errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/admin_reports_controller').default['update']>>>
     }
   }
+  'api.reports.messages.store': {
+    methods: ["POST"]
+    pattern: '/api/reports/:id/messages'
+    types: {
+      body: ExtractBody<InferInput<(typeof import('#validators/message').sendMessageValidator)>>
+      paramsTuple: [ParamValue]
+      params: { id: ParamValue }
+      query: ExtractQuery<InferInput<(typeof import('#validators/message').sendMessageValidator)>>
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/messages_controller').default['store']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/messages_controller').default['store']>>> | { status: 422; response: { errors: SimpleError[] } }
+    }
+  }
+  'api.webhooks.inbound-email': {
+    methods: ["POST"]
+    pattern: '/api/webhooks/inbound-email'
+    types: {
+      body: {}
+      paramsTuple: []
+      params: {}
+      query: {}
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/webhook_controller').default['inboundEmail']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/webhook_controller').default['inboundEmail']>>>
+    }
+  }
+  'portal.show': {
+    methods: ["GET","HEAD"]
+    pattern: '/portal/:reply_to_token'
+    types: {
+      body: {}
+      paramsTuple: [ParamValue]
+      params: { reply_to_token: ParamValue }
+      query: {}
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/portal_controller').default['show']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/portal_controller').default['show']>>>
+    }
+  }
+  'portal.messages.store': {
+    methods: ["POST"]
+    pattern: '/portal/:reply_to_token/messages'
+    types: {
+      body: ExtractBody<InferInput<(typeof import('#validators/message').portalMessageValidator)>>
+      paramsTuple: [ParamValue]
+      params: { reply_to_token: ParamValue }
+      query: ExtractQuery<InferInput<(typeof import('#validators/message').portalMessageValidator)>>
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/portal_controller').default['store']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/portal_controller').default['store']>>> | { status: 422; response: { errors: SimpleError[] } }
+    }
+  }
   'reports.index': {
     methods: ["GET","HEAD"]
     pattern: '/reports'

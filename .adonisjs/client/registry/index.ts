@@ -156,6 +156,30 @@ const routes = {
     tokens: [{"old":"/api/reports/:id","type":0,"val":"api","end":""},{"old":"/api/reports/:id","type":0,"val":"reports","end":""},{"old":"/api/reports/:id","type":1,"val":"id","end":""}],
     types: placeholder as Registry['api.reports.update']['types'],
   },
+  'api.reports.messages.store': {
+    methods: ["POST"],
+    pattern: '/api/reports/:id/messages',
+    tokens: [{"old":"/api/reports/:id/messages","type":0,"val":"api","end":""},{"old":"/api/reports/:id/messages","type":0,"val":"reports","end":""},{"old":"/api/reports/:id/messages","type":1,"val":"id","end":""},{"old":"/api/reports/:id/messages","type":0,"val":"messages","end":""}],
+    types: placeholder as Registry['api.reports.messages.store']['types'],
+  },
+  'api.webhooks.inbound-email': {
+    methods: ["POST"],
+    pattern: '/api/webhooks/inbound-email',
+    tokens: [{"old":"/api/webhooks/inbound-email","type":0,"val":"api","end":""},{"old":"/api/webhooks/inbound-email","type":0,"val":"webhooks","end":""},{"old":"/api/webhooks/inbound-email","type":0,"val":"inbound-email","end":""}],
+    types: placeholder as Registry['api.webhooks.inbound-email']['types'],
+  },
+  'portal.show': {
+    methods: ["GET","HEAD"],
+    pattern: '/portal/:reply_to_token',
+    tokens: [{"old":"/portal/:reply_to_token","type":0,"val":"portal","end":""},{"old":"/portal/:reply_to_token","type":1,"val":"reply_to_token","end":""}],
+    types: placeholder as Registry['portal.show']['types'],
+  },
+  'portal.messages.store': {
+    methods: ["POST"],
+    pattern: '/portal/:reply_to_token/messages',
+    tokens: [{"old":"/portal/:reply_to_token/messages","type":0,"val":"portal","end":""},{"old":"/portal/:reply_to_token/messages","type":1,"val":"reply_to_token","end":""},{"old":"/portal/:reply_to_token/messages","type":0,"val":"messages","end":""}],
+    types: placeholder as Registry['portal.messages.store']['types'],
+  },
   'reports.index': {
     methods: ["GET","HEAD"],
     pattern: '/reports',

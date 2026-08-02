@@ -35,6 +35,71 @@ export class ApiKeySchema extends BaseModel {
   declare revokedAt: DateTime | null
 }
 
+export class ConversationSchema extends BaseModel {
+  static $columns = ['createdAt', 'id', 'reportId', 'updatedAt'] as const
+  $columns = ConversationSchema.$columns
+  @column.dateTime({ autoCreate: true })
+  declare createdAt: DateTime
+  @column({ isPrimary: true })
+  declare id: number
+  @column()
+  declare reportId: number
+  @column.dateTime({ autoCreate: true, autoUpdate: true })
+  declare updatedAt: DateTime | null
+}
+
+export class MessageSchema extends BaseModel {
+  static $columns = [
+    'authorId',
+    'authorType',
+    'body',
+    'conversationId',
+    'createdAt',
+    'direction',
+    'emailMessageId',
+    'id',
+    'inReplyTo',
+  ] as const
+  $columns = MessageSchema.$columns
+  @column()
+  declare authorId: number | null
+  @column()
+  declare authorType: string
+  @column()
+  declare body: string
+  @column()
+  declare conversationId: number
+  @column.dateTime({ autoCreate: true })
+  declare createdAt: DateTime
+  @column()
+  declare direction: string
+  @column()
+  declare emailMessageId: string | null
+  @column({ isPrimary: true })
+  declare id: number
+  @column()
+  declare inReplyTo: string | null
+}
+
+export class NotificationSchema extends BaseModel {
+  static $columns = ['createdAt', 'data', 'id', 'readAt', 'type', 'updatedAt', 'userId'] as const
+  $columns = NotificationSchema.$columns
+  @column.dateTime({ autoCreate: true })
+  declare createdAt: DateTime
+  @column()
+  declare data: any | null
+  @column({ isPrimary: true })
+  declare id: number
+  @column.dateTime()
+  declare readAt: DateTime | null
+  @column()
+  declare type: string
+  @column.dateTime({ autoCreate: true, autoUpdate: true })
+  declare updatedAt: DateTime | null
+  @column()
+  declare userId: number
+}
+
 export class ProjectSchema extends BaseModel {
   static $columns = [
     'createdAt',
@@ -103,6 +168,7 @@ export class ReportSchema extends BaseModel {
     'pageUrl',
     'priority',
     'projectId',
+    'replyToToken',
     'reporterEmail',
     'reporterVerifiedAt',
     'screenshotUrl',
@@ -132,6 +198,8 @@ export class ReportSchema extends BaseModel {
   declare priority: string
   @column()
   declare projectId: number
+  @column()
+  declare replyToToken: string | null
   @column()
   declare reporterEmail: string | null
   @column.dateTime()
