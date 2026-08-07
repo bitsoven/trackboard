@@ -7,6 +7,7 @@ export interface ApiDefinition {
     public: {
       widget: {
         templates: typeof routes['api.public.widget.templates']
+        config: typeof routes['api.public.widget.config']
       }
     }
     projects: {

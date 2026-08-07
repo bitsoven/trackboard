@@ -4,7 +4,7 @@ export const ingestReportValidator = vine.compile(
   vine.object({
     title: vine.string().trim().minLength(1).maxLength(255),
     reporterEmail: vine.string().trim().email(),
-    pageUrl: vine.string().trim().url().optional(),
+    pageUrl: vine.string().trim().optional(),
     browserInfo: vine.any().optional(),
     consoleErrors: vine.any().optional(),
     networkErrors: vine.any().optional(),

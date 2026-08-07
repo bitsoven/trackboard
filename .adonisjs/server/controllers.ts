@@ -14,5 +14,6 @@ export const controllers = {
   Session: () => import('#controllers/session_controller'),
   TemplatePages: () => import('#controllers/template_pages_controller'),
   Webhook: () => import('#controllers/webhook_controller'),
+  WidgetConfig: () => import('#controllers/widget_config_controller'),
   WidgetTemplates: () => import('#controllers/widget_templates_controller'),
 }

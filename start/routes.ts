@@ -21,6 +21,11 @@ router
   ])
   .as('api.public.widget.templates')
 
+// Public widget runtime config (template schema + project config)
+router
+  .get('/api/public/widget/config', [() => import('#controllers/widget_config_controller'), 'show'])
+  .as('api.public.widget.config')
+
 router
   .group(() => {
     router.get('signup', [controllers.NewAccount, 'create'])

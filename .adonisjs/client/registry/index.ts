@@ -18,6 +18,12 @@ const routes = {
     tokens: [{"old":"/api/public/widget/templates","type":0,"val":"api","end":""},{"old":"/api/public/widget/templates","type":0,"val":"public","end":""},{"old":"/api/public/widget/templates","type":0,"val":"widget","end":""},{"old":"/api/public/widget/templates","type":0,"val":"templates","end":""}],
     types: placeholder as Registry['api.public.widget.templates']['types'],
   },
+  'api.public.widget.config': {
+    methods: ["GET","HEAD"],
+    pattern: '/api/public/widget/config',
+    tokens: [{"old":"/api/public/widget/config","type":0,"val":"api","end":""},{"old":"/api/public/widget/config","type":0,"val":"public","end":""},{"old":"/api/public/widget/config","type":0,"val":"widget","end":""},{"old":"/api/public/widget/config","type":0,"val":"config","end":""}],
+    types: placeholder as Registry['api.public.widget.config']['types'],
+  },
   'new_account.create': {
     methods: ["GET","HEAD"],
     pattern: '/signup',

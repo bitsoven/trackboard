@@ -7,7 +7,9 @@
     "noImplicitAny": true,
     "strictNullChecks": true,
     "noUnusedLocals": true,
-    "noUnusedParameters": false
+    "noUnusedParameters": false,
+    "jsx": "react-jsx",
+    "jsxImportSource": "preact"
   },
   "references": [{ "path": "./tsconfig.inertia.json" }]
 }

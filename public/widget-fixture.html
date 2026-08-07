@@ -1,0 +1,34 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Trackboard Widget Fixture</title>
+  </head>
+  <body>
+    <h1>Demo page with cross-origin assets</h1>
+    <p>This page embeds the Trackboard widget and loads cross-origin images and an iframe.</p>
+
+    <img
+      src="https://www.google.com/favicon.ico"
+      alt="cross-origin image"
+      crossorigin="anonymous"
+    />
+    <iframe src="https://example.com" title="cross-origin iframe" width="320" height="160"></iframe>
+
+    <script>
+      ;(function () {
+        var params = new URLSearchParams(location.search)
+        var key = params.get('key')
+        if (!key) return
+        var s = document.createElement('script')
+        s.src = '/widget/v1/widget.js'
+        s.async = true
+        s.dataset.projectKey = key
+        var shadowMode = params.get('shadow')
+        if (shadowMode) s.dataset.shadowMode = shadowMode
+        document.body.appendChild(s)
+      })()
+    </script>
+  </body>
+</html>

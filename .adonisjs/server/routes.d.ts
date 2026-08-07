@@ -6,6 +6,7 @@ export type ScannedRoutes = {
   ALL: {
     'home': { paramsTuple?: []; params?: {} }
     'api.public.widget.templates': { paramsTuple?: []; params?: {} }
+    'api.public.widget.config': { paramsTuple?: []; params?: {} }
     'new_account.create': { paramsTuple?: []; params?: {} }
     'new_account.store': { paramsTuple?: []; params?: {} }
     'session.create': { paramsTuple?: []; params?: {} }
@@ -36,6 +37,7 @@ export type ScannedRoutes = {
   GET: {
     'home': { paramsTuple?: []; params?: {} }
     'api.public.widget.templates': { paramsTuple?: []; params?: {} }
+    'api.public.widget.config': { paramsTuple?: []; params?: {} }
     'new_account.create': { paramsTuple?: []; params?: {} }
     'session.create': { paramsTuple?: []; params?: {} }
     'api.projects.templates.index': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
@@ -52,6 +54,7 @@ export type ScannedRoutes = {
   HEAD: {
     'home': { paramsTuple?: []; params?: {} }
     'api.public.widget.templates': { paramsTuple?: []; params?: {} }
+    'api.public.widget.config': { paramsTuple?: []; params?: {} }
     'new_account.create': { paramsTuple?: []; params?: {} }
     'session.create': { paramsTuple?: []; params?: {} }
     'api.projects.templates.index': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
