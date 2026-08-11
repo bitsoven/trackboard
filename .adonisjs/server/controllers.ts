@@ -5,6 +5,8 @@
 
 export const controllers = {
   AdminReports: () => import('#controllers/admin_reports_controller'),
+  IntegrationPages: () => import('#controllers/integration_pages_controller'),
+  Integrations: () => import('#controllers/integrations_controller'),
   Messages: () => import('#controllers/messages_controller'),
   NewAccount: () => import('#controllers/new_account_controller'),
   Portal: () => import('#controllers/portal_controller'),

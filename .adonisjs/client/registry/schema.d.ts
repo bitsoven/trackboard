@@ -403,4 +403,64 @@ export interface Registry {
       errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/report_pages_controller').default['update']>>>
     }
   }
+  'integrations.index': {
+    methods: ["GET","HEAD"]
+    pattern: '/projects/:projectId/integrations'
+    types: {
+      body: {}
+      paramsTuple: [ParamValue]
+      params: { projectId: ParamValue }
+      query: {}
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/integration_pages_controller').default['index']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/integration_pages_controller').default['index']>>>
+    }
+  }
+  'integrations.store_api_key': {
+    methods: ["POST"]
+    pattern: '/projects/:projectId/integrations/api-keys'
+    types: {
+      body: ExtractBody<InferInput<(typeof import('#validators/api_key').createApiKeyValidator)>>
+      paramsTuple: [ParamValue]
+      params: { projectId: ParamValue }
+      query: ExtractQuery<InferInput<(typeof import('#validators/api_key').createApiKeyValidator)>>
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/integrations_controller').default['storeApiKey']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/integrations_controller').default['storeApiKey']>>> | { status: 422; response: { errors: SimpleError[] } }
+    }
+  }
+  'integrations.revoke_api_key': {
+    methods: ["POST"]
+    pattern: '/projects/:projectId/integrations/api-keys/:id/revoke'
+    types: {
+      body: {}
+      paramsTuple: [ParamValue, ParamValue]
+      params: { projectId: ParamValue; id: ParamValue }
+      query: {}
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/integrations_controller').default['revokeApiKey']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/integrations_controller').default['revokeApiKey']>>>
+    }
+  }
+  'integrations.store_webhook': {
+    methods: ["POST"]
+    pattern: '/projects/:projectId/integrations/webhooks'
+    types: {
+      body: ExtractBody<InferInput<(typeof import('#validators/webhook').createWebhookValidator)>>
+      paramsTuple: [ParamValue]
+      params: { projectId: ParamValue }
+      query: ExtractQuery<InferInput<(typeof import('#validators/webhook').createWebhookValidator)>>
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/integrations_controller').default['storeWebhook']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/integrations_controller').default['storeWebhook']>>> | { status: 422; response: { errors: SimpleError[] } }
+    }
+  }
+  'integrations.destroy_webhook': {
+    methods: ["POST"]
+    pattern: '/projects/:projectId/integrations/webhooks/:id/delete'
+    types: {
+      body: {}
+      paramsTuple: [ParamValue, ParamValue]
+      params: { projectId: ParamValue; id: ParamValue }
+      query: {}
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/integrations_controller').default['destroyWebhook']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/integrations_controller').default['destroyWebhook']>>>
+    }
+  }
 }

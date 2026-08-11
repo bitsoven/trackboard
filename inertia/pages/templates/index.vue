@@ -47,6 +47,12 @@ function destroyTemplate(id: number) {
       >
         New template
       </Link>
+      <Link
+        :href="`/projects/${props.project.id}/integrations`"
+        class="px-4 py-2 border rounded hover:bg-gray-50 text-sm"
+      >
+        Integrations
+      </Link>
     </div>
 
     <div v-if="props.templates.length === 0" class="border rounded p-8 text-center text-gray-500">

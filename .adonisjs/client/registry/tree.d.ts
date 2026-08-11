@@ -68,4 +68,11 @@ export interface ApiDefinition {
     show: typeof routes['reports.show']
     update: typeof routes['reports.update']
   }
+  integrations: {
+    index: typeof routes['integrations.index']
+    storeApiKey: typeof routes['integrations.store_api_key']
+    revokeApiKey: typeof routes['integrations.revoke_api_key']
+    storeWebhook: typeof routes['integrations.store_webhook']
+    destroyWebhook: typeof routes['integrations.destroy_webhook']
+  }
 }

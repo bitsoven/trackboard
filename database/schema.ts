@@ -220,6 +220,49 @@ export class ReportSchema extends BaseModel {
   declare verificationToken: string | null
 }
 
+export class WebhookSubscriptionSchema extends BaseModel {
+  static $columns = [
+    'active',
+    'createdAt',
+    'events',
+    'id',
+    'projectId',
+    'secret',
+    'updatedAt',
+    'url',
+  ] as const
+  $columns = WebhookSubscriptionSchema.$columns
+  @column()
+  declare active: boolean
+  @column.dateTime({ autoCreate: true })
+  declare createdAt: DateTime
+  @column({
+    prepare: (value) => JSON.stringify(value ?? []),
+    consume: (value) => {
+      if (value === null || value === undefined) return []
+      if (typeof value === 'string') {
+        try {
+          return JSON.parse(value)
+        } catch {
+          return []
+        }
+      }
+      return value as string[]
+    },
+  })
+  declare events: string[]
+  @column({ isPrimary: true })
+  declare id: number
+  @column()
+  declare projectId: number
+  @column()
+  declare secret: string
+  @column.dateTime({ autoCreate: true, autoUpdate: true })
+  declare updatedAt: DateTime
+  @column()
+  declare url: string
+}
+
 export class TemplateFieldSchema extends BaseModel {
   static $columns = [
     'id',

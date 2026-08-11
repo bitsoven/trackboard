@@ -182,3 +182,31 @@ router
       .as('reports.update')
   })
   .use(middleware.auth())
+
+// Integrations — settings page + management actions (Inertia)
+router
+  .group(() => {
+    router
+      .get('/projects/:projectId/integrations', [
+        () => import('#controllers/integration_pages_controller'),
+        'index',
+      ])
+      .as('integrations.index')
+    router.post('/projects/:projectId/integrations/api-keys', [
+      () => import('#controllers/integrations_controller'),
+      'storeApiKey',
+    ])
+    router.post('/projects/:projectId/integrations/api-keys/:id/revoke', [
+      () => import('#controllers/integrations_controller'),
+      'revokeApiKey',
+    ])
+    router.post('/projects/:projectId/integrations/webhooks', [
+      () => import('#controllers/integrations_controller'),
+      'storeWebhook',
+    ])
+    router.post('/projects/:projectId/integrations/webhooks/:id/delete', [
+      () => import('#controllers/integrations_controller'),
+      'destroyWebhook',
+    ])
+  })
+  .use(middleware.auth())

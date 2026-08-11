@@ -33,6 +33,7 @@ export type ScannedRoutes = {
     'reports.index': { paramsTuple?: []; params?: {} }
     'reports.show': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'reports.update': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
+    'integrations.index': { paramsTuple: [ParamValue]; params: {'projectId': ParamValue} }
   }
   GET: {
     'home': { paramsTuple?: []; params?: {} }
@@ -50,6 +51,7 @@ export type ScannedRoutes = {
     'portal.show': { paramsTuple: [ParamValue]; params: {'reply_to_token': ParamValue} }
     'reports.index': { paramsTuple?: []; params?: {} }
     'reports.show': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
+    'integrations.index': { paramsTuple: [ParamValue]; params: {'projectId': ParamValue} }
   }
   HEAD: {
     'home': { paramsTuple?: []; params?: {} }
@@ -67,6 +69,7 @@ export type ScannedRoutes = {
     'portal.show': { paramsTuple: [ParamValue]; params: {'reply_to_token': ParamValue} }
     'reports.index': { paramsTuple?: []; params?: {} }
     'reports.show': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
+    'integrations.index': { paramsTuple: [ParamValue]; params: {'projectId': ParamValue} }
   }
   POST: {
     'new_account.store': { paramsTuple?: []; params?: {} }

@@ -6,13 +6,19 @@
 /// <reference path="./manifest.d.ts" />
 import type { InferData, InferVariants } from '@adonisjs/core/types/transformers'
 import type { InferSharedProps, InferFlashData } from '@adonisjs/inertia/types'
+import type ApiKeyTransformer from '#transformers/api_key_transformer'
 import type ReportTemplateTransformer from '#transformers/report_template_transformer'
 import type ReportTransformer from '#transformers/report_transformer'
 import type TemplateFieldTransformer from '#transformers/template_field_transformer'
 import type UserTransformer from '#transformers/user_transformer'
+import type WebhookTransformer from '#transformers/webhook_transformer'
 import type InertiaMiddleware from '#middleware/inertia_middleware'
 
 export namespace Data {
+  export type ApiKey = InferData<ApiKeyTransformer>
+  export namespace ApiKey {
+    export type Variants = InferVariants<ApiKeyTransformer>
+  }
   export type ReportTemplate = InferData<ReportTemplateTransformer>
   export namespace ReportTemplate {
     export type Variants = InferVariants<ReportTemplateTransformer>
@@ -28,6 +34,10 @@ export namespace Data {
   export type User = InferData<UserTransformer>
   export namespace User {
     export type Variants = InferVariants<UserTransformer>
+  }
+  export type Webhook = InferData<WebhookTransformer>
+  export namespace Webhook {
+    export type Variants = InferVariants<WebhookTransformer>
   }
   export type SharedProps = InferSharedProps<InertiaMiddleware>
   export type FlashMessages = InferFlashData<InertiaMiddleware>

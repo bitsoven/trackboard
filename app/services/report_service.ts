@@ -11,6 +11,7 @@ import { ingestReportValidator, updateReportValidator } from '#validators/report
 import drive from '@adonisjs/drive/services/main'
 import ReportVerificationException from '#exceptions/report_verification_exception'
 import { sendVerificationMail } from '#mails/verification_mail'
+import WebhookService from '#services/webhook_service'
 import { randomUUID } from 'node:crypto'
 import { promises as dns } from 'node:dns'
 
@@ -230,7 +231,18 @@ export default class ReportService {
       await this.sendVerificationEmail(report, token)
     }
 
+    // Fire outbound webhooks + optional GitHub issue sync (best-effort).
+    await this.notifyIntegrations(report, 'report.created')
+
     return report
+  }
+
+  /**
+   * Fire integrations for a report lifecycle event. Webhooks are dispatched
+   * (best-effort) and never break the primary request.
+   */
+  protected async notifyIntegrations(report: Report, event: 'report.created' | 'report.updated') {
+    await WebhookService.dispatch(event, report)
   }
 
   /**
@@ -364,6 +376,7 @@ export default class ReportService {
     if (data.title) report.title = data.title as string
     await report.save()
     await report.load('fieldValues')
+    await this.notifyIntegrations(report, 'report.updated')
     return report
   }
 

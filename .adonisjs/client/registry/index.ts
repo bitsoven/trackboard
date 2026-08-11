@@ -204,6 +204,36 @@ const routes = {
     tokens: [{"old":"/reports/:id","type":0,"val":"reports","end":""},{"old":"/reports/:id","type":1,"val":"id","end":""}],
     types: placeholder as Registry['reports.update']['types'],
   },
+  'integrations.index': {
+    methods: ["GET","HEAD"],
+    pattern: '/projects/:projectId/integrations',
+    tokens: [{"old":"/projects/:projectId/integrations","type":0,"val":"projects","end":""},{"old":"/projects/:projectId/integrations","type":1,"val":"projectId","end":""},{"old":"/projects/:projectId/integrations","type":0,"val":"integrations","end":""}],
+    types: placeholder as Registry['integrations.index']['types'],
+  },
+  'integrations.store_api_key': {
+    methods: ["POST"],
+    pattern: '/projects/:projectId/integrations/api-keys',
+    tokens: [{"old":"/projects/:projectId/integrations/api-keys","type":0,"val":"projects","end":""},{"old":"/projects/:projectId/integrations/api-keys","type":1,"val":"projectId","end":""},{"old":"/projects/:projectId/integrations/api-keys","type":0,"val":"integrations","end":""},{"old":"/projects/:projectId/integrations/api-keys","type":0,"val":"api-keys","end":""}],
+    types: placeholder as Registry['integrations.store_api_key']['types'],
+  },
+  'integrations.revoke_api_key': {
+    methods: ["POST"],
+    pattern: '/projects/:projectId/integrations/api-keys/:id/revoke',
+    tokens: [{"old":"/projects/:projectId/integrations/api-keys/:id/revoke","type":0,"val":"projects","end":""},{"old":"/projects/:projectId/integrations/api-keys/:id/revoke","type":1,"val":"projectId","end":""},{"old":"/projects/:projectId/integrations/api-keys/:id/revoke","type":0,"val":"integrations","end":""},{"old":"/projects/:projectId/integrations/api-keys/:id/revoke","type":0,"val":"api-keys","end":""},{"old":"/projects/:projectId/integrations/api-keys/:id/revoke","type":1,"val":"id","end":""},{"old":"/projects/:projectId/integrations/api-keys/:id/revoke","type":0,"val":"revoke","end":""}],
+    types: placeholder as Registry['integrations.revoke_api_key']['types'],
+  },
+  'integrations.store_webhook': {
+    methods: ["POST"],
+    pattern: '/projects/:projectId/integrations/webhooks',
+    tokens: [{"old":"/projects/:projectId/integrations/webhooks","type":0,"val":"projects","end":""},{"old":"/projects/:projectId/integrations/webhooks","type":1,"val":"projectId","end":""},{"old":"/projects/:projectId/integrations/webhooks","type":0,"val":"integrations","end":""},{"old":"/projects/:projectId/integrations/webhooks","type":0,"val":"webhooks","end":""}],
+    types: placeholder as Registry['integrations.store_webhook']['types'],
+  },
+  'integrations.destroy_webhook': {
+    methods: ["POST"],
+    pattern: '/projects/:projectId/integrations/webhooks/:id/delete',
+    tokens: [{"old":"/projects/:projectId/integrations/webhooks/:id/delete","type":0,"val":"projects","end":""},{"old":"/projects/:projectId/integrations/webhooks/:id/delete","type":1,"val":"projectId","end":""},{"old":"/projects/:projectId/integrations/webhooks/:id/delete","type":0,"val":"integrations","end":""},{"old":"/projects/:projectId/integrations/webhooks/:id/delete","type":0,"val":"webhooks","end":""},{"old":"/projects/:projectId/integrations/webhooks/:id/delete","type":1,"val":"id","end":""},{"old":"/projects/:projectId/integrations/webhooks/:id/delete","type":0,"val":"delete","end":""}],
+    types: placeholder as Registry['integrations.destroy_webhook']['types'],
+  },
 } as const satisfies Record<string, AdonisEndpoint>
 
 export { routes }
