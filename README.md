@@ -97,6 +97,16 @@ For Coolify: create service from `Dockerfile`, set env vars in UI (`DB_HOST`, `S
 - `inertia/` — Vue 3 admin console (Inertia)
 - `resources/views` — Edge root layout
 - `tests/` — Japa suites (unit / functional / browser)
+- `load-test/` — standalone ingest load generator
+- `docs/` — self-hosting, embedding, CSP, and license-review guides
+
+## Documentation
+
+- [Self-hosting](./docs/self-hosting.md) — Docker / Coolify deploy + env vars
+- [Embedding the widget](./docs/embedding.md) — `<script>` snippet + options
+- [CSP for self-hosters](./docs/csp.md) — script-src allowlist for the widget
+- [License review](./docs/license-review.md) — confirmation all features are core
+- [Contributing](./CONTRIBUTING.md) — conventions and PR expectations
 
 ## License
 

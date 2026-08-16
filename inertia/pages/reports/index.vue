@@ -49,8 +49,28 @@ function applyFilters() {
 function clearFilters() {
   statusFilter.value = ''
   priorityFilter.value = ''
-  projectFilter.value = ''
   applyFilters()
+}
+
+function statusBadge(status: string): string {
+  const map: Record<string, string> = {
+    open: 'bg-green-100 text-green-700',
+    in_progress: 'bg-amber-100 text-amber-700',
+    pending_verification: 'bg-purple-100 text-purple-700',
+    resolved: 'bg-blue-100 text-blue-700',
+    closed: 'bg-gray-200 text-gray-600',
+  }
+  return map[status] ?? 'bg-gray-100 text-gray-700'
+}
+
+function priorityBadge(priority: string): string {
+  const map: Record<string, string> = {
+    low: 'bg-gray-100 text-gray-700',
+    medium: 'bg-blue-100 text-blue-700',
+    high: 'bg-orange-100 text-orange-700',
+    critical: 'bg-red-100 text-red-700',
+  }
+  return map[priority] ?? 'bg-gray-100 text-gray-700'
 }
 
 const features = tableFeatures({})
@@ -116,7 +136,10 @@ const table = useTable({
         <option value="high">high</option>
         <option value="critical">critical</option>
       </select>
-      <button class="text-sm px-3 py-1 bg-black text-white rounded" @click="applyFilters">
+      <button
+        class="text-sm px-3 py-1 bg-brand text-white rounded-md hover:bg-brand-dark"
+        @click="applyFilters"
+      >
         Apply
       </button>
       <button class="text-sm px-3 py-1 border rounded" @click="clearFilters">Clear</button>
@@ -145,8 +168,22 @@ const table = useTable({
               <template v-if="cell.column.id === 'actions'">
                 <Link
                   :href="`/reports/${(row.original as any).id}`"
-                  class="text-blue-600 hover:underline"
+                  class="text-brand hover:underline"
                   >View</Link
+                >
+              </template>
+              <template v-else-if="cell.column.id === 'status'">
+                <span
+                  class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium"
+                  :class="statusBadge(cell.getValue() as string)"
+                  >{{ cell.getValue() }}</span
+                >
+              </template>
+              <template v-else-if="cell.column.id === 'priority'">
+                <span
+                  class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium"
+                  :class="priorityBadge(cell.getValue() as string)"
+                  >{{ cell.getValue() }}</span
                 >
               </template>
               <template v-else>

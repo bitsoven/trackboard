@@ -353,7 +353,7 @@ const hasErrors = computed(() => Object.keys(formErrors.value).length > 0)
       <div class="flex gap-3 pt-4">
         <button
           type="button"
-          class="px-4 py-2 bg-black text-white rounded hover:bg-gray-800 text-sm"
+          class="px-4 py-2 bg-brand text-white rounded-md hover:bg-brand-dark text-sm"
           @click="submit"
         >
           {{ isEditing ? 'Update template' : 'Create template' }}

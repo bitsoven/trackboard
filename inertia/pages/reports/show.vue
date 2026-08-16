@@ -61,6 +61,27 @@ function sendReply() {
     },
   })
 }
+
+function statusBadge(statusValue: string): string {
+  const map: Record<string, string> = {
+    open: 'bg-green-100 text-green-700',
+    in_progress: 'bg-amber-100 text-amber-700',
+    pending_verification: 'bg-purple-100 text-purple-700',
+    resolved: 'bg-blue-100 text-blue-700',
+    closed: 'bg-gray-200 text-gray-600',
+  }
+  return map[statusValue] ?? 'bg-gray-100 text-gray-700'
+}
+
+function priorityBadge(priorityValue: string): string {
+  const map: Record<string, string> = {
+    low: 'bg-gray-100 text-gray-700',
+    medium: 'bg-blue-100 text-blue-700',
+    high: 'bg-orange-100 text-orange-700',
+    critical: 'bg-red-100 text-red-700',
+  }
+  return map[priorityValue] ?? 'bg-gray-100 text-gray-700'
+}
 </script>
 
 <template>
@@ -80,14 +101,23 @@ function sendReply() {
           <p class="text-sm mt-1">Reporter: {{ props.report.reporterEmail }}</p>
           <p v-if="props.report.pageUrl" class="text-sm">
             Page:
-            <a :href="props.report.pageUrl" target="_blank" class="text-blue-600 hover:underline">{{
+            <a :href="props.report.pageUrl" target="_blank" class="text-brand hover:underline">{{
               props.report.pageUrl
             }}</a>
           </p>
         </div>
-        <span class="text-xs border px-2 py-1 rounded bg-gray-50"
-          >{{ props.report.status }} / {{ props.report.priority }}</span
-        >
+        <div class="flex gap-2">
+          <span
+            class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium"
+            :class="statusBadge(props.report.status)"
+            >{{ props.report.status }}</span
+          >
+          <span
+            class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium"
+            :class="priorityBadge(props.report.priority)"
+            >{{ props.report.priority }}</span
+          >
+        </div>
       </div>
 
       <div class="mt-4 flex gap-3">
@@ -103,7 +133,10 @@ function sendReply() {
           <option value="high">high</option>
           <option value="critical">critical</option>
         </select>
-        <button class="text-sm px-3 py-1 bg-black text-white rounded" @click="updateReport">
+        <button
+          class="text-sm px-3 py-1 bg-brand text-white rounded-md hover:bg-brand-dark"
+          @click="updateReport"
+        >
           Update
         </button>
       </div>
@@ -175,7 +208,7 @@ function sendReply() {
           <div
             class="max-w-[80%] rounded p-3 text-sm"
             :class="
-              message.direction === 'outbound' ? 'bg-black text-white' : 'bg-gray-100 text-gray-900'
+              message.direction === 'outbound' ? 'bg-brand text-white' : 'bg-gray-100 text-gray-900'
             "
           >
             <p class="text-xs opacity-70 mb-1">
@@ -196,7 +229,7 @@ function sendReply() {
         ></textarea>
         <button
           type="submit"
-          class="mt-2 text-sm px-3 py-1 bg-black text-white rounded disabled:opacity-50"
+          class="mt-2 text-sm px-3 py-1 bg-brand text-white rounded-md disabled:opacity-50"
           :disabled="replyForm.processing || !replyForm.body"
         >
           Send reply

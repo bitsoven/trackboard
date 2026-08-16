@@ -58,7 +58,7 @@ function sendReply() {
           <div
             class="max-w-[80%] rounded p-3 text-sm"
             :class="
-              message.direction === 'outbound' ? 'bg-black text-white' : 'bg-gray-100 text-gray-900'
+              message.direction === 'outbound' ? 'bg-brand text-white' : 'bg-gray-100 text-gray-900'
             "
           >
             <p class="text-xs opacity-70 mb-1">
@@ -79,7 +79,7 @@ function sendReply() {
         ></textarea>
         <button
           type="submit"
-          class="mt-2 text-sm px-3 py-1 bg-black text-white rounded disabled:opacity-50"
+          class="mt-2 text-sm px-3 py-1 bg-brand text-white rounded-md disabled:opacity-50"
           :disabled="replyForm.processing || !replyForm.body"
         >
           Send reply

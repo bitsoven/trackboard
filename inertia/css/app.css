@@ -1,3 +1,12 @@
+@import 'tailwindcss';
+@import 'vue-sonner/style.css';
+
+@theme {
+  --color-brand: #2070d0;
+  --color-brand-dark: #1857a8;
+  --color-brand-light: #e8f1fc;
+}
+
 :root {
   --gray-1: oklch(98.5% 0 0);
   --gray-2: oklch(97% 0 0);
@@ -47,9 +56,14 @@ h6 {
 
 /* Header */
 header {
+  position: sticky;
+  top: 0;
+  z-index: 20;
+  background: #fff;
   max-width: 1440px;
   margin: auto;
   padding: 0 30px;
+  border-bottom: 1px solid var(--gray-3);
 }
 header > div {
   display: flex;
@@ -68,7 +82,7 @@ header nav a {
 }
 header nav a:hover,
 header nav a.current {
-  color: var(--gray-12);
+  color: var(--color-brand, #2070d0);
 }
 
 /* Main */
@@ -184,14 +198,16 @@ textarea[data-invalid='true'] + div {
 }
 
 button {
-  background: var(--gray-12);
+  background: var(--color-brand, #2070d0);
   color: #fff;
   border: none;
-  padding: 10px;
+  padding: 10px 14px;
+  border-radius: 6px;
   font-weight: 500;
+  cursor: pointer;
 }
 button:hover {
-  background: var(--gray-10);
+  background: var(--color-brand-dark, #1857a8);
 }
 
 /* Alerts */

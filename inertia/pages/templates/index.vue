@@ -43,7 +43,7 @@ function destroyTemplate(id: number) {
       </div>
       <Link
         :href="`/projects/${props.project.id}/templates/create`"
-        class="px-4 py-2 bg-black text-white rounded hover:bg-gray-800 text-sm"
+        class="px-4 py-2 bg-brand text-white rounded-md hover:bg-brand-dark text-sm"
       >
         New template
       </Link>
