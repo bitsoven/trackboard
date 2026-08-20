@@ -142,7 +142,12 @@ const table = useTable({
       >
         Apply
       </button>
-      <button class="text-sm px-3 py-1 border rounded" @click="clearFilters">Clear</button>
+      <button
+        class="text-sm px-3 py-1 border rounded bg-white hover:bg-gray-50"
+        @click="clearFilters"
+      >
+        Clear
+      </button>
     </div>
 
     <div class="border rounded bg-white overflow-x-auto">

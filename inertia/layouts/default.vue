@@ -31,7 +31,7 @@ watch(
     <div>
       <div>
         <Link route="home" class="flex items-center gap-2">
-          <img src="/logo.png" alt="Trackboard" class="h-7 w-auto" />
+          <img :src="'/logo.png'" alt="Trackboard" class="h-7 w-auto" />
           <span class="font-semibold text-brand text-lg tracking-tight">Trackboard</span>
         </Link>
       </div>

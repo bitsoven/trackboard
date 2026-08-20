@@ -6,6 +6,11 @@ import { Head } from '@inertiajs/vue3'
   <Head title="Homepage" />
 
   <div class="hero">
+    <div
+      class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-brand-light text-brand text-xs font-medium mb-4"
+    >
+      Trackboard · Self-hosted bug reporting
+    </div>
     <h1>It works — welcome to the power of a full-stack Vue app</h1>
     <p>
       Powered by Inertia and Vue, this setup blends server-driven routing with rich client-side

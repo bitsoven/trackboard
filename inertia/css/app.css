@@ -7,6 +7,7 @@
   --color-brand-light: #e8f1fc;
 }
 
+@layer base {
 :root {
   --gray-1: oklch(98.5% 0 0);
   --gray-2: oklch(97% 0 0);
@@ -174,11 +175,17 @@ label {
   font-weight: 500;
 }
 input,
-textarea,
-button {
+textarea {
   width: 100%;
   border-radius: 4px;
   font: inherit;
+}
+button {
+  border-radius: 4px;
+  font: inherit;
+}
+.form-container button {
+  width: 100%;
 }
 input {
   height: 40px;
@@ -248,5 +255,33 @@ button:hover {
   }
   to {
     transform: scale(1);
+  }
+}
+}
+
+@media (max-width: 768px) {
+  header {
+    padding: 0 16px;
+  }
+  main {
+    margin: 0 16px;
+  }
+  .hero {
+    padding: 48px 24px;
+  }
+  .hero h1 {
+    font-size: 32px;
+  }
+  .cards {
+    grid-template-columns: 1fr;
+    padding: 0 24px;
+  }
+  .cards a {
+    border-right: none;
+    border-bottom: 1px solid var(--gray-3);
+  }
+  .cards a:first-child {
+    border-left: none;
+    border-top: 1px solid var(--gray-3);
   }
 }

@@ -36,23 +36,25 @@ function destroyTemplate(id: number) {
   <Head :title="`${props.project.name} — Templates`" />
 
   <div class="max-w-5xl mx-auto p-6">
-    <div class="flex items-center justify-between mb-6">
-      <div>
+    <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between mb-6">
+      <div class="min-w-0">
         <h1 class="text-2xl font-semibold">{{ props.project.name }} — Templates</h1>
         <p class="text-sm text-gray-500 mt-1">Manage bug report templates for this project</p>
       </div>
-      <Link
-        :href="`/projects/${props.project.id}/templates/create`"
-        class="px-4 py-2 bg-brand text-white rounded-md hover:bg-brand-dark text-sm"
-      >
-        New template
-      </Link>
-      <Link
-        :href="`/projects/${props.project.id}/integrations`"
-        class="px-4 py-2 border rounded hover:bg-gray-50 text-sm"
-      >
-        Integrations
-      </Link>
+      <div class="flex items-center gap-2 shrink-0">
+        <Link
+          :href="`/projects/${props.project.id}/templates/create`"
+          class="px-4 py-2 bg-brand text-white rounded-md hover:bg-brand-dark text-sm whitespace-nowrap"
+        >
+          New template
+        </Link>
+        <Link
+          :href="`/projects/${props.project.id}/integrations`"
+          class="px-4 py-2 border rounded bg-white hover:bg-gray-50 text-sm whitespace-nowrap"
+        >
+          Integrations
+        </Link>
+      </div>
     </div>
 
     <div v-if="props.templates.length === 0" class="border rounded p-8 text-center text-gray-500">
@@ -87,11 +89,11 @@ function destroyTemplate(id: number) {
         <div class="flex gap-2 ml-4">
           <Link
             :href="`/templates/${tpl.id}/edit`"
-            class="text-sm px-3 py-1 border rounded hover:bg-gray-50"
+            class="text-sm px-3 py-1 border rounded bg-white hover:bg-gray-50"
             >Edit</Link
           >
           <button
-            class="text-sm px-3 py-1 border rounded hover:bg-red-50 text-red-600"
+            class="text-sm px-3 py-1 border rounded bg-white hover:bg-red-50 text-red-600"
             @click="destroyTemplate(tpl.id)"
           >
             Delete
