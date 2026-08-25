@@ -186,6 +186,12 @@ const routes = {
     tokens: [{"old":"/portal/:reply_to_token/messages","type":0,"val":"portal","end":""},{"old":"/portal/:reply_to_token/messages","type":1,"val":"reply_to_token","end":""},{"old":"/portal/:reply_to_token/messages","type":0,"val":"messages","end":""}],
     types: placeholder as Registry['portal.messages.store']['types'],
   },
+  'inbox.index': {
+    methods: ["GET","HEAD"],
+    pattern: '/inbox',
+    tokens: [{"old":"/inbox","type":0,"val":"inbox","end":""}],
+    types: placeholder as Registry['inbox.index']['types'],
+  },
   'reports.index': {
     methods: ["GET","HEAD"],
     pattern: '/reports',

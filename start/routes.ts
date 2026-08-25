@@ -11,7 +11,7 @@ import { middleware } from '#start/kernel'
 import { controllers } from '#generated/controllers'
 import router from '@adonisjs/core/services/router'
 
-router.on('/').renderInertia('home', {}).as('home')
+router.get('/', [() => import('#controllers/overview_controller'), 'index']).as('home')
 
 // Public widget template endpoint (no auth, key via query)
 router
@@ -167,6 +167,13 @@ router
     'store',
   ])
   .as('portal.messages.store')
+
+// Inbox — UI (Inertia)
+router
+  .group(() => {
+    router.get('/inbox', [() => import('#controllers/inbox_controller'), 'index']).as('inbox.index')
+  })
+  .use(middleware.auth())
 
 // Reports — UI (Inertia)
 router

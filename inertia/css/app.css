@@ -2,10 +2,18 @@
 @import 'vue-sonner/style.css';
 
 @theme {
-  --color-brand: #2070d0;
-  --color-brand-dark: #1857a8;
+  --color-brand-indigo-900: #312e81;
+  --color-brand-indigo-700: #4338ca;
+  --color-brand-indigo-500: #6366f1;
+  --color-brand-teal-600: #0d9488;
+  --color-brand-teal-400: #2dd4bf;
+  --color-brand: #4338ca;
+  --color-brand-dark: #6366f1;
   --color-brand-light: #e8f1fc;
+  --color-amber-500: #f59e0b;
 }
+
+@custom-variant dark (&:is(.dark *));
 
 @layer base {
 :root {
@@ -83,7 +91,7 @@ header nav a {
 }
 header nav a:hover,
 header nav a.current {
-  color: var(--color-brand, #2070d0);
+  color: var(--color-brand-teal-600, #0d9488);
 }
 
 /* Main */
@@ -174,11 +182,16 @@ label {
   font-size: 14px;
   font-weight: 500;
 }
-input,
+input:not([type='checkbox']):not([type='radio']),
 textarea {
   width: 100%;
   border-radius: 4px;
   font: inherit;
+}
+input[type='checkbox'],
+input[type='radio'] {
+  width: auto;
+  accent-color: var(--color-brand-indigo-700, #4338ca);
 }
 button {
   border-radius: 4px;
@@ -205,7 +218,7 @@ textarea[data-invalid='true'] + div {
 }
 
 button {
-  background: var(--color-brand, #2070d0);
+  background: var(--color-brand, #4338ca);
   color: #fff;
   border: none;
   padding: 10px 14px;
@@ -214,7 +227,7 @@ button {
   cursor: pointer;
 }
 button:hover {
-  background: var(--color-brand-dark, #1857a8);
+  background: var(--color-brand-dark, #6366f1);
 }
 
 /* Alerts */
@@ -257,6 +270,48 @@ button:hover {
     transform: scale(1);
   }
 }
+}
+
+html.dark {
+  color-scheme: dark;
+}
+html.dark body {
+  background: #0f172a;
+  color: #e2e8f0;
+}
+html.dark header {
+  background: #1e293b;
+  border-color: #334155;
+}
+html.dark main {
+  background: transparent;
+}
+html.dark .bg-white {
+  background-color: #1e293b !important;
+  border-color: #334155 !important;
+}
+html.dark .bg-slate-50 {
+  background-color: #0f172a !important;
+}
+html.dark .border-slate-200 {
+  border-color: #334155 !important;
+}
+html.dark .text-slate-900 {
+  color: #f1f5f9 !important;
+}
+html.dark .text-slate-500 {
+  color: #94a3b8 !important;
+}
+html.dark .text-slate-600 {
+  color: #94a3b8 !important;
+}
+html.dark h1,
+html.dark h2,
+html.dark h3,
+html.dark h4,
+html.dark h5,
+html.dark h6 {
+  color: #f1f5f9 !important;
 }
 
 @media (max-width: 768px) {

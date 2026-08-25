@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue'
-import { Head, useForm, usePage } from '@inertiajs/vue3'
+import { Head, router, useForm, usePage } from '@inertiajs/vue3'
 import { Link } from '@adonisjs/inertia/vue'
 
 type ApiKey = {
@@ -50,190 +50,239 @@ function toggleEvent(event: string, checked: boolean) {
 function createWebhook() {
   webhookForm.post(`/projects/${props.project.id}/integrations/webhooks`)
 }
+
+function revokeKey(id: number) {
+  if (!confirm('Revoke this API token? This cannot be undone.')) return
+  router.post(`/projects/${props.project.id}/integrations/api-keys/${id}/revoke`)
+}
+
+function deleteWebhook(id: number) {
+  if (!confirm('Delete this webhook?')) return
+  router.post(`/projects/${props.project.id}/integrations/webhooks/${id}/delete`)
+}
 </script>
 
 <template>
   <Head :title="`${props.project.name} — Integrations`" />
 
-  <div style="max-width: 880px; margin: 0 auto; padding: 40px 30px">
-    <div
-      style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px"
-    >
-      <h1 style="font-size: 28px; font-weight: 600; letter-spacing: -0.5px">
+  <div class="max-w-5xl mx-auto p-6">
+    <div class="mb-6">
+      <Link href="/" class="text-sm text-slate-500 hover:text-brand-indigo-700 hover:underline"
+        >← Back to overview</Link
+      >
+      <h1 class="text-2xl font-semibold tracking-tight mt-2">
         {{ props.project.name }} — Integrations
       </h1>
-      <Link href="/" style="color: var(--gray-6); font-size: 14px">← Back</Link>
+      <p class="text-sm text-slate-500 mt-1">
+        Connect external services. All integrations ship unlocked in core — no license or paywall.
+      </p>
     </div>
-    <p style="color: var(--gray-6); margin-bottom: 32px">
-      Connect external services. All features ship in core — no license or paywall.
-    </p>
 
-    <!-- API Tokens -->
-    <section style="margin-bottom: 40px">
-      <h2 style="font-size: 18px; font-weight: 600; margin-bottom: 4px">API Tokens</h2>
-      <p style="color: var(--gray-6); font-size: 14px; margin-bottom: 16px">
-        Tokens used by external clients (e.g. the embeddable widget) to ingest reports.
-      </p>
-
-      <div
-        v-if="shownRawKey"
-        style="
-          background: #00a63e1a;
-          border: 1px solid #00a63e;
-          color: #00a63e;
-          padding: 12px 16px;
-          border-radius: 8px;
-          margin-bottom: 16px;
-          font-weight: 500;
-        "
+    <div
+      v-if="shownRawKey"
+      class="mb-6 border border-emerald-200 bg-emerald-50 text-emerald-700 rounded-lg p-4"
+    >
+      <p class="text-sm font-medium">New token — copy now, it won't be shown again:</p>
+      <code
+        class="block mt-2 text-xs bg-white border border-emerald-200 rounded px-2 py-1.5 break-all"
+        >{{ shownRawKey }}</code
       >
-        New token (copy now, it won't be shown again):
-        <code style="display: block; margin-top: 6px; word-break: break-all">{{
-          shownRawKey
-        }}</code>
-      </div>
+    </div>
 
-      <div
-        v-if="props.apiKeys.length"
-        style="display: flex; flex-direction: column; gap: 8px; margin-bottom: 16px"
-      >
-        <div
-          v-for="key in props.apiKeys"
-          :key="key.id"
-          style="
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            border: 1px solid var(--gray-3);
-            border-radius: 8px;
-            padding: 10px 14px;
-          "
-        >
-          <div>
-            <div style="font-weight: 500">{{ key.label || 'Untitled key' }}</div>
-            <div style="font-size: 12px; color: var(--gray-6)">{{ key.keyPreview }}</div>
-          </div>
-          <form
-            :action="`/projects/${props.project.id}/integrations/api-keys/${key.id}/revoke`"
-            method="POST"
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <!-- API Tokens -->
+      <section class="bg-white border border-slate-200 rounded-xl overflow-hidden">
+        <div class="px-5 py-4 border-b border-slate-200">
+          <h2 class="text-sm font-semibold flex items-center gap-2">
+            <span class="h-2 w-2 rounded-full bg-brand-teal-600"></span>
+            API Tokens
+          </h2>
+          <p class="text-xs text-slate-500 mt-1">
+            Tokens for the embeddable widget and external API access.
+          </p>
+        </div>
+
+        <div class="p-5 space-y-4">
+          <div
+            v-if="props.apiKeys.length === 0"
+            class="text-sm text-slate-500 py-4 text-center border border-dashed border-slate-200 rounded-lg bg-slate-50"
           >
-            <button
-              type="submit"
-              style="
-                background: transparent;
-                color: #fb2c36;
-                border: 1px solid #fb2c36;
-                padding: 6px 12px;
-                border-radius: 6px;
-                font-weight: 500;
-              "
-            >
-              Revoke
-            </button>
-          </form>
-        </div>
-      </div>
-
-      <form style="display: flex; gap: 8px; align-items: flex-end" @submit.prevent="createApiKey">
-        <div style="flex: 1">
-          <label>Label (optional)</label>
-          <input v-model="apiKeyForm.label" type="text" placeholder="CI pipeline" />
-        </div>
-        <button type="submit" :disabled="apiKeyForm.processing">Create token</button>
-      </form>
-    </section>
-
-    <!-- Webhooks -->
-    <section style="margin-bottom: 40px">
-      <h2 style="font-size: 18px; font-weight: 600; margin-bottom: 4px">Outbound Webhooks</h2>
-      <p style="color: var(--gray-6); font-size: 14px; margin-bottom: 16px">
-        POST a JSON payload to your endpoint on report events. Signed with
-        <code>X-Trackboard-Signature: sha256=HMAC</code>.
-      </p>
-
-      <div
-        v-if="props.webhooks.length"
-        style="display: flex; flex-direction: column; gap: 8px; margin-bottom: 16px"
-      >
-        <div
-          v-for="wh in props.webhooks"
-          :key="wh.id"
-          style="
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            border: 1px solid var(--gray-3);
-            border-radius: 8px;
-            padding: 10px 14px;
-          "
-        >
-          <div>
-            <div style="font-weight: 500; word-break: break-all">{{ wh.url }}</div>
-            <div style="font-size: 12px; color: var(--gray-6)">{{ wh.events.join(', ') }}</div>
+            No tokens yet — create one below.
           </div>
-          <form
-            :action="`/projects/${props.project.id}/integrations/webhooks/${wh.id}/delete`"
-            method="POST"
-          >
-            <button
-              type="submit"
-              style="
-                background: transparent;
-                color: #fb2c36;
-                border: 1px solid #fb2c36;
-                padding: 6px 12px;
-                border-radius: 6px;
-                font-weight: 500;
-              "
-            >
-              Delete
-            </button>
-          </form>
-        </div>
-      </div>
 
-      <form
-        style="
-          display: flex;
-          flex-direction: column;
-          gap: 12px;
-          border: 1px solid var(--gray-3);
-          border-radius: 8px;
-          padding: 16px;
-        "
-        @submit.prevent="createWebhook"
-      >
-        <div>
-          <label>Endpoint URL</label>
-          <input v-model="webhookForm.url" type="url" placeholder="https://example.com/webhook" />
-        </div>
-        <div>
-          <label>Events</label>
-          <div style="display: flex; gap: 16px; margin-top: 4px">
-            <label
-              v-for="ev in WEBHOOK_EVENTS"
-              :key="ev"
-              style="display: flex; align-items: center; gap: 6px; font-weight: 400"
+          <div v-else class="space-y-3">
+            <div
+              v-for="key in props.apiKeys"
+              :key="key.id"
+              class="flex items-center gap-3 border border-slate-200 rounded-lg p-3 bg-white hover:border-slate-300 transition-colors"
             >
+              <span
+                class="h-2 w-2 rounded-full shrink-0"
+                :class="key.revokedAt ? 'bg-slate-300' : 'bg-brand-teal-600'"
+              ></span>
+              <div class="flex-1 min-w-0">
+                <div class="text-sm font-medium truncate">{{ key.label || 'Untitled key' }}</div>
+                <div class="text-xs text-slate-500 font-mono truncate">{{ key.keyPreview }}</div>
+                <div class="text-xs text-slate-400 mt-0.5">
+                  {{ key.createdAt ? new Date(key.createdAt).toLocaleDateString() : '' }}
+                </div>
+              </div>
+              <button
+                type="button"
+                class="text-xs px-3 py-1.5 border border-red-200 rounded-md bg-white text-red-600 hover:bg-red-50 font-medium"
+                @click="revokeKey(key.id)"
+              >
+                Revoke
+              </button>
+            </div>
+          </div>
+
+          <form class="pt-2 border-t border-slate-100 space-y-3" @submit.prevent="createApiKey">
+            <div>
+              <label class="block text-xs font-medium text-slate-700 mb-1">Label (optional)</label>
               <input
-                type="checkbox"
-                :value="ev"
-                :checked="webhookForm.events.includes(ev)"
-                style="width: auto"
-                @change="toggleEvent(ev, ($event.target as HTMLInputElement).checked)"
+                v-model="apiKeyForm.label"
+                type="text"
+                placeholder="CI pipeline"
+                class="w-full border border-slate-300 rounded-md px-3 py-2 text-sm"
               />
-              {{ ev }}
-            </label>
+            </div>
+            <button
+              type="submit"
+              :disabled="apiKeyForm.processing"
+              class="w-full py-2 rounded-md bg-brand-indigo-700 text-white text-sm font-medium hover:bg-brand-indigo-500 disabled:opacity-50"
+            >
+              Create token
+            </button>
+          </form>
+        </div>
+      </section>
+
+      <!-- Webhooks -->
+      <section class="bg-white border border-slate-200 rounded-xl overflow-hidden">
+        <div class="px-5 py-4 border-b border-slate-200">
+          <h2 class="text-sm font-semibold flex items-center gap-2">
+            <span class="h-2 w-2 rounded-full bg-brand-teal-600"></span>
+            Outbound Webhooks
+          </h2>
+          <p class="text-xs text-slate-500 mt-1">
+            POST a JSON payload on report events. Signed with
+            <code class="bg-slate-100 px-1 rounded text-xs">X-Trackboard-Signature</code>.
+          </p>
+        </div>
+
+        <div class="p-5 space-y-4">
+          <div
+            v-if="props.webhooks.length === 0"
+            class="text-sm text-slate-500 py-4 text-center border border-dashed border-slate-200 rounded-lg bg-slate-50"
+          >
+            No webhooks yet — add one below.
           </div>
+
+          <div v-else class="space-y-3">
+            <div
+              v-for="wh in props.webhooks"
+              :key="wh.id"
+              class="border border-slate-200 rounded-lg p-3 bg-white hover:border-slate-300 transition-colors"
+            >
+              <div class="flex items-start gap-3">
+                <span
+                  class="mt-1.5 h-2 w-2 rounded-full shrink-0"
+                  :class="wh.active ? 'bg-brand-teal-600' : 'bg-slate-300'"
+                ></span>
+                <div class="flex-1 min-w-0">
+                  <div class="text-sm font-medium break-all">{{ wh.url }}</div>
+                  <div class="flex flex-wrap gap-1 mt-1.5">
+                    <span
+                      v-for="ev in wh.events"
+                      :key="ev"
+                      class="inline-flex items-center px-1.5 py-0.5 rounded text-xs font-medium bg-slate-100 text-slate-700 border border-slate-200"
+                    >
+                      {{ ev }}
+                    </span>
+                  </div>
+                  <div
+                    class="text-xs mt-1"
+                    :class="wh.active ? 'text-brand-teal-600' : 'text-slate-400'"
+                  >
+                    {{ wh.active ? '● Active' : '○ Inactive' }}
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  class="text-xs px-3 py-1.5 border border-red-200 rounded-md bg-white text-red-600 hover:bg-red-50 font-medium"
+                  @click="deleteWebhook(wh.id)"
+                >
+                  Delete
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <form class="pt-2 border-t border-slate-100 space-y-3" @submit.prevent="createWebhook">
+            <div>
+              <label class="block text-xs font-medium text-slate-700 mb-1">Endpoint URL</label>
+              <input
+                v-model="webhookForm.url"
+                type="url"
+                placeholder="https://example.com/webhook"
+                class="w-full border border-slate-300 rounded-md px-3 py-2 text-sm"
+              />
+            </div>
+            <div>
+              <label class="block text-xs font-medium text-slate-700 mb-1">Events</label>
+              <div class="flex flex-wrap gap-3 mt-1">
+                <label
+                  v-for="ev in WEBHOOK_EVENTS"
+                  :key="ev"
+                  class="flex items-center gap-1.5 text-sm"
+                >
+                  <input
+                    type="checkbox"
+                    :value="ev"
+                    :checked="webhookForm.events.includes(ev)"
+                    class="rounded border-slate-300"
+                    @change="toggleEvent(ev, ($event.target as HTMLInputElement).checked)"
+                  />
+                  {{ ev }}
+                </label>
+              </div>
+            </div>
+            <div>
+              <label class="block text-xs font-medium text-slate-700 mb-1"
+                >Signing secret (optional — generated if blank)</label
+              >
+              <input
+                v-model="webhookForm.secret"
+                type="text"
+                placeholder="min 8 characters"
+                class="w-full border border-slate-300 rounded-md px-3 py-2 text-sm"
+              />
+            </div>
+            <button
+              type="submit"
+              :disabled="webhookForm.processing"
+              class="w-full py-2 rounded-md bg-brand-indigo-700 text-white text-sm font-medium hover:bg-brand-indigo-500 disabled:opacity-50"
+            >
+              Add webhook
+            </button>
+          </form>
         </div>
-        <div>
-          <label>Signing secret (optional — generated if blank)</label>
-          <input v-model="webhookForm.secret" type="text" placeholder="min 8 characters" />
-        </div>
-        <button type="submit" :disabled="webhookForm.processing" style="align-self: flex-start">
-          Add webhook
-        </button>
-      </form>
-    </section>
+      </section>
+    </div>
+
+    <div class="mt-6 bg-slate-50 border border-dashed border-slate-300 rounded-xl p-4">
+      <h3 class="text-xs font-semibold tracking-widest uppercase text-slate-500">
+        GitHub (coming soon)
+      </h3>
+      <p class="text-sm text-slate-600 mt-1">
+        Connect GitHub to turn reports into issues automatically. The card will show a teal dot when
+        connected.
+      </p>
+      <div class="mt-3 flex items-center gap-2 text-xs">
+        <span class="h-2 w-2 rounded-full bg-slate-300"></span>
+        <span class="text-slate-500">Not connected — configure in a future release</span>
+      </div>
+    </div>
   </div>
 </template>

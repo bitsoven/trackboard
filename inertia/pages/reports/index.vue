@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, computed } from 'vue'
 import { Head, router } from '@inertiajs/vue3'
 import { Link } from '@adonisjs/inertia/vue'
 import { tableFeatures, useTable, FlexRender } from '@tanstack/vue-table'
@@ -54,13 +54,13 @@ function clearFilters() {
 
 function statusBadge(status: string): string {
   const map: Record<string, string> = {
-    open: 'bg-green-100 text-green-700',
+    open: 'bg-brand-indigo-500 text-white',
     in_progress: 'bg-amber-100 text-amber-700',
-    pending_verification: 'bg-purple-100 text-purple-700',
-    resolved: 'bg-blue-100 text-blue-700',
-    closed: 'bg-gray-200 text-gray-600',
+    pending_verification: 'bg-slate-100 text-slate-600 border border-dashed border-slate-300',
+    resolved: 'bg-brand-teal-600 text-white',
+    closed: 'bg-slate-200 text-slate-600',
   }
-  return map[status] ?? 'bg-gray-100 text-gray-700'
+  return map[status] ?? 'bg-slate-100 text-slate-700'
 }
 
 function priorityBadge(priority: string): string {
@@ -72,6 +72,10 @@ function priorityBadge(priority: string): string {
   }
   return map[priority] ?? 'bg-gray-100 text-gray-700'
 }
+
+const isFiltered = computed(
+  () => !!(props.filters.status || props.filters.priority || props.filters.projectId)
+)
 
 const features = tableFeatures({})
 
@@ -113,23 +117,26 @@ const table = useTable({
 
   <div class="max-w-6xl mx-auto p-6">
     <div class="flex items-center justify-between mb-6">
-      <h1 class="text-2xl font-semibold">Reports</h1>
-      <Link href="/" class="text-sm text-gray-500 hover:underline">← Home</Link>
+      <div>
+        <h1 class="text-2xl font-semibold tracking-tight">All Reports</h1>
+        <p class="text-sm text-slate-500 mt-1">Searchable archive — every report across your projects</p>
+      </div>
+      <Link href="/" class="text-sm font-medium text-slate-500 hover:text-brand-indigo-700 hover:underline">← Overview</Link>
     </div>
 
-    <div class="flex flex-wrap gap-3 mb-4 p-3 border rounded bg-white">
-      <select v-model="projectFilter" class="border rounded px-2 py-1 text-sm">
+    <div class="flex flex-wrap gap-3 mb-4 p-3 border border-slate-200 rounded-lg bg-white">
+      <select v-model="projectFilter" class="border border-slate-300 rounded-md px-2.5 py-1.5 text-sm bg-white">
         <option value="">All projects</option>
         <option v-for="p in props.projects" :key="p.id" :value="String(p.id)">{{ p.name }}</option>
       </select>
-      <select v-model="statusFilter" class="border rounded px-2 py-1 text-sm">
+      <select v-model="statusFilter" class="border border-slate-300 rounded-md px-2.5 py-1.5 text-sm bg-white">
         <option value="">All statuses</option>
         <option value="open">open</option>
         <option value="in_progress">in_progress</option>
         <option value="resolved">resolved</option>
         <option value="closed">closed</option>
       </select>
-      <select v-model="priorityFilter" class="border rounded px-2 py-1 text-sm">
+      <select v-model="priorityFilter" class="border border-slate-300 rounded-md px-2.5 py-1.5 text-sm bg-white">
         <option value="">All priorities</option>
         <option value="low">low</option>
         <option value="medium">medium</option>
@@ -137,27 +144,27 @@ const table = useTable({
         <option value="critical">critical</option>
       </select>
       <button
-        class="text-sm px-3 py-1 bg-brand text-white rounded-md hover:bg-brand-dark"
+        class="text-sm px-3 py-1.5 bg-brand-indigo-700 text-white rounded-md hover:bg-brand-indigo-500"
         @click="applyFilters"
       >
         Apply
       </button>
       <button
-        class="text-sm px-3 py-1 border rounded bg-white hover:bg-gray-50"
+        class="text-sm px-3 py-1.5 border border-slate-300 rounded-md bg-white text-slate-700 hover:bg-slate-50"
         @click="clearFilters"
       >
         Clear
       </button>
     </div>
 
-    <div class="border rounded bg-white overflow-x-auto">
+    <div class="border border-slate-200 rounded-xl bg-white overflow-x-auto">
       <table class="w-full text-sm">
-        <thead class="bg-gray-50">
+        <thead class="bg-slate-50">
           <tr v-for="headerGroup in table.getHeaderGroups()" :key="headerGroup.id">
             <th
               v-for="header in headerGroup.headers"
               :key="header.id"
-              class="text-left px-3 py-2 font-medium"
+              class="text-left px-3 py-2 font-medium text-slate-700"
             >
               <FlexRender v-if="!header.isPlaceholder" :header="header" />
             </th>
@@ -167,13 +174,13 @@ const table = useTable({
           <tr
             v-for="row in table.getRowModel().rows"
             :key="row.id"
-            class="border-t hover:bg-gray-50"
+            class="border-t border-slate-200 hover:bg-slate-50"
           >
             <td v-for="cell in row.getAllCells()" :key="cell.id" class="px-3 py-2">
               <template v-if="cell.column.id === 'actions'">
                 <Link
                   :href="`/reports/${(row.original as any).id}`"
-                  class="text-brand hover:underline"
+                  class="text-brand-indigo-700 hover:text-brand-indigo-500 hover:underline font-medium"
                   >View</Link
                 >
               </template>
@@ -197,13 +204,34 @@ const table = useTable({
             </td>
           </tr>
           <tr v-if="table.getRowModel().rows.length === 0">
-            <td colspan="8" class="text-center py-8 text-gray-500">No reports found</td>
+            <td colspan="8" class="text-center py-8">
+              <div v-if="isFiltered" class="text-sm text-slate-600">
+                No reports match your filters.
+                <button
+                  class="ml-2 text-sm font-medium text-brand-indigo-700 hover:text-brand-indigo-500"
+                  @click="clearFilters"
+                >
+                  Clear filters
+                </button>
+              </div>
+              <div v-else class="flex flex-col items-center gap-3">
+                <div
+                  class="h-20 w-full max-w-md mx-auto rounded-lg flex items-center justify-center"
+                  style="background: linear-gradient(135deg, #4338ca 0%, #0d9488 100%)"
+                >
+                  <span class="text-white/90 text-sm font-medium">No reports yet</span>
+                </div>
+                <p class="text-sm text-slate-600">
+                  Your widget will populate this table once reports arrive.
+                </p>
+              </div>
+            </td>
           </tr>
         </tbody>
       </table>
     </div>
 
-    <div v-if="props.meta" class="mt-4 text-sm text-gray-500">
+    <div v-if="props.meta" class="mt-4 text-sm text-slate-500">
       Page {{ props.meta.current_page }} of {{ props.meta.last_page }} —
       {{ props.meta.total }} total
     </div>

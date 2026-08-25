@@ -15,8 +15,8 @@ export interface Registry {
       paramsTuple: []
       params: {}
       query: {}
-      response: unknown
-      errorResponse: unknown
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/overview_controller').default['index']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/overview_controller').default['index']>>>
     }
   }
   'api.public.widget.templates': {
@@ -365,6 +365,18 @@ export interface Registry {
       query: ExtractQuery<InferInput<(typeof import('#validators/message').portalMessageValidator)>>
       response: ExtractResponse<Awaited<ReturnType<import('#controllers/portal_controller').default['store']>>>
       errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/portal_controller').default['store']>>> | { status: 422; response: { errors: SimpleError[] } }
+    }
+  }
+  'inbox.index': {
+    methods: ["GET","HEAD"]
+    pattern: '/inbox'
+    types: {
+      body: {}
+      paramsTuple: []
+      params: {}
+      query: {}
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/inbox_controller').default['index']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/inbox_controller').default['index']>>>
     }
   }
   'reports.index': {

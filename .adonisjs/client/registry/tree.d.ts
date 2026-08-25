@@ -63,6 +63,9 @@ export interface ApiDefinition {
       store: typeof routes['portal.messages.store']
     }
   }
+  inbox: {
+    index: typeof routes['inbox.index']
+  }
   reports: {
     index: typeof routes['reports.index']
     show: typeof routes['reports.show']

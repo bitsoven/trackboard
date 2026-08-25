@@ -1,10 +1,11 @@
 import type { HttpContext } from '@adonisjs/core/http'
 import type { NextFn } from '@adonisjs/core/types/http'
 import UserTransformer from '#transformers/user_transformer'
+import Project from '#models/project'
 import BaseInertiaMiddleware from '@adonisjs/inertia/inertia_middleware'
 
 export default class InertiaMiddleware extends BaseInertiaMiddleware {
-  share(ctx: HttpContext) {
+  async share(ctx: HttpContext) {
     /**
      * The share method is called everytime an Inertia page is rendered. In
      * certain cases, a page may get rendered before the session middleware
@@ -19,9 +20,27 @@ export default class InertiaMiddleware extends BaseInertiaMiddleware {
      * Data shared with all Inertia pages. Make sure you are using
      * transformers for rich data-types like Models.
      */
+    let projects: { id: number; name: string; slug: string }[] = []
+    if (auth?.user) {
+      try {
+        if (auth.user.role === 'admin') {
+          const all = await Project.query().select('id', 'name', 'slug')
+          projects = all.map((p) => ({ id: p.id, name: p.name, slug: p.slug }))
+        } else {
+          const owned = await Project.query()
+            .where('ownerId', auth.user.id)
+            .select('id', 'name', 'slug')
+          projects = owned.map((p) => ({ id: p.id, name: p.name, slug: p.slug }))
+        }
+      } catch {
+        projects = []
+      }
+    }
+
     return {
       errors: ctx.inertia.always(this.getValidationErrors(ctx)),
       user: ctx.inertia.always(auth?.user ? UserTransformer.transform(auth.user) : undefined),
+      projects: ctx.inertia.always(projects),
     }
   }
 

@@ -3,6 +3,8 @@ import User from '#models/user'
 import Project from '#models/project'
 import ApiKey from '#models/api_key'
 import AllowedOrigin from '#models/allowed_origin'
+import ReportTemplate from '#models/report_template'
+import TemplateField from '#models/template_field'
 
 export default class extends BaseSeeder {
   async run(): Promise<void> {
@@ -54,6 +56,44 @@ export default class extends BaseSeeder {
       console.log(
         `Demo project already has an API key (id ${existingKey.id}) — generate a new one with: node ace tinker`
       )
+    }
+
+    // Seed default report template if none exists (per DESIGN.md §5: new projects get one)
+    const existingTemplate = await ReportTemplate.query().where('projectId', project.id).first()
+    if (!existingTemplate) {
+      const template = await ReportTemplate.create({
+        projectId: project.id,
+        name: 'Bug Report',
+        isDefault: true,
+      })
+      const defaultFields = [
+        { key: 'title', label: 'Title', type: 'text', isRequired: true, sortOrder: 0 },
+        { key: 'steps', label: 'Steps to reproduce', type: 'textarea', isRequired: true, sortOrder: 1 },
+        { key: 'expected', label: 'Expected behavior', type: 'textarea', isRequired: true, sortOrder: 2 },
+        { key: 'actual', label: 'Actual behavior', type: 'textarea', isRequired: true, sortOrder: 3 },
+        {
+          key: 'severity',
+          label: 'Severity',
+          type: 'select',
+          isRequired: true,
+          sortOrder: 4,
+          options: { choices: ['low', 'medium', 'high', 'critical'] },
+        },
+      ]
+      for (const f of defaultFields) {
+        await TemplateField.create({
+          reportTemplateId: template.id,
+          key: f.key,
+          label: f.label,
+          type: f.type,
+          isRequired: f.isRequired,
+          options: (f as any).options ?? null,
+          sortOrder: f.sortOrder,
+        })
+      }
+      console.log(`Created default template "${template.name}" with ${defaultFields.length} fields for ${slug}`)
+    } else {
+      console.log(`Demo project already has a template (id ${existingTemplate.id})`)
     }
   }
 }

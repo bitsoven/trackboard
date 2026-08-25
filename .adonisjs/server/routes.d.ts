@@ -30,6 +30,7 @@ export type ScannedRoutes = {
     'api.webhooks.inbound-email': { paramsTuple?: []; params?: {} }
     'portal.show': { paramsTuple: [ParamValue]; params: {'reply_to_token': ParamValue} }
     'portal.messages.store': { paramsTuple: [ParamValue]; params: {'reply_to_token': ParamValue} }
+    'inbox.index': { paramsTuple?: []; params?: {} }
     'reports.index': { paramsTuple?: []; params?: {} }
     'reports.show': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'reports.update': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
@@ -49,6 +50,7 @@ export type ScannedRoutes = {
     'api.reports.index': { paramsTuple?: []; params?: {} }
     'api.reports.show': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'portal.show': { paramsTuple: [ParamValue]; params: {'reply_to_token': ParamValue} }
+    'inbox.index': { paramsTuple?: []; params?: {} }
     'reports.index': { paramsTuple?: []; params?: {} }
     'reports.show': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'integrations.index': { paramsTuple: [ParamValue]; params: {'projectId': ParamValue} }
@@ -67,6 +69,7 @@ export type ScannedRoutes = {
     'api.reports.index': { paramsTuple?: []; params?: {} }
     'api.reports.show': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'portal.show': { paramsTuple: [ParamValue]; params: {'reply_to_token': ParamValue} }
+    'inbox.index': { paramsTuple?: []; params?: {} }
     'reports.index': { paramsTuple?: []; params?: {} }
     'reports.show': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'integrations.index': { paramsTuple: [ParamValue]; params: {'projectId': ParamValue} }
