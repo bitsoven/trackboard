@@ -74,7 +74,11 @@ export default class PublicReportsController {
     }
 
     try {
-      const report = await this.reportService.ingest(project, payload, { screenshotBase64 })
+      const baseUrl = `${request.protocol()}://${request.host()}`
+      const report = await this.reportService.ingest(project, payload, {
+        screenshotBase64,
+        baseUrl,
+      })
       return response.created({ data: new ReportTransformer(report as any).toObject() })
     } catch (error: any) {
       if (error?.code === 'E_VALIDATION_ERROR' || error?.status === 422) {
@@ -131,6 +135,35 @@ export default class PublicReportsController {
         return response.status(error.status).send({ message: error.message, code: error.code })
       }
       throw error
+    }
+  }
+
+  /**
+   * Human-facing verification page shown when a reporter clicks the magic link
+   * in their email. Renders a simple success/error screen instead of raw JSON.
+   */
+  async verifyPage({ params, inertia }: HttpContext) {
+    try {
+      const report = await this.reportService.verify(params.token as string)
+      return inertia.render(
+        'verify_report' as any,
+        {
+          status: 'success',
+          title: report.title,
+        } as any
+      )
+    } catch (error) {
+      const message =
+        error instanceof ReportVerificationException
+          ? error.message
+          : 'This verification link is invalid or has expired.'
+      return inertia.render(
+        'verify_report' as any,
+        {
+          status: 'error',
+          message,
+        } as any
+      )
     }
   }
 }

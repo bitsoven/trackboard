@@ -33,6 +33,14 @@ const bodyParserConfig = defineConfig({
     convertEmptyStringsToNull: true,
 
     /**
+     * Maximum accepted payload size for JSON requests. The bug-report widget
+     * inlines the screenshot as a base64 data-URL inside the JSON body, which
+     * easily exceeds the 1mb default, so this is raised to match the multipart
+     * screenshot limit.
+     */
+    limit: '20mb',
+
+    /**
      * Content types handled by the JSON parser.
      */
     types: [

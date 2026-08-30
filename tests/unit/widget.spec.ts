@@ -196,3 +196,274 @@ test.group('Widget | bundle size', () => {
     assert.isBelow(gzipped, 150 * 1024, `gzipped widget is ${(gzipped / 1024).toFixed(1)}KB`)
   })
 })
+
+test.group('Widget | high-fidelity capture', () => {
+  test('detects Screen Capture API availability', async ({ assert }) => {
+    const mod = await import('../../src/widget/screenshot.js')
+    const origDesc = Object.getOwnPropertyDescriptor(global as any, 'navigator')
+    Object.defineProperty(global as any, 'navigator', {
+      value: {},
+      writable: true,
+      configurable: true,
+    })
+    assert.isFalse(mod.isDisplayMediaAvailable())
+    Object.defineProperty(global as any, 'navigator', {
+      value: { mediaDevices: {} },
+      writable: true,
+      configurable: true,
+    })
+    assert.isFalse(mod.isDisplayMediaAvailable())
+    Object.defineProperty(global as any, 'navigator', {
+      value: { mediaDevices: { getDisplayMedia: async () => ({}) } },
+      writable: true,
+      configurable: true,
+    })
+    assert.isTrue(mod.isDisplayMediaAvailable())
+    if (origDesc) Object.defineProperty(global as any, 'navigator', origDesc)
+    else delete (global as any).navigator
+  })
+
+  test('consent flow is one-time and opt-in', async ({ assert }) => {
+    const mod = await import('../../src/widget/screenshot.js')
+    // Use FakeStorage for localStorage
+    ;(global as any).localStorage = new (class {
+      private store = new Map<string, string>()
+      getItem(k: string) {
+        return this.store.has(k) ? this.store.get(k)! : null
+      }
+      setItem(k: string, v: string) {
+        this.store.set(k, String(v))
+      }
+      removeItem(k: string) {
+        this.store.delete(k)
+      }
+    })()
+    mod.clearHighFidelityConsent()
+    assert.isFalse(mod.hasHighFidelityConsent())
+    mod.setHighFidelityConsent(true)
+    assert.isTrue(mod.hasHighFidelityConsent())
+    mod.setHighFidelityConsent(false)
+    assert.isFalse(mod.hasHighFidelityConsent())
+    mod.clearHighFidelityConsent()
+    assert.isFalse(mod.hasHighFidelityConsent())
+  })
+
+  test('collectSafeFontCss skips empty fontFamily (Vite dev Firefox)', async ({ assert }) => {
+    const mod = await import('../../src/widget/screenshot.js')
+    const origDocument = (global as any).document
+    const fakeRuleEmpty = {
+      style: { getPropertyValue: (k: string) => (k === 'font-family' ? '' : '') },
+      cssText: '@font-face { font-family: ""; src: url("bad.woff"); }',
+    }
+    const fakeRuleValid = {
+      style: { getPropertyValue: (k: string) => (k === 'font-family' ? '"Inter"' : '') },
+      cssText: '@font-face { font-family: "Inter"; src: url("inter.woff"); }',
+    }
+    // Mock CSSFontFaceRule for instanceof check
+    ;(global as any).CSSFontFaceRule = class CSSFontFaceRule {}
+    Object.setPrototypeOf(fakeRuleEmpty, (global as any).CSSFontFaceRule.prototype)
+    Object.setPrototypeOf(fakeRuleValid, (global as any).CSSFontFaceRule.prototype)
+    ;(global as any).document = {
+      styleSheets: [
+        {
+          cssRules: [fakeRuleEmpty, fakeRuleValid],
+        },
+      ],
+    }
+    const css = mod.collectSafeFontCss()
+    assert.include(css ?? '', 'Inter')
+    assert.notInclude(css ?? '', 'font-family: ""')
+    ;(global as any).document = origDocument
+    delete (global as any).CSSFontFaceRule
+  })
+
+  test('enforceMaxSize keeps small screenshots', async ({ assert }) => {
+    const mod = await import('../../src/widget/screenshot.js')
+    const small = 'data:image/png;base64,' + 'A'.repeat(1000)
+    const result = await mod.enforceMaxSize(small)
+    assert.equal(result, small)
+  })
+
+  test('enforceMaxSize re-encodes large screenshots to JPEG', async ({ assert }) => {
+    const mod = await import('../../src/widget/screenshot.js')
+    // Mock Image and canvas for Node environment
+    const origImage = (global as any).Image
+    const origDocument = (global as any).document
+    let capturedQuality: number | null = null
+    ;(global as any).Image = class MockImage {
+      onload: (() => void) | null = null
+      onerror: (() => void) | null = null
+      naturalWidth = 100
+      naturalHeight = 100
+      private _srcVal = ''
+      set src(v: string) {
+        this._srcVal = v
+        setTimeout(() => this.onload?.(), 0)
+      }
+      get src() {
+        return this._srcVal
+      }
+    }
+    ;(global as any).document = {
+      createElement: (tag: string) => {
+        if (tag === 'canvas') {
+          return {
+            width: 0,
+            height: 0,
+            getContext: () => ({
+              fillStyle: '',
+              fillRect: () => {},
+              drawImage: () => {},
+            }),
+            toDataURL: (type: string, quality?: number) => {
+              capturedQuality = quality ?? null
+              // Return a smaller JPEG
+              return 'data:image/jpeg;base64,' + 'B'.repeat(100)
+            },
+          }
+        }
+        return origDocument?.createElement?.(tag) ?? {}
+      },
+    }
+    const large = 'data:image/png;base64,' + 'A'.repeat(mod.MAX_SIZE_BYTES + 100)
+    const result = await mod.enforceMaxSize(large)
+    assert.isTrue(result.startsWith('data:image/jpeg'))
+    assert.equal(capturedQuality, 0.7)
+    ;(global as any).Image = origImage
+    ;(global as any).document = origDocument
+  })
+
+  test('getHtmlToImageOptions respects capture modes', async ({ assert }) => {
+    const mod = await import('../../src/widget/screenshot.js')
+    const origWindow = (global as any).window
+    const origDocument = (global as any).document
+    ;(global as any).window = {
+      devicePixelRatio: 3,
+      innerWidth: 1280,
+      innerHeight: 800,
+      scrollX: 100,
+      scrollY: 200,
+    }
+    ;(global as any).document = {
+      documentElement: { scrollWidth: 2500, scrollHeight: 4000 },
+      styleSheets: [],
+    }
+    // HiDPI capped at 2
+    let opts: any = mod.getHtmlToImageOptions('fullpage')
+    assert.equal(opts.pixelRatio, 2)
+    assert.equal(opts.width, 2500)
+    assert.equal(opts.height, 4000)
+
+    opts = mod.getHtmlToImageOptions('visible')
+    assert.equal(opts.width, 1280)
+    assert.equal(opts.height, 800)
+    assert.include(opts.style.transform, '-100px')
+    assert.include(opts.style.transform, '-200px')
+
+    // Restore
+    ;(global as any).window = origWindow
+    ;(global as any).document = origDocument
+  })
+
+  test('captureScreenshot falls back when displayMedia denied', async ({ assert }) => {
+    const mod = await import('../../src/widget/screenshot.js')
+    const origNavigatorDesc = Object.getOwnPropertyDescriptor(global as any, 'navigator')
+    const origLocalStorage = (global as any).localStorage
+    const origDocument = (global as any).document
+    const origWindow = (global as any).window
+    // Mock localStorage with consent granted
+    ;(global as any).localStorage = {
+      getItem: (k: string) => (k === 'trackboard:high-fidelity-consent' ? 'granted' : null),
+      setItem: () => {},
+      removeItem: () => {},
+    }
+    Object.defineProperty(global as any, 'navigator', {
+      value: {
+        mediaDevices: {
+          getDisplayMedia: async () => {
+            const e: any = new Error('Permission denied')
+            e.name = 'NotAllowedError'
+            throw e
+          },
+        },
+      },
+      writable: true,
+      configurable: true,
+    })
+    ;(global as any).document = {
+      documentElement: { scrollWidth: 1200, scrollHeight: 800 },
+      styleSheets: [],
+      createElement: (tag: string) => {
+        if (tag === 'canvas') {
+          return {
+            width: 0,
+            height: 0,
+            getContext: () => null,
+            toDataURL: () => 'data:image/png;base64,fallback',
+          }
+        }
+        return {}
+      },
+      fonts: { ready: Promise.resolve() },
+    }
+    ;(global as any).window = {
+      devicePixelRatio: 1,
+      innerWidth: 1024,
+      innerHeight: 768,
+      scrollX: 0,
+      scrollY: 0,
+    }
+    // Ensure images collection exists for preprocess
+    ;(global as any).document.images = []
+    // Mock html-to-image to return a valid png
+    mod.__setToPngMock(async () => 'data:image/png;base64,fallback')
+    const result = await mod.captureScreenshot('https://api.test', {
+      mode: 'visible',
+      highFidelity: true,
+    })
+    assert.equal(result, 'data:image/png;base64,fallback')
+    mod.__resetToPngMock()
+    if (origNavigatorDesc) Object.defineProperty(global as any, 'navigator', origNavigatorDesc)
+    else delete (global as any).navigator
+    ;(global as any).localStorage = origLocalStorage
+    ;(global as any).document = origDocument
+    ;(global as any).window = origWindow
+  })
+
+  test('captureScreenshot with element mode captures pinned element only', async ({ assert }) => {
+    const mod = await import('../../src/widget/screenshot.js')
+    const origDocument = (global as any).document
+    const origWindow = (global as any).window
+    ;(global as any).document = {
+      documentElement: { scrollWidth: 1200, scrollHeight: 800 },
+      styleSheets: [],
+      createElement: (tag: string) => ({}),
+      fonts: { ready: Promise.resolve() },
+      images: [],
+    }
+    ;(global as any).window = {
+      devicePixelRatio: 1,
+      innerWidth: 1024,
+      innerHeight: 768,
+      scrollX: 0,
+      scrollY: 0,
+    }
+    if (typeof location === 'undefined') (global as any).location = { origin: 'https://app.test' }
+    let capturedNode: any = null
+    mod.__setToPngMock(async (node: any) => {
+      capturedNode = node
+      return 'data:image/png;base64,element'
+    })
+    const fakeEl = { tagName: 'DIV', nodeType: 1 } as unknown as HTMLElement
+    const result = await mod.captureScreenshot('https://api.test', {
+      target: fakeEl,
+      mode: 'element',
+      highFidelity: false,
+    })
+    assert.equal(result, 'data:image/png;base64,element')
+    assert.equal(capturedNode, fakeEl)
+    mod.__resetToPngMock()
+    ;(global as any).document = origDocument
+    ;(global as any).window = origWindow
+  })
+})

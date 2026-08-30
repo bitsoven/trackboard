@@ -3,6 +3,13 @@ import { Field } from './fields.js'
 import type { I18n } from './i18n.js'
 
 /**
+ * Fields that are first-class Report columns ("title", "reporterEmail") are
+ * rendered as built-in inputs by the widget, so they are never part of the
+ * dynamic form.
+ */
+const RESERVED_FIELD_KEYS = ['title', 'reporterEmail']
+
+/**
  * Pure helper: determine if a field should be rendered given the current values
  * and its `showIf` condition. Supports equals / notEquals / in.
  */
@@ -31,7 +38,9 @@ interface DynamicFormProps {
 }
 
 export function DynamicForm(props: DynamicFormProps) {
-  const visible = props.fields.filter((f) => isFieldVisible(f, props.values))
+  const visible = props.fields.filter(
+    (f) => !RESERVED_FIELD_KEYS.includes(f.key) && isFieldVisible(f, props.values)
+  )
   return (
     <div>
       {visible.map((field) => (

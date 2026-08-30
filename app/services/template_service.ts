@@ -20,6 +20,14 @@ function parseOptions(options: any): any {
   return options
 }
 
+/**
+ * Fields that are first-class Report columns ("title", "reporterEmail") are
+ * handled at the top level of the report payload, never as dynamic field
+ * values. They are reserved, so templates must not require them in
+ * `fieldValues` (and the widget renders them as built-in inputs).
+ */
+const RESERVED_FIELD_KEYS = ['title', 'reporterEmail']
+
 export function buildDynamicSchema(template: ReportTemplate) {
   const shape: Record<string, any> = {}
 
@@ -32,6 +40,7 @@ export function buildDynamicSchema(template: ReportTemplate) {
   }>
 
   for (const field of fields ?? []) {
+    if (RESERVED_FIELD_KEYS.includes(field.key)) continue
     const opts = parseOptions(field.options)
     let fieldValidator: any
 

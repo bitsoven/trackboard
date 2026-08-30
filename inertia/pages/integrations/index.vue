@@ -23,6 +23,8 @@ const props = defineProps<{
   project: Project
   apiKeys: ApiKey[]
   webhooks: Webhook[]
+  appUrl: string
+  apiKeyRaw: string | null
 }>()
 
 const WEBHOOK_EVENTS = ['report.created', 'report.updated']
@@ -30,6 +32,33 @@ const WEBHOOK_EVENTS = ['report.created', 'report.updated']
 const flash = computed(() => (usePage().flash as any) || {})
 const shownRawKey = ref<string | null>(null)
 if (flash.value.apiKeyRaw) shownRawKey.value = flash.value.apiKeyRaw
+
+const effectiveKey = computed(() => props.apiKeyRaw ?? shownRawKey.value)
+
+const embedSnippet = computed(() => {
+  const key = effectiveKey.value
+  if (!key) return ''
+  const base = props.appUrl.replace(/\/$/, '')
+  return `<script\n  async\n  src="${base}/widget/v1/widget.js"\n  data-project-key="${key}"\n><\/script>`
+})
+
+const hasActiveKey = computed(() => props.apiKeys.length > 0)
+const placeholderSnippet = computed(() => {
+  const base = props.appUrl.replace(/\/$/, '')
+  return `<script\n  async\n  src="${base}/widget/v1/widget.js"\n  data-project-key="YOUR_PROJECT_KEY"\n><\/script>`
+})
+const snippetCopied = ref(false)
+
+async function copyEmbedSnippet() {
+  if (!embedSnippet.value) return
+  try {
+    await navigator.clipboard.writeText(embedSnippet.value)
+    snippetCopied.value = true
+    setTimeout(() => (snippetCopied.value = false), 2000)
+  } catch {
+    snippetCopied.value = false
+  }
+}
 
 const apiKeyForm = useForm({ label: '' })
 
@@ -270,6 +299,53 @@ function deleteWebhook(id: number) {
         </div>
       </section>
     </div>
+
+    <!-- Embed code -->
+    <section class="mt-6 bg-white border border-slate-200 rounded-xl overflow-hidden">
+      <div class="px-5 py-4 border-b border-slate-200">
+        <h2 class="text-sm font-semibold flex items-center gap-2">
+          <span class="h-2 w-2 rounded-full bg-brand-teal-600"></span>
+          Embed code
+        </h2>
+        <p class="text-xs text-slate-500 mt-1">
+          Paste this snippet on any site to mount the bug-report widget.
+        </p>
+      </div>
+
+      <div class="p-5 space-y-4">
+        <div
+          v-if="!hasActiveKey"
+          class="text-sm text-slate-600 py-4 text-center border border-dashed border-slate-200 rounded-lg bg-slate-50"
+        >
+          Create an API token first (above) — its key is used to tie widget submissions to this
+          project.
+        </div>
+
+        <div v-else-if="!effectiveKey" class="space-y-3">
+          <p class="text-sm text-slate-600">
+            Your token's secret key is shown once at creation. Copy it from the
+            <span class="font-medium">API Tokens</span> card above, or create a new token to surface
+            it, then use it in the snippet below.
+          </p>
+          <pre
+            class="text-xs bg-slate-900 text-slate-100 rounded-lg p-4 overflow-x-auto"
+          ><code>{{ placeholderSnippet }}</code></pre>
+        </div>
+
+        <div v-else class="space-y-3">
+          <pre
+            class="text-xs bg-slate-900 text-slate-100 rounded-lg p-4 overflow-x-auto"
+          ><code>{{ embedSnippet }}</code></pre>
+          <button
+            type="button"
+            class="text-xs px-3 py-1.5 border border-slate-300 rounded-md bg-white text-slate-700 hover:bg-slate-50 font-medium"
+            @click="copyEmbedSnippet"
+          >
+            {{ snippetCopied ? 'Copied!' : 'Copy to clipboard' }}
+          </button>
+        </div>
+      </div>
+    </section>
 
     <div class="mt-6 bg-slate-50 border border-dashed border-slate-300 rounded-xl p-4">
       <h3 class="text-xs font-semibold tracking-widest uppercase text-slate-500">

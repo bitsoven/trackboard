@@ -9,6 +9,7 @@ type ExtractProps<T> = Omit<
 
 declare module '@adonisjs/inertia/types' {
   export interface InertiaPages {
+    'auth/accept_invite': ExtractProps<(typeof import('../../inertia/pages/auth/accept_invite.vue'))['default']>
     'auth/login': ExtractProps<(typeof import('../../inertia/pages/auth/login.vue'))['default']>
     'auth/signup': ExtractProps<(typeof import('../../inertia/pages/auth/signup.vue'))['default']>
     'errors/not_found': ExtractProps<(typeof import('../../inertia/pages/errors/not_found.vue'))['default']>
@@ -17,9 +18,15 @@ declare module '@adonisjs/inertia/types' {
     'inbox/index': ExtractProps<(typeof import('../../inertia/pages/inbox/index.vue'))['default']>
     'integrations/index': ExtractProps<(typeof import('../../inertia/pages/integrations/index.vue'))['default']>
     'portal/show': ExtractProps<(typeof import('../../inertia/pages/portal/show.vue'))['default']>
+    'projects/index': ExtractProps<(typeof import('../../inertia/pages/projects/index.vue'))['default']>
+    'projects/settings': ExtractProps<(typeof import('../../inertia/pages/projects/settings.vue'))['default']>
+    'projects/show': ExtractProps<(typeof import('../../inertia/pages/projects/show.vue'))['default']>
+    'projects/team': ExtractProps<(typeof import('../../inertia/pages/projects/team.vue'))['default']>
     'reports/index': ExtractProps<(typeof import('../../inertia/pages/reports/index.vue'))['default']>
     'reports/show': ExtractProps<(typeof import('../../inertia/pages/reports/show.vue'))['default']>
+    'settings/index': ExtractProps<(typeof import('../../inertia/pages/settings/index.vue'))['default']>
     'templates/form': ExtractProps<(typeof import('../../inertia/pages/templates/form.vue'))['default']>
     'templates/index': ExtractProps<(typeof import('../../inertia/pages/templates/index.vue'))['default']>
+    'verify_report': ExtractProps<(typeof import('../../inertia/pages/verify_report.vue'))['default']>
   }
 }

@@ -1,4 +1,5 @@
 import db from '@adonisjs/lucid/services/db'
+import type { TransactionClientContract } from '@adonisjs/lucid/types/database'
 import ReportTemplate from '#models/report_template'
 import TemplateField from '#models/template_field'
 import ProjectNotFoundException from '#exceptions/project_not_found_exception'
@@ -175,6 +176,75 @@ export default class ReportTemplateService {
       await template.load('fields', (q) => q.orderBy('sortOrder', 'asc'))
       return template
     })
+  }
+
+  /**
+   * Seed the standard "Bug Report" default template with its default fields.
+   * Used when a project is created. Runs inside the caller's transaction when
+   * a client is supplied.
+   */
+  async createDefault(
+    projectId: number,
+    client?: TransactionClientContract
+  ): Promise<ReportTemplate> {
+    const options = client ? { client } : {}
+    const template = await ReportTemplate.create(
+      {
+        projectId,
+        name: 'Bug Report',
+        isDefault: true,
+      },
+      options
+    )
+
+    const defaultFields = [
+      {
+        key: 'steps',
+        label: 'Steps to reproduce',
+        type: 'textarea',
+        isRequired: true,
+        sortOrder: 0,
+      },
+      {
+        key: 'expected',
+        label: 'Expected behavior',
+        type: 'textarea',
+        isRequired: true,
+        sortOrder: 1,
+      },
+      {
+        key: 'actual',
+        label: 'Actual behavior',
+        type: 'textarea',
+        isRequired: true,
+        sortOrder: 2,
+      },
+      {
+        key: 'severity',
+        label: 'Severity',
+        type: 'select',
+        isRequired: true,
+        sortOrder: 3,
+        options: { choices: ['low', 'medium', 'high', 'critical'] },
+      },
+    ]
+
+    for (const f of defaultFields) {
+      await TemplateField.create(
+        {
+          reportTemplateId: template.id,
+          key: f.key,
+          label: f.label,
+          type: f.type,
+          isRequired: f.isRequired,
+          options: (f as any).options ?? null,
+          sortOrder: f.sortOrder,
+        },
+        options
+      )
+    }
+
+    return template
   }
 
   async delete(templateId: number): Promise<void> {

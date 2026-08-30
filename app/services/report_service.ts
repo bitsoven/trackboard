@@ -1,6 +1,5 @@
 import db from '@adonisjs/lucid/services/db'
 import encryption from '@adonisjs/core/services/encryption'
-import { Exception } from '@adonisjs/core/exceptions'
 import { DateTime } from 'luxon'
 import Report from '#models/report'
 import ReportFieldValue from '#models/report_field_value'
@@ -13,12 +12,38 @@ import ReportVerificationException from '#exceptions/report_verification_excepti
 import { sendVerificationMail } from '#mails/verification_mail'
 import WebhookService from '#services/webhook_service'
 import { randomUUID } from 'node:crypto'
-import { promises as dns } from 'node:dns'
 
 const VERIFICATION_TOKEN_TTL_HOURS = 24
 
+/**
+ * How long to wait for the S3 screenshot upload before giving up and falling
+ * back to keeping the inline data-URL. Without this, an unreachable S3 (e.g.
+ * MinIO not running in dev) makes the AWS SDK retry and hang the request.
+ */
+const SCREENSHOT_UPLOAD_TIMEOUT_MS = 5000
+
+/**
+ * Resolve `promise` within `ms`, otherwise resolve `null`.
+ */
+function withTimeout<T>(promise: Promise<T | null>, ms: number): Promise<T | null> {
+  return new Promise((resolve) => {
+    let settled = false
+    const finish = (value: T | null) => {
+      if (settled) return
+      settled = true
+      clearTimeout(timer)
+      resolve(value)
+    }
+    const timer = setTimeout(() => finish(null), ms)
+    promise.then(
+      (value) => finish(value),
+      () => finish(null)
+    )
+  })
+}
+
 export type VerificationTokenPayload = {
-  reportId: number
+  reportId: string
   exp: number
 }
 
@@ -41,63 +66,17 @@ export default class ReportService {
   async ingest(
     project: Project,
     payload: Record<string, unknown>,
-    opts?: { screenshotBase64?: string }
+    opts?: { screenshotBase64?: string; baseUrl?: string }
   ): Promise<Report> {
     // Normalize reporterEmail snake_case
     if ((payload as any).reporter_email && !(payload as any).reporterEmail) {
       ;(payload as any).reporterEmail = (payload as any).reporter_email
     }
 
-    // Validate top-level via ingestReportValidator (enforces reporterEmail required)
+    // Validate top-level via ingestReportValidator. The validator enforces a
+    // required reporterEmail and runs the MX-record rule server-side, so no
+    // duplicate DNS logic is needed here.
     const topLevel = (await ingestReportValidator.validate(payload)) as any
-
-    // Enforce MX record validation server-side
-    const emailToCheck = topLevel.reporterEmail as string
-    if (emailToCheck) {
-      const domain = emailToCheck.split('@')[1]?.toLowerCase()
-      const bypass = new Set([
-        'example.com',
-        'example.org',
-        'example.net',
-        'test.com',
-        'localhost',
-        'invalid',
-      ])
-      const shouldCheck =
-        domain &&
-        !bypass.has(domain) &&
-        !domain.endsWith('.example') &&
-        !domain.endsWith('.test') &&
-        !domain.endsWith('.invalid') &&
-        domain !== 'test'
-      if (shouldCheck) {
-        // Fast-path for reserved .invalid TLD
-        if (domain.endsWith('.invalid')) {
-          throw new Exception('Invalid email domain (no MX record)', {
-            status: 422,
-            code: 'E_VALIDATION_ERROR',
-          })
-        }
-        try {
-          const records = await dns.resolveMx(domain)
-          if (!records || records.length === 0) {
-            throw new Error('MX_MISSING')
-          }
-        } catch (error: any) {
-          if (
-            error.message === 'MX_MISSING' ||
-            error?.code === 'ENOTFOUND' ||
-            error?.code === 'ENODATA'
-          ) {
-            throw new Exception('Invalid email domain (no MX record)', {
-              status: 422,
-              code: 'E_VALIDATION_ERROR',
-            })
-          }
-          // For other DNS errors, allow (avoid flaky CI)
-        }
-      }
-    }
 
     const reporterEmail = (topLevel as any).reporterEmail as string
     const title = (topLevel as any).title as string
@@ -155,14 +134,8 @@ export default class ReportService {
       } else {
         const buffer = Buffer.from(base64, 'base64')
         const key = `screenshots/${project.id}/${randomUUID()}.png`
-        const disk = drive.use('s3')
-        try {
-          await disk.put(key, buffer, { contentType: 'image/png' })
-          const url = await disk.getUrl(key)
-          screenshotUrl = url
-        } catch {
-          screenshotUrl = `data:image/png;base64,${base64}`
-        }
+        const url = await this.uploadScreenshot(buffer, key)
+        screenshotUrl = url ?? `data:image/png;base64,${base64}`
       }
     } else if (screenshotUrl && screenshotUrl.startsWith('data:image')) {
       const base64 = screenshotUrl.replace(/^data:image\/\w+;base64,/, '')
@@ -171,13 +144,8 @@ export default class ReportService {
       } else {
         const buffer = Buffer.from(base64, 'base64')
         const key = `screenshots/${project.id}/${randomUUID()}.png`
-        try {
-          const disk = drive.use('s3')
-          await disk.put(key, buffer, { contentType: 'image/png' })
-          screenshotUrl = await disk.getUrl(key)
-        } catch {
-          // keep as is for test
-        }
+        const url = await this.uploadScreenshot(buffer, key)
+        if (url) screenshotUrl = url
       }
     }
 
@@ -188,8 +156,10 @@ export default class ReportService {
     const initialStatus = requiresVerification ? 'pending_verification' : 'open'
 
     const report = await db.transaction(async (trx) => {
+      const reportId = randomUUID()
       const created = await Report.create(
         {
+          id: reportId,
           projectId: project.id,
           templateId: template?.id ?? null,
           title,
@@ -204,13 +174,16 @@ export default class ReportService {
         },
         { client: trx }
       )
+      // Lucid populates the primary key with the SQLite rowid even for string
+      // PKs, so restore the intended UUID before using `created.id`.
+      created.id = reportId
 
       if (fieldValues) {
         for (const [fieldKey, value] of Object.entries(fieldValues)) {
           const storedValue = Array.isArray(value) ? JSON.stringify(value) : String(value ?? '')
           await ReportFieldValue.create(
             {
-              reportId: created.id,
+              reportId,
               fieldKey,
               value: storedValue,
             },
@@ -228,7 +201,7 @@ export default class ReportService {
       report.verificationToken = token
       report.verificationSentAt = DateTime.now()
       await report.save()
-      await this.sendVerificationEmail(report, token)
+      await this.sendVerificationEmail(report, token, opts?.baseUrl)
     }
 
     // Fire outbound webhooks + optional GitHub issue sync (best-effort).
@@ -243,6 +216,20 @@ export default class ReportService {
    */
   protected async notifyIntegrations(report: Report, event: 'report.created' | 'report.updated') {
     await WebhookService.dispatch(event, report)
+  }
+
+  /**
+   * Upload a screenshot to the configured storage disk, bounded by a timeout so
+   * an unreachable S3/MinIO endpoint falls back instead of hanging the request.
+   * Returns the public URL or null when the upload fails or times out.
+   */
+  private async uploadScreenshot(buffer: Buffer, key: string): Promise<string | null> {
+    const upload = (async () => {
+      const disk = drive.use('s3')
+      await disk.put(key, buffer, { contentType: 'image/png' })
+      return disk.getUrl(key)
+    })()
+    return withTimeout(upload, SCREENSHOT_UPLOAD_TIMEOUT_MS)
   }
 
   /**
@@ -267,7 +254,7 @@ export default class ReportService {
     } catch {
       payload = null
     }
-    if (!payload || typeof payload.reportId !== 'number' || typeof payload.exp !== 'number') {
+    if (!payload || typeof payload.reportId !== 'string' || typeof payload.exp !== 'number') {
       throw ReportVerificationException.invalidToken()
     }
     if (payload.exp < DateTime.now().toMillis()) {
@@ -282,7 +269,10 @@ export default class ReportService {
    */
   async verify(token: string): Promise<Report> {
     const payload = this.decryptVerificationToken(token)
-    const report = await Report.findOrFail(payload.reportId)
+    const report = await Report.find(payload.reportId)
+    if (!report) {
+      throw ReportVerificationException.invalidToken()
+    }
     if (report.reporterVerifiedAt) {
       throw ReportVerificationException.alreadyVerified()
     }
@@ -298,9 +288,13 @@ export default class ReportService {
     return report
   }
 
-  protected async sendVerificationEmail(report: Report, token: string): Promise<void> {
-    const appUrl = process.env.APP_URL ?? 'http://localhost:3333'
-    const verifyUrl = `${appUrl.replace(/\/$/, '')}/api/public/reports/verify/${encodeURIComponent(token)}`
+  protected async sendVerificationEmail(
+    report: Report,
+    token: string,
+    baseUrl?: string
+  ): Promise<void> {
+    const appUrl = (baseUrl ?? process.env.APP_URL ?? 'http://localhost:3333').replace(/\/$/, '')
+    const verifyUrl = `${appUrl}/verify/${encodeURIComponent(token)}`
     try {
       await sendVerificationMail(report, verifyUrl)
     } catch (error) {
@@ -318,6 +312,7 @@ export default class ReportService {
       page?: number
       perPage?: number
       includePending?: boolean
+      needsAction?: boolean
     },
     userId?: number
   ) {
@@ -327,7 +322,11 @@ export default class ReportService {
       .preload('project')
 
     if (filters.projectId) query.where('projectId', filters.projectId)
-    if (filters.status) query.where('status', filters.status)
+    if (filters.needsAction) {
+      query.whereIn('status', ['open', 'in_progress']).whereNull('assigneeId')
+    } else if (filters.status) {
+      query.where('status', filters.status)
+    }
     if (filters.priority) query.where('priority', filters.priority)
 
     // Unverified reports are hidden from the active queue unless explicitly
@@ -354,7 +353,7 @@ export default class ReportService {
     return query.exec()
   }
 
-  async findById(id: number): Promise<Report> {
+  async findById(id: string): Promise<Report> {
     const report = await Report.query()
       .where('id', id)
       .preload('fieldValues')
@@ -364,8 +363,22 @@ export default class ReportService {
     return report
   }
 
+  /**
+   * Map a report's template field keys to their human-readable labels.
+   * Used to render the reporter's submitted fields with friendly names.
+   */
+  async getFieldLabels(report: Report): Promise<Record<string, string>> {
+    if (!report.templateId) return {}
+    const template = await ReportTemplate.query()
+      .where('id', report.templateId)
+      .preload('fields')
+      .first()
+    if (!template) return {}
+    return Object.fromEntries(((template.fields as any[]) ?? []).map((f) => [f.key, f.label]))
+  }
+
   async update(
-    id: number,
+    id: string,
     payload: { status?: string; priority?: string; assigneeId?: number | null; title?: string }
   ): Promise<Report> {
     const data = (await updateReportValidator.validate(payload)) as any

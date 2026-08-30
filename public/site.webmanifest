@@ -1,0 +1,14 @@
+{
+  "name": "Trackboard",
+  "short_name": "Trackboard",
+  "description": "Bug tracking and reporter widget for any site.",
+  "icons": [
+    { "src": "/logo.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any" },
+    { "src": "/favicon-32x32.png", "sizes": "32x32", "type": "image/png" },
+    { "src": "/apple-touch-icon.png", "sizes": "180x180", "type": "image/png" }
+  ],
+  "theme_color": "#4338ca",
+  "background_color": "#312e81",
+  "display": "standalone",
+  "start_url": "/"
+}

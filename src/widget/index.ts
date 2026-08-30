@@ -26,6 +26,9 @@ function bootstrap() {
 
   const apiBase = script.src ? new URL(script.src).origin : location.origin
   const i18n = new I18n(detectLocale(script.dataset.locale))
+  const captureMode =
+    (script.dataset.captureMode as 'visible' | 'fullpage' | 'element' | undefined) ?? 'fullpage'
+  const highFidelity = script.dataset.highFidelity === 'true'
 
   const host = document.createElement('div')
   host.id = 'trackboard-widget'
@@ -48,7 +51,7 @@ function bootstrap() {
     '.tb-highlight{outline:2px dashed #2563eb!important;outline-offset:2px;background:rgba(37,99,235,.08);}'
   document.head.appendChild(globalStyle)
 
-  render(h(WidgetApp, { apiBase, projectKey, i18n }), shadow)
+  render(h(WidgetApp, { apiBase, projectKey, i18n, captureMode, highFidelity }), shadow)
 }
 
 if (document.readyState === 'loading') {

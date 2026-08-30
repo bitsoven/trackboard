@@ -1,10 +1,19 @@
 import type { HttpContext } from '@adonisjs/core/http'
 import type { NextFn } from '@adonisjs/core/types/http'
+import app from '@adonisjs/core/services/app'
 import ApiKey from '#models/api_key'
 import AllowedOrigin from '#models/allowed_origin'
 
 export default class OriginCheckMiddleware {
   async handle(ctx: HttpContext, next: NextFn) {
+    // In development the CORS config already allows every origin, so we mirror
+    // that here and skip the origin allowlist entirely. This avoids blocking
+    // local widget embeds that run on a different port than the app itself.
+    // The allowlist is enforced only in test/production.
+    if (app.inDev) {
+      return next()
+    }
+
     const rawKey =
       (ctx.request.qs().key as string) ||
       ctx.request.header('x-api-key') ||

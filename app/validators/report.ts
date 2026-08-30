@@ -1,18 +1,19 @@
 import vine from '@vinejs/vine'
+import { mxRecordRule } from '#validators/rules/mx_record'
 
 export const ingestReportValidator = vine.compile(
   vine.object({
     title: vine.string().trim().minLength(1).maxLength(255),
-    reporterEmail: vine.string().trim().email(),
+    reporterEmail: vine.string().trim().email().use(mxRecordRule()),
     pageUrl: vine.string().trim().optional(),
     browserInfo: vine.any().optional(),
     consoleErrors: vine.any().optional(),
     networkErrors: vine.any().optional(),
-    screenshotUrl: vine.string().trim().url().optional().nullable(),
+    screenshotUrl: vine.string().trim().optional().nullable(),
     templateId: vine.number().optional(),
     fieldValues: vine.object({}).allowUnknownProperties().optional(),
     // Allow legacy reporter_email snake_case
-    reporter_email: vine.string().trim().email().optional(),
+    reporter_email: vine.string().trim().email().use(mxRecordRule()).optional(),
   })
 )
 

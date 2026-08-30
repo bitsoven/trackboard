@@ -1,10 +1,12 @@
 import { BaseSeeder } from '@adonisjs/lucid/seeders'
+import { DateTime } from 'luxon'
 import User from '#models/user'
 import Project from '#models/project'
 import ApiKey from '#models/api_key'
 import AllowedOrigin from '#models/allowed_origin'
 import ReportTemplate from '#models/report_template'
 import TemplateField from '#models/template_field'
+import TeamMember from '#models/team_member'
 
 export default class extends BaseSeeder {
   async run(): Promise<void> {
@@ -29,6 +31,22 @@ export default class extends BaseSeeder {
         ownerId: user.id,
       })
       console.log(`Created demo project: ${slug} (owner ${user.email})`)
+    }
+
+    // Ensure the owner is enrolled as a team member (idempotent).
+    const existingOwnerMember = await TeamMember.query()
+      .where('projectId', project.id)
+      .where('email', user.email.toLowerCase())
+      .first()
+    if (!existingOwnerMember) {
+      await TeamMember.create({
+        projectId: project.id,
+        userId: user.id,
+        email: user.email.toLowerCase(),
+        role: 'owner',
+        acceptedAt: DateTime.now(),
+      })
+      console.log(`Enrolled ${user.email} as owner of ${slug}`)
     }
 
     // Ensure at least one allowed origin
@@ -67,16 +85,33 @@ export default class extends BaseSeeder {
         isDefault: true,
       })
       const defaultFields = [
-        { key: 'title', label: 'Title', type: 'text', isRequired: true, sortOrder: 0 },
-        { key: 'steps', label: 'Steps to reproduce', type: 'textarea', isRequired: true, sortOrder: 1 },
-        { key: 'expected', label: 'Expected behavior', type: 'textarea', isRequired: true, sortOrder: 2 },
-        { key: 'actual', label: 'Actual behavior', type: 'textarea', isRequired: true, sortOrder: 3 },
+        {
+          key: 'steps',
+          label: 'Steps to reproduce',
+          type: 'textarea',
+          isRequired: true,
+          sortOrder: 0,
+        },
+        {
+          key: 'expected',
+          label: 'Expected behavior',
+          type: 'textarea',
+          isRequired: true,
+          sortOrder: 1,
+        },
+        {
+          key: 'actual',
+          label: 'Actual behavior',
+          type: 'textarea',
+          isRequired: true,
+          sortOrder: 2,
+        },
         {
           key: 'severity',
           label: 'Severity',
           type: 'select',
           isRequired: true,
-          sortOrder: 4,
+          sortOrder: 3,
           options: { choices: ['low', 'medium', 'high', 'critical'] },
         },
       ]
@@ -91,7 +126,9 @@ export default class extends BaseSeeder {
           sortOrder: f.sortOrder,
         })
       }
-      console.log(`Created default template "${template.name}" with ${defaultFields.length} fields for ${slug}`)
+      console.log(
+        `Created default template "${template.name}" with ${defaultFields.length} fields for ${slug}`
+      )
     } else {
       console.log(`Demo project already has a template (id ${existingTemplate.id})`)
     }

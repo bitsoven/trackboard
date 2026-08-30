@@ -41,6 +41,16 @@ export interface ApiDefinition {
     store: typeof routes['session.store']
     destroy: typeof routes['session.destroy']
   }
+  projects: {
+    index: typeof routes['projects.index']
+    show: typeof routes['projects.show']
+    store: typeof routes['projects.store']
+    settings: {
+      index: typeof routes['projects.settings.index']
+      update: typeof routes['projects.settings.update']
+      destroy: typeof routes['projects.settings.destroy']
+    }
+  }
   templates: {
     index: typeof routes['templates.index']
     create: typeof routes['templates.create'] & {
@@ -56,6 +66,7 @@ export interface ApiDefinition {
     presign: typeof routes['public_reports.presign']
     proxyImage: typeof routes['public_reports.proxy_image']
     verify: typeof routes['public_reports.verify']
+    verifyPage: typeof routes['public_reports.verify_page']
   }
   portal: {
     show: typeof routes['portal.show']
@@ -70,6 +81,7 @@ export interface ApiDefinition {
     index: typeof routes['reports.index']
     show: typeof routes['reports.show']
     update: typeof routes['reports.update']
+    screenshot: typeof routes['reports.screenshot']
   }
   integrations: {
     index: typeof routes['integrations.index']
@@ -77,5 +89,16 @@ export interface ApiDefinition {
     revokeApiKey: typeof routes['integrations.revoke_api_key']
     storeWebhook: typeof routes['integrations.store_webhook']
     destroyWebhook: typeof routes['integrations.destroy_webhook']
+  }
+  team: {
+    index: typeof routes['team.index']
+    invite: typeof routes['team.invite']
+    remove: typeof routes['team.remove']
+    role: typeof routes['team.role']
+    accept: typeof routes['team.accept']
+  }
+  settings: {
+    index: typeof routes['settings.index']
+    update: typeof routes['settings.update']
   }
 }

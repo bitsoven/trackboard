@@ -275,13 +275,17 @@ const hasErrors = computed(() => Object.keys(formErrors.value).length > 0)
                   v-if="['select', 'radio', 'checkbox'].includes(field.type)"
                   class="md:col-span-2"
                 >
-                  <label class="block text-xs font-medium text-slate-700">Choices (comma-separated)</label>
+                  <label class="block text-xs font-medium text-slate-700"
+                    >Choices (comma-separated)</label
+                  >
                   <input
                     v-model="(field as any).choicesText"
                     class="w-full border border-slate-300 rounded-md px-3 py-2 text-sm bg-white"
                     placeholder="low, medium, high"
                   />
-                  <p class="text-xs text-slate-500 mt-1">Used for select / radio / multi-checkbox</p>
+                  <p class="text-xs text-slate-500 mt-1">
+                    Used for select / radio / multi-checkbox
+                  </p>
                 </div>
 
                 <div v-if="field.type === 'number'" class="md:col-span-2 flex gap-3">
@@ -353,7 +357,9 @@ const hasErrors = computed(() => Object.keys(formErrors.value).length > 0)
                 </div>
 
                 <div v-if="['text', 'textarea'].includes(field.type)" class="md:col-span-2">
-                  <label class="block text-xs font-medium text-slate-700">Max length (optional)</label>
+                  <label class="block text-xs font-medium text-slate-700"
+                    >Max length (optional)</label
+                  >
                   <input
                     :value="field.options?.maxLength ?? ''"
                     type="number"

@@ -128,19 +128,13 @@ test.group('Reports', (group) => {
       .json({ title: 'T', reporterEmail: 'not-an-email', fieldValues: {} })
     res1.assertStatus(422)
 
-    // Unenforceable domain (no MX) — use a guaranteed invalid TLD
+    // Unenforceable domain (no MX) — reserved `.invalid` TLD is rejected
+    // deterministically without touching DNS.
     const res2 = await client
       .post('/api/public/reports?key=' + rawKey)
       .header('Origin', 'http://localhost:3000')
       .json({ title: 'T', reporterEmail: 'user@invalid.invalid', fieldValues: {} })
-    // MX check should reject — 422. If DNS not reachable in CI, it may pass; allow either 201 or 422 but prefer 422
-    assert.isTrue([201, 422].includes(res2.status()))
-    if (res2.status() === 422) {
-      assert.isTrue(true)
-    } else {
-      // If DNS allowed, ensure report was created
-      assert.equal(res2.body().data.reporterEmail, 'user@invalid.invalid')
-    }
+    res2.assertStatus(422)
 
     // Valid email with example.com (bypass MX) should pass
     const res3 = await client

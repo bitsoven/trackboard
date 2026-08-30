@@ -43,23 +43,13 @@ export class ConversationSchema extends BaseModel {
   @column({ isPrimary: true })
   declare id: number
   @column()
-  declare reportId: number
+  declare reportId: string
   @column.dateTime({ autoCreate: true, autoUpdate: true })
   declare updatedAt: DateTime | null
 }
 
 export class MessageSchema extends BaseModel {
-  static $columns = [
-    'authorId',
-    'authorType',
-    'body',
-    'conversationId',
-    'createdAt',
-    'direction',
-    'emailMessageId',
-    'id',
-    'inReplyTo',
-  ] as const
+  static $columns = ['authorId', 'authorType', 'body', 'conversationId', 'createdAt', 'direction', 'emailMessageId', 'id', 'inReplyTo'] as const
   $columns = MessageSchema.$columns
   @column()
   declare authorId: number | null
@@ -101,15 +91,7 @@ export class NotificationSchema extends BaseModel {
 }
 
 export class ProjectSchema extends BaseModel {
-  static $columns = [
-    'createdAt',
-    'id',
-    'name',
-    'ownerId',
-    'requireEmailVerification',
-    'slug',
-    'updatedAt',
-  ] as const
+  static $columns = ['createdAt', 'id', 'name', 'ownerId', 'requireEmailVerification', 'slug', 'updatedAt'] as const
   $columns = ProjectSchema.$columns
   @column.dateTime({ autoCreate: true })
   declare createdAt: DateTime
@@ -135,7 +117,7 @@ export class ReportFieldValueSchema extends BaseModel {
   @column({ isPrimary: true })
   declare id: number
   @column()
-  declare reportId: number
+  declare reportId: string
   @column()
   declare value: string | null
 }
@@ -158,27 +140,7 @@ export class ReportTemplateSchema extends BaseModel {
 }
 
 export class ReportSchema extends BaseModel {
-  static $columns = [
-    'assigneeId',
-    'browserInfo',
-    'consoleErrors',
-    'createdAt',
-    'id',
-    'networkErrors',
-    'pageUrl',
-    'priority',
-    'projectId',
-    'replyToToken',
-    'reporterEmail',
-    'reporterVerifiedAt',
-    'screenshotUrl',
-    'status',
-    'templateId',
-    'title',
-    'updatedAt',
-    'verificationSentAt',
-    'verificationToken',
-  ] as const
+  static $columns = ['assigneeId', 'browserInfo', 'consoleErrors', 'createdAt', 'id', 'networkErrors', 'pageUrl', 'priority', 'projectId', 'replyToToken', 'reporterEmail', 'reporterVerifiedAt', 'screenshotUrl', 'status', 'templateId', 'title', 'updatedAt', 'verificationSentAt', 'verificationToken'] as const
   $columns = ReportSchema.$columns
   @column()
   declare assigneeId: number | null
@@ -189,7 +151,7 @@ export class ReportSchema extends BaseModel {
   @column.dateTime({ autoCreate: true })
   declare createdAt: DateTime
   @column({ isPrimary: true })
-  declare id: number
+  declare id: string
   @column()
   declare networkErrors: any | null
   @column()
@@ -220,61 +182,33 @@ export class ReportSchema extends BaseModel {
   declare verificationToken: string | null
 }
 
-export class WebhookSubscriptionSchema extends BaseModel {
-  static $columns = [
-    'active',
-    'createdAt',
-    'events',
-    'id',
-    'projectId',
-    'secret',
-    'updatedAt',
-    'url',
-  ] as const
-  $columns = WebhookSubscriptionSchema.$columns
-  @column()
-  declare active: boolean
+export class TeamMemberSchema extends BaseModel {
+  static $columns = ['acceptedAt', 'createdAt', 'email', 'id', 'inviteToken', 'invitedAt', 'projectId', 'role', 'updatedAt', 'userId'] as const
+  $columns = TeamMemberSchema.$columns
+  @column.dateTime()
+  declare acceptedAt: DateTime | null
   @column.dateTime({ autoCreate: true })
   declare createdAt: DateTime
-  @column({
-    prepare: (value) => JSON.stringify(value ?? []),
-    consume: (value) => {
-      if (value === null || value === undefined) return []
-      if (typeof value === 'string') {
-        try {
-          return JSON.parse(value)
-        } catch {
-          return []
-        }
-      }
-      return value as string[]
-    },
-  })
-  declare events: string[]
+  @column()
+  declare email: string
   @column({ isPrimary: true })
   declare id: number
   @column()
+  declare inviteToken: string | null
+  @column.dateTime()
+  declare invitedAt: DateTime | null
+  @column()
   declare projectId: number
   @column()
-  declare secret: string
+  declare role: string
   @column.dateTime({ autoCreate: true, autoUpdate: true })
-  declare updatedAt: DateTime
+  declare updatedAt: DateTime | null
   @column()
-  declare url: string
+  declare userId: number | null
 }
 
 export class TemplateFieldSchema extends BaseModel {
-  static $columns = [
-    'id',
-    'isRequired',
-    'key',
-    'label',
-    'options',
-    'reportTemplateId',
-    'showIf',
-    'sortOrder',
-    'type',
-  ] as const
+  static $columns = ['id', 'isRequired', 'key', 'label', 'options', 'reportTemplateId', 'showIf', 'sortOrder', 'type'] as const
   $columns = TemplateFieldSchema.$columns
   @column({ isPrimary: true })
   declare id: number
@@ -297,15 +231,7 @@ export class TemplateFieldSchema extends BaseModel {
 }
 
 export class UserSchema extends BaseModel {
-  static $columns = [
-    'createdAt',
-    'email',
-    'fullName',
-    'id',
-    'password',
-    'role',
-    'updatedAt',
-  ] as const
+  static $columns = ['createdAt', 'email', 'fullName', 'id', 'password', 'role', 'updatedAt'] as const
   $columns = UserSchema.$columns
   @column.dateTime({ autoCreate: true })
   declare createdAt: DateTime
@@ -321,4 +247,29 @@ export class UserSchema extends BaseModel {
   declare role: string
   @column.dateTime({ autoCreate: true, autoUpdate: true })
   declare updatedAt: DateTime | null
+}
+
+export class WebhookSubscriptionSchema extends BaseModel {
+  static $columns = ['active', 'createdAt', 'events', 'id', 'projectId', 'secret', 'updatedAt', 'url'] as const
+  $columns = WebhookSubscriptionSchema.$columns
+  @column()
+  declare active: boolean
+  @column.dateTime({ autoCreate: true })
+  declare createdAt: DateTime
+  @column({
+    prepare: (value: string[]) => JSON.stringify(value ?? []),
+    consume: (value: string | string[]) =>
+      Array.isArray(value) ? value : value ? JSON.parse(value) : [],
+  })
+  declare events: string[]
+  @column({ isPrimary: true })
+  declare id: number
+  @column()
+  declare projectId: number
+  @column()
+  declare secret: string
+  @column.dateTime({ autoCreate: true, autoUpdate: true })
+  declare updatedAt: DateTime
+  @column()
+  declare url: string
 }

@@ -1,6 +1,7 @@
 import type { HttpContext } from '@adonisjs/core/http'
 import { inject } from '@adonisjs/core'
 import Project from '#models/project'
+import TeamService from '#services/team_service'
 import ApiKeyService from '#services/api_key_service'
 import WebhookService from '#services/webhook_service'
 import { createApiKeyValidator } from '#validators/api_key'
@@ -22,7 +23,7 @@ export default class IntegrationsController {
   async storeApiKey({ params, request, auth, response, session }: HttpContext) {
     const user = auth.user!
     const project = await findProjectOrFail(params.projectId)
-    if (project.ownerId !== user.id && user.role !== 'admin') {
+    if (!(await TeamService.canAccess(project.id, user.id, user.role))) {
       return response.forbidden({ message: 'Not authorized' })
     }
     const payload = await request.validateUsing(createApiKeyValidator)
@@ -35,7 +36,7 @@ export default class IntegrationsController {
   async revokeApiKey({ params, auth, response }: HttpContext) {
     const user = auth.user!
     const project = await findProjectOrFail(params.projectId)
-    if (project.ownerId !== user.id && user.role !== 'admin') {
+    if (!(await TeamService.canAccess(project.id, user.id, user.role))) {
       return response.forbidden({ message: 'Not authorized' })
     }
     const key = await ApiKeyService.listForProject(project.id)
@@ -47,7 +48,7 @@ export default class IntegrationsController {
   async storeWebhook({ params, request, auth, response }: HttpContext) {
     const user = auth.user!
     const project = await findProjectOrFail(params.projectId)
-    if (project.ownerId !== user.id && user.role !== 'admin') {
+    if (!(await TeamService.canAccess(project.id, user.id, user.role))) {
       return response.forbidden({ message: 'Not authorized' })
     }
     const payload = await request.validateUsing(createWebhookValidator)
@@ -58,7 +59,7 @@ export default class IntegrationsController {
   async destroyWebhook({ params, auth, response }: HttpContext) {
     const user = auth.user!
     const project = await findProjectOrFail(params.projectId)
-    if (project.ownerId !== user.id && user.role !== 'admin') {
+    if (!(await TeamService.canAccess(project.id, user.id, user.role))) {
       return response.forbidden({ message: 'Not authorized' })
     }
     await WebhookService.delete(Number(params.id))

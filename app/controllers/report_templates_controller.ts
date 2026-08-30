@@ -4,6 +4,7 @@ import ReportTemplateService from '#services/report_template_service'
 import { createTemplateValidator, updateTemplateValidator } from '#validators/template'
 import ReportTemplateTransformer from '#transformers/report_template_transformer'
 import Project from '#models/project'
+import TeamService from '#services/team_service'
 
 async function findProjectOrFail(param: string | number): Promise<Project> {
   const str = String(param)
@@ -24,7 +25,7 @@ export default class ReportTemplatesController {
     const user = auth.user!
     const project = await findProjectOrFail(params.id)
 
-    if (project.ownerId !== user.id && user.role !== 'admin') {
+    if (!(await TeamService.canAccess(project.id, user.id, user.role))) {
       return response.forbidden({ message: 'Not authorized for this project' })
     }
 
@@ -38,7 +39,7 @@ export default class ReportTemplatesController {
     const user = auth.user!
     const project = await findProjectOrFail(params.id)
 
-    if (project.ownerId !== user.id && user.role !== 'admin') {
+    if (!(await TeamService.canAccess(project.id, user.id, user.role))) {
       return response.forbidden({ message: 'Not authorized for this project' })
     }
 
@@ -52,7 +53,7 @@ export default class ReportTemplatesController {
     const template = await this.templateService.findById(Number(params.id))
     const project = await Project.findOrFail(template.projectId)
 
-    if (project.ownerId !== user.id && user.role !== 'admin') {
+    if (!(await TeamService.canAccess(project.id, user.id, user.role))) {
       return response.forbidden({ message: 'Not authorized for this project' })
     }
 
@@ -66,7 +67,7 @@ export default class ReportTemplatesController {
     const template = await this.templateService.findById(Number(params.id))
     const project = await Project.findOrFail(template.projectId)
 
-    if (project.ownerId !== user.id && user.role !== 'admin') {
+    if (!(await TeamService.canAccess(project.id, user.id, user.role))) {
       return response.forbidden({ message: 'Not authorized for this project' })
     }
 

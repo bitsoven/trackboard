@@ -63,6 +63,13 @@ export interface RuntimeError {
   detail?: string
 }
 
+export type CaptureMode = 'visible' | 'fullpage' | 'element'
+
+export interface HighFidelityConfig {
+  enabled: boolean
+  consented: boolean
+}
+
 export interface WidgetSubmitResult {
   ok: boolean
   status: number

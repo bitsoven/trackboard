@@ -12,7 +12,7 @@ export default class VerificationMail extends BaseMail {
 
   prepare() {
     this.message.to(this.report.reporterEmail ?? '')
-    this.message.subject('Please verify your bug report')
+    this.message.subject(`Please verify your bug report: ${this.escape(this.report.title)}`)
     this.message.html(`
       <p>Hello,</p>
       <p>Thanks for submitting a bug report titled <strong>${this.escape(

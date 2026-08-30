@@ -103,6 +103,42 @@ export interface Registry {
       errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/session_controller').default['destroy']>>>
     }
   }
+  'projects.index': {
+    methods: ["GET","HEAD"]
+    pattern: '/projects'
+    types: {
+      body: {}
+      paramsTuple: []
+      params: {}
+      query: {}
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/projects_controller').default['index']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/projects_controller').default['index']>>>
+    }
+  }
+  'projects.show': {
+    methods: ["GET","HEAD"]
+    pattern: '/projects/:id'
+    types: {
+      body: {}
+      paramsTuple: [ParamValue]
+      params: { id: ParamValue }
+      query: {}
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/projects_controller').default['show']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/projects_controller').default['show']>>>
+    }
+  }
+  'projects.store': {
+    methods: ["POST"]
+    pattern: '/projects'
+    types: {
+      body: ExtractBody<InferInput<(typeof import('#validators/project').createProjectValidator)>>
+      paramsTuple: []
+      params: {}
+      query: ExtractQuery<InferInput<(typeof import('#validators/project').createProjectValidator)>>
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/projects_controller').default['store']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/projects_controller').default['store']>>> | { status: 422; response: { errors: SimpleError[] } }
+    }
+  }
   'api.projects.templates.index': {
     methods: ["GET","HEAD"]
     pattern: '/api/projects/:id/templates'
@@ -283,6 +319,18 @@ export interface Registry {
       errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/public_reports_controller').default['verify']>>>
     }
   }
+  'public_reports.verify_page': {
+    methods: ["GET","HEAD"]
+    pattern: '/verify/:token'
+    types: {
+      body: {}
+      paramsTuple: [ParamValue]
+      params: { token: ParamValue }
+      query: {}
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/public_reports_controller').default['verifyPage']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/public_reports_controller').default['verifyPage']>>>
+    }
+  }
   'api.reports.index': {
     methods: ["GET","HEAD"]
     pattern: '/api/reports'
@@ -415,6 +463,18 @@ export interface Registry {
       errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/report_pages_controller').default['update']>>>
     }
   }
+  'reports.screenshot': {
+    methods: ["GET","HEAD"]
+    pattern: '/reports/:id/screenshot'
+    types: {
+      body: {}
+      paramsTuple: [ParamValue]
+      params: { id: ParamValue }
+      query: {}
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/report_pages_controller').default['screenshot']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/report_pages_controller').default['screenshot']>>>
+    }
+  }
   'integrations.index': {
     methods: ["GET","HEAD"]
     pattern: '/projects/:projectId/integrations'
@@ -473,6 +533,126 @@ export interface Registry {
       query: {}
       response: ExtractResponse<Awaited<ReturnType<import('#controllers/integrations_controller').default['destroyWebhook']>>>
       errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/integrations_controller').default['destroyWebhook']>>>
+    }
+  }
+  'team.index': {
+    methods: ["GET","HEAD"]
+    pattern: '/projects/:projectId/team'
+    types: {
+      body: {}
+      paramsTuple: [ParamValue]
+      params: { projectId: ParamValue }
+      query: {}
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/team_controller').default['index']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/team_controller').default['index']>>>
+    }
+  }
+  'team.invite': {
+    methods: ["POST"]
+    pattern: '/projects/:projectId/team/invite'
+    types: {
+      body: ExtractBody<InferInput<(typeof import('#validators/team').inviteTeamMemberValidator)>>
+      paramsTuple: [ParamValue]
+      params: { projectId: ParamValue }
+      query: ExtractQuery<InferInput<(typeof import('#validators/team').inviteTeamMemberValidator)>>
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/team_controller').default['invite']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/team_controller').default['invite']>>> | { status: 422; response: { errors: SimpleError[] } }
+    }
+  }
+  'team.remove': {
+    methods: ["POST"]
+    pattern: '/projects/:projectId/team/:memberId/remove'
+    types: {
+      body: {}
+      paramsTuple: [ParamValue, ParamValue]
+      params: { projectId: ParamValue; memberId: ParamValue }
+      query: {}
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/team_controller').default['remove']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/team_controller').default['remove']>>>
+    }
+  }
+  'team.role': {
+    methods: ["PATCH"]
+    pattern: '/projects/:projectId/team/:memberId/role'
+    types: {
+      body: {}
+      paramsTuple: [ParamValue, ParamValue]
+      params: { projectId: ParamValue; memberId: ParamValue }
+      query: {}
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/team_controller').default['changeRole']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/team_controller').default['changeRole']>>>
+    }
+  }
+  'team.accept': {
+    methods: ["GET","HEAD"]
+    pattern: '/accept-invite'
+    types: {
+      body: {}
+      paramsTuple: []
+      params: {}
+      query: {}
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/team_controller').default['showAccept']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/team_controller').default['showAccept']>>>
+    }
+  }
+  'settings.index': {
+    methods: ["GET","HEAD"]
+    pattern: '/settings'
+    types: {
+      body: {}
+      paramsTuple: []
+      params: {}
+      query: {}
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/settings_controller').default['index']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/settings_controller').default['index']>>>
+    }
+  }
+  'settings.update': {
+    methods: ["PATCH"]
+    pattern: '/settings'
+    types: {
+      body: ExtractBody<InferInput<(typeof import('#validators/user').updateAccountValidator)>>
+      paramsTuple: []
+      params: {}
+      query: ExtractQuery<InferInput<(typeof import('#validators/user').updateAccountValidator)>>
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/settings_controller').default['update']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/settings_controller').default['update']>>> | { status: 422; response: { errors: SimpleError[] } }
+    }
+  }
+  'projects.settings.index': {
+    methods: ["GET","HEAD"]
+    pattern: '/projects/:id/settings'
+    types: {
+      body: {}
+      paramsTuple: [ParamValue]
+      params: { id: ParamValue }
+      query: {}
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/settings_controller').default['projectIndex']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/settings_controller').default['projectIndex']>>>
+    }
+  }
+  'projects.settings.update': {
+    methods: ["PATCH"]
+    pattern: '/projects/:id/settings'
+    types: {
+      body: ExtractBody<InferInput<(typeof import('#validators/project').updateProjectValidator)>>
+      paramsTuple: [ParamValue]
+      params: { id: ParamValue }
+      query: ExtractQuery<InferInput<(typeof import('#validators/project').updateProjectValidator)>>
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/settings_controller').default['projectUpdate']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/settings_controller').default['projectUpdate']>>> | { status: 422; response: { errors: SimpleError[] } }
+    }
+  }
+  'projects.settings.destroy': {
+    methods: ["DELETE"]
+    pattern: '/projects/:id/settings'
+    types: {
+      body: {}
+      paramsTuple: [ParamValue]
+      params: { id: ParamValue }
+      query: {}
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/settings_controller').default['projectDestroy']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/settings_controller').default['projectDestroy']>>>
     }
   }
 }

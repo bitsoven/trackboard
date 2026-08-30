@@ -205,7 +205,9 @@ function useDefaultTemplate() {
     </div>
 
     <div class="mt-6 text-sm">
-      <Link href="/" class="text-slate-500 hover:text-brand-indigo-700 hover:underline">← Back to overview</Link>
+      <Link href="/" class="text-slate-500 hover:text-brand-indigo-700 hover:underline"
+        >← Back to overview</Link
+      >
     </div>
   </div>
 </template>

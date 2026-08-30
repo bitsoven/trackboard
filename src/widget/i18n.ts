@@ -22,6 +22,17 @@ const dictionaries: Record<string, Dict> = {
     'widget.screenshot': 'Attach a screenshot',
     'widget.retry': 'Retry now',
     'widget.fieldRequired': 'This field is required',
+    'widget.consentTitle': 'High-fidelity screenshot',
+    'widget.consentBody':
+      'Trackboard will ask to share your screen for a pixel-perfect capture. You can deny and we will use a standard capture instead.',
+    'widget.consentAllow': 'Allow screen share',
+    'widget.consentDeny': 'Use standard capture',
+    'widget.captureModeLabel': 'Capture area',
+    'widget.captureModeVisible': 'Visible area',
+    'widget.captureModeFullpage': 'Full page',
+    'widget.captureModeElement': 'Pinned element',
+    'widget.screenshotTooLarge': 'Screenshot too large, recompressing…',
+    'widget.verifySent': 'We sent a confirmation email to {email}. Please check your inbox and click the link to verify your report.',
   },
   es: {
     'widget.title': 'Reportar un problema',
@@ -42,6 +53,17 @@ const dictionaries: Record<string, Dict> = {
     'widget.screenshot': 'Adjuntar una captura',
     'widget.retry': 'Reintentar ahora',
     'widget.fieldRequired': 'Este campo es obligatorio',
+    'widget.consentTitle': 'Captura de alta fidelidad',
+    'widget.consentBody':
+      'Trackboard pedirá compartir tu pantalla para una captura perfecta. Puedes denegar y usaremos una captura estándar.',
+    'widget.consentAllow': 'Permitir compartir pantalla',
+    'widget.consentDeny': 'Usar captura estándar',
+    'widget.captureModeLabel': 'Área de captura',
+    'widget.captureModeVisible': 'Área visible',
+    'widget.captureModeFullpage': 'Página completa',
+    'widget.captureModeElement': 'Elemento fijado',
+    'widget.screenshotTooLarge': 'Captura muy grande, recomprimiendo…',
+    'widget.verifySent': 'Enviamos un correo de confirmación a {email}. Revisa tu bandeja y haz clic en el enlace para verificar tu reporte.',
   },
   de: {
     'widget.title': 'Problem melden',
@@ -62,6 +84,17 @@ const dictionaries: Record<string, Dict> = {
     'widget.screenshot': 'Screenshot anhängen',
     'widget.retry': 'Jetzt erneut versuchen',
     'widget.fieldRequired': 'Dieses Feld ist erforderlich',
+    'widget.consentTitle': 'Hochauflösende Aufnahme',
+    'widget.consentBody':
+      'Trackboard wird um Bildschirmfreigabe bitten für eine pixelgenaue Aufnahme. Du kannst ablehnen und wir nutzen eine Standardaufnahme.',
+    'widget.consentAllow': 'Bildschirmfreigabe erlauben',
+    'widget.consentDeny': 'Standardaufnahme verwenden',
+    'widget.captureModeLabel': 'Aufnahmebereich',
+    'widget.captureModeVisible': 'Sichtbarer Bereich',
+    'widget.captureModeFullpage': 'Gesamte Seite',
+    'widget.captureModeElement': 'Angeheftetes Element',
+    'widget.screenshotTooLarge': 'Screenshot zu groß, wird neu kodiert…',
+    'widget.verifySent': 'Wir haben eine Bestätigungs-E-Mail an {email} gesendet. Bitte prüfe dein Postfach und klicke auf den Link, um deinen Bericht zu bestätigen.',
   },
 }
 

@@ -3,7 +3,13 @@ import type { WidgetConfig } from './types.js'
 import type { I18n } from './i18n.js'
 import { fetchConfig } from './config.js'
 import { startErrorCapture, type ErrorCollector } from './errors.js'
-import { captureScreenshot } from './screenshot.js'
+import {
+  captureScreenshot,
+  hasHighFidelityConsent,
+  setHighFidelityConsent,
+  isDisplayMediaAvailable,
+} from './screenshot.js'
+import type { CaptureMode } from './screenshot.js'
 import { startElementPin } from './element_pin.js'
 import { DynamicForm, isFieldVisible } from './form.js'
 import { submitReport, enqueue, isOnline, type ReportPayload } from './submit.js'
@@ -12,6 +18,8 @@ interface WidgetAppProps {
   apiBase: string
   projectKey: string
   i18n: I18n
+  captureMode?: CaptureMode
+  highFidelity?: boolean
 }
 
 type Status = 'idle' | 'loading' | 'ready' | 'submitting' | 'success' | 'error'
@@ -43,6 +51,10 @@ export function WidgetApp(props: WidgetAppProps) {
   const [pinned, setPinned] = useState<string | null>(null)
   const [pinActive, setPinActive] = useState(false)
   const [banner, setBanner] = useState<string | null>(null)
+  const [verifyBanner, setVerifyBanner] = useState<string | null>(null)
+  const captureMode = (props.captureMode ?? 'fullpage') as CaptureMode
+  const highFidelityEnabled = !!props.highFidelity
+  const [showConsent, setShowConsent] = useState(false)
 
   const collectorRef = useRef<ErrorCollector | null>(null)
   const stopPinRef = useRef<(() => void) | null>(null)
@@ -72,6 +84,26 @@ export function WidgetApp(props: WidgetAppProps) {
       stopPinRef.current?.()
     }
   }, [])
+
+  useEffect(() => {
+    if (open && highFidelityEnabled && isDisplayMediaAvailable() && !hasHighFidelityConsent()) {
+      try {
+        if (localStorage.getItem('trackboard:high-fidelity-consent') === null) {
+          setShowConsent(true)
+        }
+      } catch {}
+    }
+  }, [open, highFidelityEnabled])
+
+  const handleConsentAllow = () => {
+    setHighFidelityConsent(true)
+    setShowConsent(false)
+  }
+
+  const handleConsentDeny = () => {
+    setHighFidelityConsent(false)
+    setShowConsent(false)
+  }
 
   const togglePanel = () => setOpen((v) => !v)
 
@@ -121,6 +153,8 @@ export function WidgetApp(props: WidgetAppProps) {
 
     for (const field of config?.template?.fields ?? []) {
       if (!field.isRequired) continue
+      // Built-in fields (title / reporterEmail) are validated separately above.
+      if (field.key === 'title' || field.key === 'reporterEmail') continue
       if (!isFieldVisible(field, values)) continue
       if (isEmptyValue(values[field.key], field.type)) {
         nextErrors[field.key] = i18n.t('widget.fieldRequired')
@@ -132,13 +166,50 @@ export function WidgetApp(props: WidgetAppProps) {
   }
 
   const submit = async () => {
+    // If high-fidelity is opted-in but consent hasn't been decided, show dialog first
+    if (highFidelityEnabled && isDisplayMediaAvailable() && !hasHighFidelityConsent()) {
+      try {
+        if (localStorage.getItem('trackboard:high-fidelity-consent') === null) {
+          setShowConsent(true)
+          return
+        }
+      } catch {}
+    }
+    if (showConsent) return
     if (!validate()) return
     setStatus('submitting')
 
     const collected = collectorRef.current?.getErrors() ?? []
     const consoleErrors = collected.filter((e) => e.kind === 'console').map((e) => e.message)
     const networkErrors = collected.filter((e) => e.kind === 'network').map((e) => e.message)
-    const screenshotUrl = await captureScreenshot(apiBase)
+
+    let targetEl: HTMLElement | undefined
+    if (captureMode === 'element' && pinned) {
+      try {
+        targetEl = (document.querySelector(pinned) as HTMLElement) ?? undefined
+      } catch {}
+    }
+    const highFidelityActive =
+      highFidelityEnabled && isDisplayMediaAvailable() && hasHighFidelityConsent()
+    let screenshotUrl: string | null = null
+    if (highFidelityActive) {
+      screenshotUrl = await captureScreenshot(apiBase, {
+        target: targetEl,
+        mode: captureMode,
+        highFidelity: true,
+      })
+    } else {
+      // Capture the screenshot but never let it block the report from being
+      // sent. We wait up to a short window; if it isn't ready, we send without.
+      screenshotUrl = (await Promise.race([
+        captureScreenshot(apiBase, {
+          target: targetEl,
+          mode: captureMode,
+          highFidelity: false,
+        }),
+        new Promise((resolve) => setTimeout(() => resolve(null), 1500)),
+      ])) as string | null
+    }
 
     const payload: ReportPayload = {
       title: title.trim(),
@@ -157,9 +228,16 @@ export function WidgetApp(props: WidgetAppProps) {
     }
 
     try {
-      await submitReport(apiBase, projectKey, payload)
+      const result: any = await submitReport(apiBase, projectKey, payload)
+      const isPending = result?.data?.status === 'pending_verification'
+      if (isPending) {
+        setVerifyBanner(i18n.t('widget.verifySent', { email: email.trim() }))
+        setBanner(null)
+      } else {
+        setVerifyBanner(null)
+        setBanner(null)
+      }
       setStatus('success')
-      setBanner(null)
       collectorRef.current?.stop()
       collectorRef.current = null
     } catch (err) {
@@ -168,12 +246,15 @@ export function WidgetApp(props: WidgetAppProps) {
         enqueue(payload)
         setStatus('success')
         setBanner(i18n.t('widget.error'))
+        setVerifyBanner(null)
         collectorRef.current?.stop()
         collectorRef.current = null
         return
       }
       const httpError = err as Error & { status?: number }
+      console.error('[trackboard] report submit failed', httpError)
       setStatus('error')
+      setVerifyBanner(null)
       setBanner(httpError.status === 422 ? i18n.t('widget.fieldRequired') : i18n.t('widget.error'))
     }
   }
@@ -199,6 +280,22 @@ export function WidgetApp(props: WidgetAppProps) {
         </div>
 
         {banner && <div class="tb-banner">{banner}</div>}
+        {verifyBanner && <div class="tb-verify">{verifyBanner}</div>}
+
+        {showConsent && (
+          <div class="tb-consent">
+            <h4 class="tb-consent-title">{i18n.t('widget.consentTitle')}</h4>
+            <p class="tb-consent-body">{i18n.t('widget.consentBody')}</p>
+            <div class="tb-consent-actions">
+              <button class="tb-btn tb-btn-primary" onClick={handleConsentAllow}>
+                {i18n.t('widget.consentAllow')}
+              </button>
+              <button class="tb-btn tb-btn-secondary" onClick={handleConsentDeny}>
+                {i18n.t('widget.consentDeny')}
+              </button>
+            </div>
+          </div>
+        )}
 
         {status === 'loading' && <div>{i18n.t('widget.sending')}</div>}
         {status === 'error' && configError && <div class="tb-error">{configError}</div>}

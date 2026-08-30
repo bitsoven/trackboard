@@ -7,8 +7,10 @@
 import type { InferData, InferVariants } from '@adonisjs/core/types/transformers'
 import type { InferSharedProps, InferFlashData } from '@adonisjs/inertia/types'
 import type ApiKeyTransformer from '#transformers/api_key_transformer'
+import type ProjectTransformer from '#transformers/project_transformer'
 import type ReportTemplateTransformer from '#transformers/report_template_transformer'
 import type ReportTransformer from '#transformers/report_transformer'
+import type TeamMemberTransformer from '#transformers/team_member_transformer'
 import type TemplateFieldTransformer from '#transformers/template_field_transformer'
 import type UserTransformer from '#transformers/user_transformer'
 import type WebhookTransformer from '#transformers/webhook_transformer'
@@ -19,6 +21,10 @@ export namespace Data {
   export namespace ApiKey {
     export type Variants = InferVariants<ApiKeyTransformer>
   }
+  export type Project = InferData<ProjectTransformer>
+  export namespace Project {
+    export type Variants = InferVariants<ProjectTransformer>
+  }
   export type ReportTemplate = InferData<ReportTemplateTransformer>
   export namespace ReportTemplate {
     export type Variants = InferVariants<ReportTemplateTransformer>
@@ -26,6 +32,10 @@ export namespace Data {
   export type Report = InferData<ReportTransformer>
   export namespace Report {
     export type Variants = InferVariants<ReportTransformer>
+  }
+  export type TeamMember = InferData<TeamMemberTransformer>
+  export namespace TeamMember {
+    export type Variants = InferVariants<TeamMemberTransformer>
   }
   export type TemplateField = InferData<TemplateFieldTransformer>
   export namespace TemplateField {

@@ -130,7 +130,7 @@ test.group('Report Template Engine', (group) => {
     const template = await service.create(project.id, {
       name: 'Schema Test',
       fields: [
-        { key: 'title', label: 'Title', type: 'text', isRequired: true },
+        { key: 'summary', label: 'Summary', type: 'text', isRequired: true },
         {
           key: 'priority',
           label: 'Priority',
@@ -163,12 +163,12 @@ test.group('Report Template Engine', (group) => {
     } catch (error: any) {
       assert.isTrue(error.messages !== undefined || error.message !== undefined)
       const messages = error.messages ? JSON.stringify(error.messages) : error.message
-      assert.include(messages, 'title')
+      assert.include(messages, 'summary')
     }
 
     // Missing one required (severity) should fail
     try {
-      await validator.validate({ title: 'hello', priority: 'low' })
+      await validator.validate({ summary: 'hello', priority: 'low' })
       assert.fail('Should have thrown for missing severity')
     } catch (error: any) {
       const messages = error.messages ? JSON.stringify(error.messages) : error.message
@@ -176,14 +176,14 @@ test.group('Report Template Engine', (group) => {
     }
 
     // Valid payload passes
-    const valid = await validator.validate({ title: 'hello', priority: 'low', severity: 3 })
-    assert.equal(valid.title, 'hello')
+    const valid = await validator.validate({ summary: 'hello', priority: 'low', severity: 3 })
+    assert.equal(valid.summary, 'hello')
     assert.equal(valid.priority, 'low')
     assert.equal(valid.severity, 3)
 
     // Optional field present and valid passes
     const withOptional = await validator.validate({
-      title: 'x',
+      summary: 'x',
       priority: 'high',
       severity: 5,
       estimate: 7,
@@ -192,7 +192,7 @@ test.group('Report Template Engine', (group) => {
 
     // Invalid select choice fails
     try {
-      await validator.validate({ title: 'x', priority: 'invalid', severity: 2 })
+      await validator.validate({ summary: 'x', priority: 'invalid', severity: 2 })
       assert.fail('Should have failed for invalid enum')
     } catch (error: any) {
       assert.isTrue(true)
@@ -200,7 +200,7 @@ test.group('Report Template Engine', (group) => {
 
     // Number out of range fails
     try {
-      await validator.validate({ title: 'x', priority: 'low', severity: 2, estimate: 999 })
+      await validator.validate({ summary: 'x', priority: 'low', severity: 2, estimate: 999 })
       assert.fail('Should have failed for number max')
     } catch (error: any) {
       assert.isTrue(true)
@@ -208,7 +208,7 @@ test.group('Report Template Engine', (group) => {
 
     // Severity scale out of range fails
     try {
-      await validator.validate({ title: 'x', priority: 'low', severity: 10 })
+      await validator.validate({ summary: 'x', priority: 'low', severity: 10 })
       assert.fail('Should have failed for severity max')
     } catch (error: any) {
       assert.isTrue(true)

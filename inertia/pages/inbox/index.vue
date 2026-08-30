@@ -86,7 +86,9 @@ function copySnippet() {
     <div class="flex items-center justify-between mb-6">
       <div>
         <h1 class="text-2xl font-semibold tracking-tight">Inbox</h1>
-        <p class="text-sm text-slate-500 mt-1">Reports needing action — sorted by urgency</p>
+        <p class="text-sm text-slate-500 mt-1">
+          Open, unassigned reports that still need a decision — sorted by urgency.
+        </p>
       </div>
       <Link
         href="/reports"
@@ -107,7 +109,7 @@ function copySnippet() {
         v-model="statusFilter"
         class="border border-slate-300 rounded-md px-2.5 py-1.5 text-sm bg-white"
       >
-        <option value="">Needs action</option>
+        <option value="">Needs triage (open, unassigned)</option>
         <option value="open">open</option>
         <option value="in_progress">in_progress</option>
       </select>

@@ -80,7 +80,6 @@ const isFiltered = computed(
 const features = tableFeatures({})
 
 const columns = [
-  { accessorKey: 'id', header: 'ID' },
   { accessorKey: 'title', header: 'Title' },
   {
     accessorKey: 'project',
@@ -99,7 +98,6 @@ const columns = [
   {
     id: 'actions',
     header: 'Actions',
-    cell: (info: any) => info.row.original.id,
   },
 ]
 
@@ -119,24 +117,40 @@ const table = useTable({
     <div class="flex items-center justify-between mb-6">
       <div>
         <h1 class="text-2xl font-semibold tracking-tight">All Reports</h1>
-        <p class="text-sm text-slate-500 mt-1">Searchable archive — every report across your projects</p>
+        <p class="text-sm text-slate-500 mt-1">
+          Searchable archive — every report across your projects
+        </p>
       </div>
-      <Link href="/" class="text-sm font-medium text-slate-500 hover:text-brand-indigo-700 hover:underline">← Overview</Link>
+      <Link
+        href="/"
+        class="text-sm font-medium text-slate-500 hover:text-brand-indigo-700 hover:underline"
+        >← Overview</Link
+      >
     </div>
 
     <div class="flex flex-wrap gap-3 mb-4 p-3 border border-slate-200 rounded-lg bg-white">
-      <select v-model="projectFilter" class="border border-slate-300 rounded-md px-2.5 py-1.5 text-sm bg-white">
+      <select
+        v-model="projectFilter"
+        class="border border-slate-300 rounded-md px-2.5 py-1.5 text-sm bg-white"
+      >
         <option value="">All projects</option>
         <option v-for="p in props.projects" :key="p.id" :value="String(p.id)">{{ p.name }}</option>
       </select>
-      <select v-model="statusFilter" class="border border-slate-300 rounded-md px-2.5 py-1.5 text-sm bg-white">
+      <select
+        v-model="statusFilter"
+        class="border border-slate-300 rounded-md px-2.5 py-1.5 text-sm bg-white"
+      >
         <option value="">All statuses</option>
+        <option value="needs_action">Needs action (unassigned)</option>
         <option value="open">open</option>
         <option value="in_progress">in_progress</option>
         <option value="resolved">resolved</option>
         <option value="closed">closed</option>
       </select>
-      <select v-model="priorityFilter" class="border border-slate-300 rounded-md px-2.5 py-1.5 text-sm bg-white">
+      <select
+        v-model="priorityFilter"
+        class="border border-slate-300 rounded-md px-2.5 py-1.5 text-sm bg-white"
+      >
         <option value="">All priorities</option>
         <option value="low">low</option>
         <option value="medium">medium</option>

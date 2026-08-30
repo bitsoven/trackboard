@@ -20,11 +20,11 @@ export default class InboxController {
           : undefined,
     }
 
-    // Default to needs-action: open + in_progress
+    // Default to needs-triage: open + unassigned (nothing is being worked on).
     const inboxStatuses = ['open', 'in_progress']
-    const effectiveStatus = filters.status ?? null
+    const selectedStatus = filters.status ?? 'open'
     const statusFilter =
-      effectiveStatus && inboxStatuses.includes(effectiveStatus) ? effectiveStatus : undefined
+      selectedStatus && inboxStatuses.includes(selectedStatus) ? selectedStatus : 'open'
 
     const result: any = await this.reportService.list(
       {
@@ -36,11 +36,15 @@ export default class InboxController {
       user.role === 'admin' ? undefined : user.id
     )
 
-    // Filter to inbox statuses and sort by urgency (priority weight + recency)
+    // Filter to triage items (status + unassigned) and sort by urgency
+    // (priority weight + recency).
     const priorityWeight: Record<string, number> = { critical: 4, high: 3, medium: 2, low: 1 }
     let reports: any[] = Array.isArray(result) ? result : result.all ? result.all() : []
     reports = reports
-      .filter((r: any) => inboxStatuses.includes(r.status))
+      .filter(
+        (r: any) =>
+          inboxStatuses.includes(r.status) && (r.assigneeId === null || r.assigneeId === undefined)
+      )
       .sort((a: any, b: any) => {
         const wa = priorityWeight[a.priority] ?? 0
         const wb = priorityWeight[b.priority] ?? 0

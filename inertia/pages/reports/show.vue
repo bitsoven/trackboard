@@ -1,9 +1,9 @@
 <script setup lang="ts">
-import { ref } from 'vue'
+import { computed, ref } from 'vue'
 import { Head, router, useForm } from '@inertiajs/vue3'
 import { Link } from '@adonisjs/inertia/vue'
 
-type FieldValue = { fieldKey: string; value: string | null }
+type FieldValue = { fieldKey: string; label: string; value: string | null }
 
 type Message = {
   id: number
@@ -39,6 +39,51 @@ const props = defineProps<{ report: Report; thread: Message[] }>()
 
 const status = ref(props.report.status)
 const priority = ref(props.report.priority)
+
+/** Turn a camelCase/underscore key into a friendly label. */
+function prettyLabel(key: string): string {
+  return key
+    .split('.')
+    .map((part) =>
+      part
+        .replace(/([a-z0-9])([A-Z])/g, '$1 $2')
+        .replace(/([A-Z]+)([A-Z][a-z])/g, '$1 $2')
+        .replace(/_/g, ' ')
+        .trim()
+    )
+    .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
+    .join(' · ')
+}
+
+/** Flatten browser info (which may be nested) into ordered label/value rows. */
+const browserRows = computed(() => {
+  const obj = props.report.browserInfo
+  if (!obj || typeof obj !== 'object' || Array.isArray(obj)) return []
+  const rows: { label: string; value: string }[] = []
+  const walk = (o: Record<string, unknown>, prefix: string) => {
+    for (const [k, v] of Object.entries(o)) {
+      const label = prefix ? `${prefix}.${k}` : k
+      if (v !== null && typeof v === 'object' && !Array.isArray(v)) {
+        walk(v as Record<string, unknown>, label)
+      } else {
+        rows.push({
+          label: prettyLabel(label),
+          value: Array.isArray(v) ? JSON.stringify(v) : String(v ?? ''),
+        })
+      }
+    }
+  }
+  walk(obj, '')
+  return rows
+})
+
+/** Only treat as a real screenshot when the stored URL is servable. */
+const hasScreenshot = computed(() => {
+  const url = props.report.screenshotUrl
+  return !!url && (url.startsWith('data:image') || url.startsWith('http'))
+})
+
+const lightboxOpen = ref(false)
 
 function updateReport() {
   router.patch(
@@ -124,6 +169,35 @@ function priorityBadge(priorityValue: string): string {
     </div>
 
     <div class="mt-6 grid grid-cols-1 lg:grid-cols-12 gap-6">
+      <!-- Report details: full reporter submission -->
+      <div class="lg:col-span-12">
+        <div class="bg-white border border-slate-200 rounded-xl overflow-hidden">
+          <div class="px-5 py-4 border-b border-slate-200">
+            <h2 class="text-sm font-semibold flex items-center gap-2">
+              <span class="h-2 w-2 rounded-full bg-brand-teal-600"></span>
+              Report details
+            </h2>
+            <p class="text-xs text-slate-500 mt-1">What the reporter submitted.</p>
+          </div>
+          <div
+            v-if="props.report.fieldValues.length === 0"
+            class="px-5 py-4 text-sm text-slate-500"
+          >
+            No custom fields.
+          </div>
+          <div v-else class="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-5 p-5">
+            <div v-for="fv in props.report.fieldValues" :key="fv.fieldKey" class="min-w-0">
+              <div class="text-xs font-medium tracking-wide uppercase text-slate-500 mb-1">
+                {{ fv.label }}
+              </div>
+              <div class="text-sm text-slate-800 whitespace-pre-wrap break-words leading-relaxed">
+                {{ fv.value }}
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
       <!-- Left: metadata -->
       <div class="lg:col-span-3 space-y-4">
         <div class="bg-white border border-slate-200 rounded-xl overflow-hidden">
@@ -131,13 +205,19 @@ function priorityBadge(priorityValue: string): string {
             <h2 class="text-sm font-semibold">Screenshot</h2>
           </div>
           <div class="p-4">
-            <div v-if="props.report.screenshotUrl">
+            <div v-if="hasScreenshot">
               <img
-                :src="props.report.screenshotUrl"
+                :src="`/reports/${props.report.id}/screenshot`"
                 alt="screenshot"
-                class="w-full border border-slate-200 rounded-lg"
+                class="w-full border border-slate-200 rounded-lg cursor-zoom-in"
+                @click="lightboxOpen = true"
               />
-              <p class="text-xs text-slate-500 mt-2 break-all">{{ props.report.screenshotUrl }}</p>
+              <p
+                class="text-xs text-slate-400 mt-2 text-center cursor-zoom-in"
+                @click="lightboxOpen = true"
+              >
+                Click to enlarge
+              </p>
             </div>
             <p v-else class="text-sm text-slate-500 py-4 text-center">No screenshot</p>
           </div>
@@ -159,9 +239,21 @@ function priorityBadge(priorityValue: string): string {
           <h3 class="text-xs font-semibold tracking-widest uppercase text-slate-500 mb-2">
             Browser info
           </h3>
-          <pre
-            class="text-xs bg-slate-50 border border-slate-200 p-3 rounded-lg overflow-auto max-h-48"
-            >{{ JSON.stringify(props.report.browserInfo, null, 2) }}</pre>
+          <div v-if="browserRows.length === 0" class="text-sm text-slate-500 py-2 text-center">
+            No info
+          </div>
+          <div v-else class="space-y-2">
+            <div
+              v-for="row in browserRows"
+              :key="row.label"
+              class="flex justify-between items-start gap-3 text-sm"
+            >
+              <span class="text-slate-500 shrink-0 text-xs pt-0.5">{{ row.label }}</span>
+              <span class="text-slate-800 text-right break-all leading-relaxed">{{
+                row.value
+              }}</span>
+            </div>
+          </div>
         </div>
 
         <div class="bg-white border border-slate-200 rounded-xl p-4">
@@ -292,25 +384,6 @@ function priorityBadge(priorityValue: string): string {
               <span v-else class="text-slate-500">Unassigned</span>
             </p>
           </div>
-
-          <div class="mt-4">
-            <h3 class="text-xs font-semibold tracking-widest uppercase text-slate-500 mb-2">
-              Template fields
-            </h3>
-            <div v-if="props.report.fieldValues.length === 0" class="text-sm text-slate-500">
-              No custom fields
-            </div>
-            <div v-else class="space-y-2">
-              <div
-                v-for="fv in props.report.fieldValues"
-                :key="fv.fieldKey"
-                class="flex justify-between gap-3 text-sm py-2 border-b border-slate-100 last:border-0"
-              >
-                <span class="font-medium text-slate-700 shrink-0">{{ fv.fieldKey }}</span>
-                <span class="text-slate-600 text-right truncate">{{ fv.value }}</span>
-              </div>
-            </div>
-          </div>
         </div>
 
         <div class="bg-slate-50 border border-dashed border-slate-300 rounded-xl p-4">
@@ -328,5 +401,36 @@ function priorityBadge(priorityValue: string): string {
         </div>
       </div>
     </div>
+
+    <!-- Screenshot lightbox -->
+    <Teleport to="body">
+      <div
+        v-if="lightboxOpen"
+        class="fixed inset-0 z-[60] flex items-center justify-center bg-black/80 p-4"
+        @click.self="lightboxOpen = false"
+      >
+        <div class="rounded-xl border-2 border-white/30 bg-slate-950/90 shadow-2xl overflow-hidden">
+          <div class="flex items-center justify-between px-3 py-2 border-b border-white/10">
+            <span class="text-xs text-white/60">Screenshot</span>
+            <button
+              type="button"
+              class="h-8 px-3 flex items-center gap-1.5 rounded-md bg-white/10 text-white text-sm font-medium hover:bg-white/20"
+              title="Close (Esc)"
+              @click="lightboxOpen = false"
+            >
+              ✕ <span class="hidden sm:inline">Close</span>
+            </button>
+          </div>
+          <img
+            :src="`/reports/${props.report.id}/screenshot`"
+            alt="screenshot"
+            class="max-h-[82vh] max-w-[88vw] block object-contain"
+          />
+          <p class="text-center text-xs text-white/60 px-3 py-2 border-t border-white/10">
+            Click outside or press ✕ to close
+          </p>
+        </div>
+      </div>
+    </Teleport>
   </div>
 </template>

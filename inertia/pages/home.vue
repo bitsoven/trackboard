@@ -2,6 +2,7 @@
 import { Head, usePage } from '@inertiajs/vue3'
 import { Link } from '@adonisjs/inertia/vue'
 import { computed } from 'vue'
+import { Inbox, Loader, ShieldAlert, CheckCircle2, Plug, Users } from '@lucide/vue'
 
 type Stats = {
   open: number
@@ -33,6 +34,26 @@ const isAuthed = computed(() => !!page.props.user)
 const stats = computed(() => props.stats)
 const trend = computed(() => props.trend ?? [])
 const worklist = computed(() => props.worklist ?? [])
+const projects = computed<any[]>(() => page.props.projects ?? [])
+const firstProject = computed(() => projects.value[0] ?? null)
+
+const features = [
+  {
+    title: 'Embeddable widget',
+    desc: 'Mount a floating report button on any site with a single <script> tag.',
+    icon: Plug,
+  },
+  {
+    title: 'Triage inbox',
+    desc: 'Sort, assign, and verify reports without leaving your dashboard.',
+    icon: Inbox,
+  },
+  {
+    title: 'Team & integrations',
+    desc: 'Invite collaborators and push reports to the tools you already use.',
+    icon: Users,
+  },
+]
 
 function statusBadge(status: string): string {
   const map: Record<string, string> = {
@@ -67,47 +88,106 @@ const chartMax = computed(() => Math.max(1, ...trend.value.map((d) => d.count)))
 <template>
   <Head title="Overview" />
 
-  <!-- Guest: original hero -->
+  <!-- Guest: marketing landing -->
   <template v-if="!isAuthed">
-    <div class="hero">
-      <div
-        class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-brand-light text-brand text-xs font-medium mb-4"
-      >
-        Trackboard · Self-hosted bug reporting
+    <section class="max-w-6xl mx-auto px-6 py-16 sm:py-24">
+      <div class="text-center max-w-3xl mx-auto">
+        <div
+          class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-brand-light text-brand-indigo-700 text-xs font-medium mb-6"
+        >
+          <span class="h-2 w-2 rounded-full bg-brand-teal-600"></span>
+          Self-hosted bug reporting
+        </div>
+        <h1
+          class="font-display font-bold tracking-[-0.01em] text-4xl sm:text-5xl text-slate-900 leading-tight"
+        >
+          Bug reports that live where your users do.
+        </h1>
+        <p class="mt-5 text-lg text-slate-600">
+          Trackboard turns any page into a feedback channel. Drop in a widget, triage reports in a
+          clean inbox, and ship fixes faster — no third-party SaaS required.
+        </p>
+        <div class="mt-8 flex items-center justify-center gap-3">
+          <Link
+            href="/signup"
+            class="inline-flex items-center px-5 py-2.5 rounded-md bg-brand-indigo-700 text-white text-sm font-medium hover:bg-brand-indigo-500"
+          >
+            Start free
+          </Link>
+          <Link
+            href="/login"
+            class="inline-flex items-center px-5 py-2.5 rounded-md border border-slate-300 text-slate-700 text-sm font-medium hover:bg-slate-50"
+          >
+            Log in
+          </Link>
+        </div>
       </div>
-      <h1>It works — welcome to the power of a full-stack Vue app</h1>
-      <p>
-        Powered by Inertia and Vue, this setup blends server-driven routing with rich client-side
-        interactivity — seamless, fast, and cohesive.
-      </p>
-    </div>
 
-    <div class="cards">
-      <a href="https://insiders.adonisjs.com/docs/v7-alpha/introduction" target="_blank">
-        <h3>Official Docs &nbsp;›</h3>
-        <p>Comprehensive reference for building with AdonisJS</p>
-      </a>
-
-      <a href="https://adocasts.com/" target="_blank">
-        <h3>Adocasts &nbsp;›</h3>
-        <p>Guided video tutorials for everyday development</p>
-      </a>
-
-      <a href="https://discord.gg/vDcEjq6" target="_blank">
-        <h3>Discord &nbsp;›</h3>
-        <p>Connect with developers building with AdonisJS every day</p>
-      </a>
-    </div>
+      <div class="mt-20 grid grid-cols-1 sm:grid-cols-3 gap-6">
+        <div
+          v-for="f in features"
+          :key="f.title"
+          class="bg-white border border-slate-200 rounded-xl p-6"
+        >
+          <div
+            class="h-10 w-10 rounded-lg bg-brand-indigo-100 text-brand-indigo-700 flex items-center justify-center mb-4"
+          >
+            <component :is="f.icon" class="h-5 w-5" />
+          </div>
+          <h3 class="text-sm font-semibold text-slate-900">{{ f.title }}</h3>
+          <p class="mt-1.5 text-sm text-slate-600">{{ f.desc }}</p>
+        </div>
+      </div>
+    </section>
   </template>
 
   <!-- Authenticated: Overview dashboard -->
   <template v-else>
     <div class="max-w-6xl mx-auto p-6 space-y-6">
+      <div class="flex items-center gap-3">
+        <img :src="'/logo.svg'" alt="Trackboard" class="h-8 w-8 rounded-md" />
+        <span class="font-display font-bold tracking-[-0.01em] text-slate-900">Trackboard</span>
+      </div>
       <div>
         <h1 class="text-2xl font-semibold tracking-tight">Overview</h1>
         <p class="text-sm text-slate-500 mt-1">
           Status at a glance — what needs your attention now
         </p>
+      </div>
+
+      <!-- Projects -->
+      <div class="bg-white border border-slate-200 rounded-xl overflow-hidden">
+        <div class="flex items-center justify-between px-6 py-4 border-b border-slate-200">
+          <h2 class="text-sm font-semibold">Your projects</h2>
+          <Link
+            href="/projects"
+            class="text-xs font-medium text-brand-indigo-700 hover:text-brand-indigo-500"
+            >Manage →</Link
+          >
+        </div>
+        <div v-if="projects.length === 0" class="p-8 text-center text-sm text-slate-500">
+          No projects yet —
+          <Link href="/projects" class="text-brand-indigo-700 hover:underline">create one</Link>
+          to start collecting reports.
+        </div>
+        <div v-else class="divide-y divide-slate-100">
+          <Link
+            v-for="p in projects"
+            :key="p.id"
+            :href="`/projects/${p.id}/templates`"
+            class="flex items-center gap-3 px-6 py-3 hover:bg-slate-50 transition-colors"
+          >
+            <span
+              class="h-9 w-9 rounded-md bg-brand-indigo-100 text-brand-indigo-700 flex items-center justify-center text-sm font-semibold shrink-0"
+              >{{ p.name.slice(0, 1).toUpperCase() }}</span
+            >
+            <span class="flex-1 min-w-0">
+              <span class="block text-sm font-medium truncate">{{ p.name }}</span>
+              <span class="block text-xs text-slate-400 font-mono truncate">/{{ p.slug }}</span>
+            </span>
+            <span class="text-xs text-slate-400 shrink-0">Open →</span>
+          </Link>
+        </div>
       </div>
 
       <!-- Empty state: no reports yet -->
@@ -128,11 +208,18 @@ const chartMax = computed(() => Math.max(1, ...trend.value.map((d) => d.count)))
             Bug reports from your widget will land here the moment someone submits one.
           </p>
           <Link
-            v-if="worklist.length === 0"
-            href="/projects/1/templates"
+            v-if="firstProject"
+            :href="`/projects/${firstProject.id}/integrations`"
             class="inline-flex items-center px-4 py-2 rounded-md bg-brand-indigo-700 text-white text-sm font-medium hover:bg-brand-indigo-500"
           >
             Copy embed snippet
+          </Link>
+          <Link
+            v-else
+            href="/projects"
+            class="inline-flex items-center px-4 py-2 rounded-md bg-brand-indigo-700 text-white text-sm font-medium hover:bg-brand-indigo-500"
+          >
+            Create your first project
           </Link>
         </div>
       </div>
@@ -140,22 +227,43 @@ const chartMax = computed(() => Math.max(1, ...trend.value.map((d) => d.count)))
       <!-- KPIs -->
       <div v-else class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <div class="bg-white border border-slate-200 rounded-xl p-5">
-          <div class="text-xs font-medium tracking-widest uppercase text-slate-500">Open</div>
+          <div class="flex items-center justify-between">
+            <div class="text-xs font-medium tracking-widest uppercase text-slate-500">Open</div>
+            <span
+              class="h-8 w-8 rounded-lg bg-brand-indigo-100 text-brand-indigo-700 flex items-center justify-center"
+            >
+              <Inbox class="h-4 w-4" />
+            </span>
+          </div>
           <div class="mt-1 text-3xl font-semibold text-brand-indigo-700">
             {{ stats?.open ?? 0 }}
           </div>
           <div class="text-xs text-slate-500 mt-1">Needs triage</div>
         </div>
         <div class="bg-white border border-slate-200 rounded-xl p-5">
-          <div class="text-xs font-medium tracking-widest uppercase text-slate-500">
-            In Progress
+          <div class="flex items-center justify-between">
+            <div class="text-xs font-medium tracking-widest uppercase text-slate-500">
+              In Progress
+            </div>
+            <span
+              class="h-8 w-8 rounded-lg bg-amber-100 text-amber-600 flex items-center justify-center"
+            >
+              <Loader class="h-4 w-4" />
+            </span>
           </div>
           <div class="mt-1 text-3xl font-semibold text-amber-500">{{ stats?.inProgress ?? 0 }}</div>
           <div class="text-xs text-slate-500 mt-1">Active work</div>
         </div>
         <div class="bg-white border border-slate-200 rounded-xl p-5">
-          <div class="text-xs font-medium tracking-widest uppercase text-slate-500">
-            Pending Verification
+          <div class="flex items-center justify-between">
+            <div class="text-xs font-medium tracking-widest uppercase text-slate-500">
+              Pending Verification
+            </div>
+            <span
+              class="h-8 w-8 rounded-lg bg-slate-100 text-slate-600 flex items-center justify-center"
+            >
+              <ShieldAlert class="h-4 w-4" />
+            </span>
           </div>
           <div class="mt-1 text-3xl font-semibold text-slate-700">
             {{ stats?.pendingVerification ?? 0 }}
@@ -163,8 +271,15 @@ const chartMax = computed(() => Math.max(1, ...trend.value.map((d) => d.count)))
           <div class="text-xs text-slate-500 mt-1">Unverified</div>
         </div>
         <div class="bg-white border border-slate-200 rounded-xl p-5">
-          <div class="text-xs font-medium tracking-widest uppercase text-slate-500">
-            Resolved this week
+          <div class="flex items-center justify-between">
+            <div class="text-xs font-medium tracking-widest uppercase text-slate-500">
+              Resolved this week
+            </div>
+            <span
+              class="h-8 w-8 rounded-lg bg-brand-teal-600/10 text-brand-teal-600 flex items-center justify-center"
+            >
+              <CheckCircle2 class="h-4 w-4" />
+            </span>
           </div>
           <div class="mt-1 text-3xl font-semibold text-brand-teal-600">
             {{ stats?.resolvedThisWeek ?? 0 }}

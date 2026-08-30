@@ -42,6 +42,21 @@ router
   })
   .use(middleware.auth())
 
+// Projects — dashboard list + creation (Inertia)
+router
+  .group(() => {
+    router
+      .get('/projects', [() => import('#controllers/projects_controller'), 'index'])
+      .as('projects.index')
+    router
+      .get('/projects/:id', [() => import('#controllers/projects_controller'), 'show'])
+      .as('projects.show')
+    router
+      .post('/projects', [() => import('#controllers/projects_controller'), 'store'])
+      .as('projects.store')
+  })
+  .use(middleware.auth())
+
 // Admin template management (requires session auth) — JSON API
 router
   .group(() => {
@@ -128,6 +143,9 @@ router.get('/api/public/reports/verify/:token', [
   'verify',
 ])
 
+// Human-friendly verification page (shown after clicking the magic link in email)
+router.get('/verify/:token', [() => import('#controllers/public_reports_controller'), 'verifyPage'])
+
 // Reports — admin (requires session auth)
 router
   .group(() => {
@@ -187,6 +205,12 @@ router
     router
       .patch('/reports/:id', [() => import('#controllers/report_pages_controller'), 'update'])
       .as('reports.update')
+    router
+      .get('/reports/:id/screenshot', [
+        () => import('#controllers/report_pages_controller'),
+        'screenshot',
+      ])
+      .as('reports.screenshot')
   })
   .use(middleware.auth())
 
@@ -215,5 +239,67 @@ router
       () => import('#controllers/integrations_controller'),
       'destroyWebhook',
     ])
+  })
+  .use(middleware.auth())
+
+// Team management (Inertia)
+router
+  .group(() => {
+    router
+      .get('/projects/:projectId/team', [() => import('#controllers/team_controller'), 'index'])
+      .as('team.index')
+    router
+      .post('/projects/:projectId/team/invite', [
+        () => import('#controllers/team_controller'),
+        'invite',
+      ])
+      .as('team.invite')
+    router
+      .post('/projects/:projectId/team/:memberId/remove', [
+        () => import('#controllers/team_controller'),
+        'remove',
+      ])
+      .as('team.remove')
+    router
+      .patch('/projects/:projectId/team/:memberId/role', [
+        () => import('#controllers/team_controller'),
+        'changeRole',
+      ])
+      .as('team.role')
+  })
+  .use(middleware.auth())
+
+// Public invite acceptance
+router
+  .get('/accept-invite', [() => import('#controllers/team_controller'), 'showAccept'])
+  .as('team.accept')
+
+// Settings — account settings + per-project settings (Inertia)
+router
+  .group(() => {
+    router
+      .get('/settings', [() => import('#controllers/settings_controller'), 'index'])
+      .as('settings.index')
+    router
+      .patch('/settings', [() => import('#controllers/settings_controller'), 'update'])
+      .as('settings.update')
+    router
+      .get('/projects/:id/settings', [
+        () => import('#controllers/settings_controller'),
+        'projectIndex',
+      ])
+      .as('projects.settings.index')
+    router
+      .patch('/projects/:id/settings', [
+        () => import('#controllers/settings_controller'),
+        'projectUpdate',
+      ])
+      .as('projects.settings.update')
+    router
+      .delete('/projects/:id/settings', [
+        () => import('#controllers/settings_controller'),
+        'projectDestroy',
+      ])
+      .as('projects.settings.destroy')
   })
   .use(middleware.auth())

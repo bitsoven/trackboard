@@ -42,7 +42,7 @@ export default class AdminReportsController {
   }
 
   async show({ params, response }: HttpContext) {
-    const report = await this.reportService.findById(Number(params.id))
+    const report = await this.reportService.findById(params.id)
     return response.json({ data: new ReportTransformer(report as any).toObject() })
   }
 
@@ -52,7 +52,7 @@ export default class AdminReportsController {
     if ((payload as any).assignee_id !== undefined && (payload as any).assigneeId === undefined) {
       ;(payload as any).assigneeId = (payload as any).assignee_id
     }
-    const report = await this.reportService.update(Number(params.id), payload as any)
+    const report = await this.reportService.update(params.id, payload as any)
     return response.json({ data: new ReportTransformer(report as any).toObject() })
   }
 }

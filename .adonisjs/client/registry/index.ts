@@ -54,6 +54,24 @@ const routes = {
     tokens: [{"old":"/logout","type":0,"val":"logout","end":""}],
     types: placeholder as Registry['session.destroy']['types'],
   },
+  'projects.index': {
+    methods: ["GET","HEAD"],
+    pattern: '/projects',
+    tokens: [{"old":"/projects","type":0,"val":"projects","end":""}],
+    types: placeholder as Registry['projects.index']['types'],
+  },
+  'projects.show': {
+    methods: ["GET","HEAD"],
+    pattern: '/projects/:id',
+    tokens: [{"old":"/projects/:id","type":0,"val":"projects","end":""},{"old":"/projects/:id","type":1,"val":"id","end":""}],
+    types: placeholder as Registry['projects.show']['types'],
+  },
+  'projects.store': {
+    methods: ["POST"],
+    pattern: '/projects',
+    tokens: [{"old":"/projects","type":0,"val":"projects","end":""}],
+    types: placeholder as Registry['projects.store']['types'],
+  },
   'api.projects.templates.index': {
     methods: ["GET","HEAD"],
     pattern: '/api/projects/:id/templates',
@@ -144,6 +162,12 @@ const routes = {
     tokens: [{"old":"/api/public/reports/verify/:token","type":0,"val":"api","end":""},{"old":"/api/public/reports/verify/:token","type":0,"val":"public","end":""},{"old":"/api/public/reports/verify/:token","type":0,"val":"reports","end":""},{"old":"/api/public/reports/verify/:token","type":0,"val":"verify","end":""},{"old":"/api/public/reports/verify/:token","type":1,"val":"token","end":""}],
     types: placeholder as Registry['public_reports.verify']['types'],
   },
+  'public_reports.verify_page': {
+    methods: ["GET","HEAD"],
+    pattern: '/verify/:token',
+    tokens: [{"old":"/verify/:token","type":0,"val":"verify","end":""},{"old":"/verify/:token","type":1,"val":"token","end":""}],
+    types: placeholder as Registry['public_reports.verify_page']['types'],
+  },
   'api.reports.index': {
     methods: ["GET","HEAD"],
     pattern: '/api/reports',
@@ -210,6 +234,12 @@ const routes = {
     tokens: [{"old":"/reports/:id","type":0,"val":"reports","end":""},{"old":"/reports/:id","type":1,"val":"id","end":""}],
     types: placeholder as Registry['reports.update']['types'],
   },
+  'reports.screenshot': {
+    methods: ["GET","HEAD"],
+    pattern: '/reports/:id/screenshot',
+    tokens: [{"old":"/reports/:id/screenshot","type":0,"val":"reports","end":""},{"old":"/reports/:id/screenshot","type":1,"val":"id","end":""},{"old":"/reports/:id/screenshot","type":0,"val":"screenshot","end":""}],
+    types: placeholder as Registry['reports.screenshot']['types'],
+  },
   'integrations.index': {
     methods: ["GET","HEAD"],
     pattern: '/projects/:projectId/integrations',
@@ -239,6 +269,66 @@ const routes = {
     pattern: '/projects/:projectId/integrations/webhooks/:id/delete',
     tokens: [{"old":"/projects/:projectId/integrations/webhooks/:id/delete","type":0,"val":"projects","end":""},{"old":"/projects/:projectId/integrations/webhooks/:id/delete","type":1,"val":"projectId","end":""},{"old":"/projects/:projectId/integrations/webhooks/:id/delete","type":0,"val":"integrations","end":""},{"old":"/projects/:projectId/integrations/webhooks/:id/delete","type":0,"val":"webhooks","end":""},{"old":"/projects/:projectId/integrations/webhooks/:id/delete","type":1,"val":"id","end":""},{"old":"/projects/:projectId/integrations/webhooks/:id/delete","type":0,"val":"delete","end":""}],
     types: placeholder as Registry['integrations.destroy_webhook']['types'],
+  },
+  'team.index': {
+    methods: ["GET","HEAD"],
+    pattern: '/projects/:projectId/team',
+    tokens: [{"old":"/projects/:projectId/team","type":0,"val":"projects","end":""},{"old":"/projects/:projectId/team","type":1,"val":"projectId","end":""},{"old":"/projects/:projectId/team","type":0,"val":"team","end":""}],
+    types: placeholder as Registry['team.index']['types'],
+  },
+  'team.invite': {
+    methods: ["POST"],
+    pattern: '/projects/:projectId/team/invite',
+    tokens: [{"old":"/projects/:projectId/team/invite","type":0,"val":"projects","end":""},{"old":"/projects/:projectId/team/invite","type":1,"val":"projectId","end":""},{"old":"/projects/:projectId/team/invite","type":0,"val":"team","end":""},{"old":"/projects/:projectId/team/invite","type":0,"val":"invite","end":""}],
+    types: placeholder as Registry['team.invite']['types'],
+  },
+  'team.remove': {
+    methods: ["POST"],
+    pattern: '/projects/:projectId/team/:memberId/remove',
+    tokens: [{"old":"/projects/:projectId/team/:memberId/remove","type":0,"val":"projects","end":""},{"old":"/projects/:projectId/team/:memberId/remove","type":1,"val":"projectId","end":""},{"old":"/projects/:projectId/team/:memberId/remove","type":0,"val":"team","end":""},{"old":"/projects/:projectId/team/:memberId/remove","type":1,"val":"memberId","end":""},{"old":"/projects/:projectId/team/:memberId/remove","type":0,"val":"remove","end":""}],
+    types: placeholder as Registry['team.remove']['types'],
+  },
+  'team.role': {
+    methods: ["PATCH"],
+    pattern: '/projects/:projectId/team/:memberId/role',
+    tokens: [{"old":"/projects/:projectId/team/:memberId/role","type":0,"val":"projects","end":""},{"old":"/projects/:projectId/team/:memberId/role","type":1,"val":"projectId","end":""},{"old":"/projects/:projectId/team/:memberId/role","type":0,"val":"team","end":""},{"old":"/projects/:projectId/team/:memberId/role","type":1,"val":"memberId","end":""},{"old":"/projects/:projectId/team/:memberId/role","type":0,"val":"role","end":""}],
+    types: placeholder as Registry['team.role']['types'],
+  },
+  'team.accept': {
+    methods: ["GET","HEAD"],
+    pattern: '/accept-invite',
+    tokens: [{"old":"/accept-invite","type":0,"val":"accept-invite","end":""}],
+    types: placeholder as Registry['team.accept']['types'],
+  },
+  'settings.index': {
+    methods: ["GET","HEAD"],
+    pattern: '/settings',
+    tokens: [{"old":"/settings","type":0,"val":"settings","end":""}],
+    types: placeholder as Registry['settings.index']['types'],
+  },
+  'settings.update': {
+    methods: ["PATCH"],
+    pattern: '/settings',
+    tokens: [{"old":"/settings","type":0,"val":"settings","end":""}],
+    types: placeholder as Registry['settings.update']['types'],
+  },
+  'projects.settings.index': {
+    methods: ["GET","HEAD"],
+    pattern: '/projects/:id/settings',
+    tokens: [{"old":"/projects/:id/settings","type":0,"val":"projects","end":""},{"old":"/projects/:id/settings","type":1,"val":"id","end":""},{"old":"/projects/:id/settings","type":0,"val":"settings","end":""}],
+    types: placeholder as Registry['projects.settings.index']['types'],
+  },
+  'projects.settings.update': {
+    methods: ["PATCH"],
+    pattern: '/projects/:id/settings',
+    tokens: [{"old":"/projects/:id/settings","type":0,"val":"projects","end":""},{"old":"/projects/:id/settings","type":1,"val":"id","end":""},{"old":"/projects/:id/settings","type":0,"val":"settings","end":""}],
+    types: placeholder as Registry['projects.settings.update']['types'],
+  },
+  'projects.settings.destroy': {
+    methods: ["DELETE"],
+    pattern: '/projects/:id/settings',
+    tokens: [{"old":"/projects/:id/settings","type":0,"val":"projects","end":""},{"old":"/projects/:id/settings","type":1,"val":"id","end":""},{"old":"/projects/:id/settings","type":0,"val":"settings","end":""}],
+    types: placeholder as Registry['projects.settings.destroy']['types'],
   },
 } as const satisfies Record<string, AdonisEndpoint>
 

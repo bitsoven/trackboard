@@ -50,6 +50,14 @@ export function widgetStyles(): string {
   .tb-submit:disabled { opacity: .6; cursor: default; }
   .tb-success { color: #047857; font-weight: 600; }
   .tb-banner { background: #fef2f2; color: #b91c1c; border: 1px solid #fecaca; padding: 8px; border-radius: 8px; margin-bottom: 10px; }
+  .tb-verify { background: #eff6ff; color: #1e40af; border: 1px solid #bfdbfe; padding: 8px; border-radius: 8px; margin-bottom: 10px; font-size: 13px; line-height: 1.5; }
+  .tb-consent { background: #eff6ff; border: 1px solid #bfdbfe; padding: 12px; border-radius: 8px; margin-bottom: 12px; }
+  .tb-consent-title { font-weight: 600; font-size: 13px; margin-bottom: 6px; color: #1e3a8a; }
+  .tb-consent-body { font-size: 12px; color: #334155; margin-bottom: 10px; line-height: 1.5; }
+  .tb-consent-actions { display: flex; gap: 8px; }
+  .tb-btn { padding: 6px 12px; border-radius: 8px; font-weight: 600; font-size: 13px; cursor: pointer; border: 1px solid transparent; }
+  .tb-btn-primary { background: #2563eb; color: #fff; border-color: #2563eb; }
+  .tb-btn-secondary { background: #fff; color: #334155; border-color: #cbd5e1; }
   .tb-pin-active .tb-highlight {
     outline: 2px dashed #2563eb !important; outline-offset: 2px;
     background: rgba(37,99,235,.08); cursor: crosshair;

@@ -4,6 +4,20 @@ import { usePage, router } from '@inertiajs/vue3'
 import { toast, Toaster } from 'vue-sonner'
 import type { Data } from '@generated/data'
 import { Link, Form } from '@adonisjs/inertia/vue'
+import {
+  LayoutDashboard,
+  FolderKanban,
+  Inbox,
+  ClipboardList,
+  Plug,
+  Users,
+  Settings,
+  ChevronRight,
+  ChevronsLeft,
+  Sun,
+  Moon,
+  Menu,
+} from '@lucide/vue'
 
 const page = usePage<
   Data.SharedProps & {
@@ -68,23 +82,39 @@ function onProjectChange(event: Event) {
 const navItems = computed(() => {
   const pid = currentProjectId.value
   return [
-    { label: 'Overview', icon: '◈', href: '/', active: page.url === '/' },
-    { label: 'Inbox', icon: '📥', href: '/inbox', active: page.url.startsWith('/inbox') },
-    { label: 'All Reports', icon: '📋', href: '/reports', active: page.url.startsWith('/reports') },
+    { label: 'Overview', icon: LayoutDashboard, href: '/', active: page.url === '/' },
     {
-      label: 'Templates',
-      icon: '📝',
-      href: pid ? `/projects/${pid}/templates` : '/projects/1/templates',
-      active: page.url.includes('/templates'),
+      label: 'Projects',
+      icon: FolderKanban,
+      href: '/projects',
+      active: page.url === '/projects',
+    },
+    { label: 'Inbox', icon: Inbox, href: '/inbox', active: page.url.startsWith('/inbox') },
+    {
+      label: 'All Reports',
+      icon: ClipboardList,
+      href: '/reports',
+      active: page.url.startsWith('/reports'),
     },
     {
       label: 'Integrations',
-      icon: '🔌',
+      icon: Plug,
       href: pid ? `/projects/${pid}/integrations` : '/projects/1/integrations',
       active: page.url.includes('/integrations'),
     },
-    { label: 'Team', icon: '👥', href: '#', active: false, disabled: true },
-    { label: 'Settings', icon: '⚙️', href: '#', active: false, disabled: true },
+    {
+      label: 'Team',
+      icon: Users,
+      href: pid ? `/projects/${pid}/team` : '#',
+      active: page.url.includes('/team'),
+      disabled: !pid,
+    },
+    {
+      label: 'Settings',
+      icon: Settings,
+      href: '/settings',
+      active: page.url === '/settings',
+    },
   ]
 })
 </script>
@@ -110,10 +140,10 @@ const navItems = computed(() => {
     >
       <!-- Header: logo -->
       <div class="flex items-center gap-2.5 px-4 h-16 shrink-0 border-b border-white/10">
-        <img :src="'/logo.png'" alt="Trackboard" class="h-7 w-7 rounded-md shrink-0" />
+        <img :src="'/logo.svg'" alt="Trackboard" class="h-7 w-7 rounded-md shrink-0" />
         <span
           v-if="!collapsed || mobileOpen"
-          class="font-semibold tracking-tight text-white whitespace-nowrap"
+          class="font-display font-bold tracking-[-0.01em] text-white whitespace-nowrap"
           >Trackboard</span
         >
         <button
@@ -122,7 +152,7 @@ const navItems = computed(() => {
           title="Collapse sidebar"
           @click="collapsed = true"
         >
-          «
+          <ChevronsLeft class="h-4 w-4" />
         </button>
       </div>
 
@@ -180,7 +210,7 @@ const navItems = computed(() => {
             }
           "
         >
-          <span class="text-base leading-none shrink-0" aria-hidden="true">{{ item.icon }}</span>
+          <component :is="item.icon" class="h-4 w-4 shrink-0" aria-hidden="true" />
           <span v-if="!collapsed || mobileOpen" class="truncate">{{ item.label }}</span>
         </component>
       </nav>
@@ -193,21 +223,21 @@ const navItems = computed(() => {
           title="Expand sidebar"
           @click="collapsed = false"
         >
-          »
+          <ChevronRight class="h-4 w-4" />
         </button>
         <button
           v-else
           class="hidden lg:flex w-full items-center justify-center gap-2 py-2 rounded-md bg-transparent hover:bg-white/10 text-white/60 hover:text-white text-xs"
           @click="collapsed = true"
         >
-          <span>«</span> <span>Collapse</span>
+          <ChevronsLeft class="h-4 w-4" /> <span>Collapse</span>
         </button>
 
         <button
           class="w-full flex items-center justify-center gap-2 py-2 rounded-md bg-transparent hover:bg-white/10 text-white/60 hover:text-white text-xs"
           @click="isDark = !isDark"
         >
-          <span>{{ isDark ? '☀️' : '🌙' }}</span>
+          <component :is="isDark ? Sun : Moon" class="h-4 w-4" />
           <span v-if="!collapsed || mobileOpen">{{ isDark ? 'Light' : 'Dark' }}</span>
         </button>
 
@@ -244,10 +274,12 @@ const navItems = computed(() => {
           class="h-8 w-8 rounded-md bg-transparent hover:bg-slate-100 flex items-center justify-center"
           @click="mobileOpen = true"
         >
-          ☰
+          <Menu class="h-5 w-5" />
         </button>
-        <img :src="'/logo.png'" alt="Trackboard" class="h-6 w-6 rounded" />
-        <span class="font-semibold text-brand-indigo-700">Trackboard</span>
+        <img :src="'/logo.svg'" alt="Trackboard" class="h-6 w-6 rounded" />
+        <span class="font-display font-bold tracking-[-0.01em] text-brand-indigo-700"
+          >Trackboard</span
+        >
         <span class="ml-auto text-xs text-slate-500 truncate">{{
           currentProject?.name ?? ''
         }}</span>
@@ -265,8 +297,10 @@ const navItems = computed(() => {
       <div>
         <div>
           <Link route="home" class="flex items-center gap-2">
-            <img :src="'/logo.png'" alt="Trackboard" class="h-7 w-auto" />
-            <span class="font-semibold text-brand text-lg tracking-tight">Trackboard</span>
+            <img :src="'/logo.svg'" alt="Trackboard" class="h-7 w-auto" />
+            <span class="font-display font-bold tracking-[-0.01em] text-brand text-lg"
+              >Trackboard</span
+            >
           </Link>
         </div>
         <div>

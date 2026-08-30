@@ -15,10 +15,22 @@ const corsConfig = defineConfig({
 
   /**
    * In development, allow every origin to simplify local front/backend setup.
-   * In production, keep an explicit allowlist (empty by default, so no
-   * cross-origin browser access is allowed until configured).
+   *
+   * In production the embeddable widget is loaded from the customer's own
+   * site (a different origin), so the browser must be permitted to read the
+   * responses of the public widget API. Authorization for those endpoints is
+   * enforced separately by the API key and the `originCheck` middleware, so
+   * CORS only needs to allow the browser round-trip. We therefore open up
+   * cross-origin access for `/api/public/*` (and same-origin requests) while
+   * leaving every other route locked down.
    */
-  origin: app.inDev ? true : [],
+  origin: app.inDev
+    ? true
+    : (origin, ctx) => {
+        // Same-origin / non-browser requests are never subject to CORS.
+        if (!origin) return true
+        return ctx.request.url().startsWith('/api/public/')
+      },
 
   /**
    * HTTP methods accepted for cross-origin requests.

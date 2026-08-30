@@ -5,12 +5,21 @@
   --color-brand-indigo-900: #312e81;
   --color-brand-indigo-700: #4338ca;
   --color-brand-indigo-500: #6366f1;
+  --color-brand-indigo-400: #818cf8;
+  --color-brand-indigo-200: #c7d2fe;
+  --color-brand-indigo-100: #e0e7ff;
+  --color-brand-indigo-50: #eef2ff;
   --color-brand-teal-600: #0d9488;
   --color-brand-teal-400: #2dd4bf;
+  --color-brand-teal-100: #ccfbf1;
+  --color-brand-teal-50: #f0fdfa;
   --color-brand: #4338ca;
   --color-brand-dark: #6366f1;
   --color-brand-light: #e8f1fc;
   --color-amber-500: #f59e0b;
+
+  --font-sans: 'Inter', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  --font-display: 'Space Grotesk', ui-sans-serif, system-ui, sans-serif;
 }
 
 @custom-variant dark (&:is(.dark *));
@@ -37,7 +46,7 @@
 html,
 body {
   height: 100%;
-  font-family: system-ui, sans-serif;
+  font-family: var(--font-sans);
   -webkit-font-smoothing: antialiased;
   background: var(--gray-2);
   color: var(--gray-10);
@@ -61,6 +70,7 @@ h4,
 h5,
 h6 {
   color: var(--gray-12);
+  font-family: var(--font-display);
 }
 
 /* Header */
@@ -97,7 +107,8 @@ header nav a.current {
 /* Main */
 main {
   max-width: 1440px;
-  margin: 0 30px;
+  margin: 0 auto;
+  padding: 0 30px;
   display: flex;
   flex-direction: column;
   justify-content: space-between;
