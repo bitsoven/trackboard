@@ -173,7 +173,7 @@ const navItems = computed(() => {
           >
           <select
             :value="currentProjectId ?? ''"
-            class="w-full rounded-md bg-white/10 border border-white/15 text-white text-sm px-2.5 py-2 focus:outline-none focus:ring-2 focus:ring-brand-teal-600"
+            class="w-full rounded-md bg-white/10 border border-white/15 text-white text-sm px-3 py-2 focus:outline-none focus:ring-2 focus:ring-brand-teal-600"
             @change="onProjectChange"
           >
             <option v-if="projects.length === 0" value="" class="text-slate-800">

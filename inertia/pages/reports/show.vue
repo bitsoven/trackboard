@@ -341,7 +341,7 @@ function priorityBadge(priorityValue: string): string {
               <label class="block text-xs font-medium text-slate-700 mb-1">Status</label>
               <select
                 v-model="status"
-                class="w-full border border-slate-300 rounded-md px-2.5 py-2 text-sm bg-white"
+                class="w-full border border-slate-300 rounded-md px-3 py-2 text-sm bg-white"
               >
                 <option value="open">open</option>
                 <option value="in_progress">in_progress</option>
@@ -353,7 +353,7 @@ function priorityBadge(priorityValue: string): string {
               <label class="block text-xs font-medium text-slate-700 mb-1">Priority</label>
               <select
                 v-model="priority"
-                class="w-full border border-slate-300 rounded-md px-2.5 py-2 text-sm bg-white"
+                class="w-full border border-slate-300 rounded-md px-3 py-2 text-sm bg-white"
               >
                 <option value="low">low</option>
                 <option value="medium">medium</option>

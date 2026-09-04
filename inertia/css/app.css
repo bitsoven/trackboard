@@ -216,6 +216,28 @@ input {
   border: 1px solid var(--gray-4);
   padding: 0 16px;
 }
+select {
+  height: 40px;
+  border: 1px solid var(--gray-4);
+  padding: 0 16px;
+  padding-right: 32px !important;
+  border-radius: 4px;
+  font: inherit;
+  background-color: #fff;
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3E%3Cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 12px center;
+  background-size: 16px;
+}
+select:focus {
+  outline: none;
+  border-color: var(--color-brand-indigo-700, #4338ca);
+  box-shadow: 0 0 0 2px rgba(67, 56, 202, 0.15);
+}
+select[data-invalid='true'] {
+  border-color: #fb2c36;
+}
 input[data-invalid='true'],
 textarea[data-invalid='true'] {
   border-color: #fb2c36;

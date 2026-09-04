@@ -101,7 +101,7 @@ function removeMember(member: Member) {
           <div v-if="props.canManage" class="flex items-center gap-2">
             <select
               :value="roleFor(m)"
-              class="border border-slate-300 rounded-md px-2.5 py-1.5 text-sm bg-white"
+              class="border border-slate-300 rounded-md px-3 py-2 text-sm bg-white"
               @change="onRoleChange(m, $event)"
             >
               <option v-for="r in TEAM_ROLES" :key="r" :value="r">{{ r }}</option>

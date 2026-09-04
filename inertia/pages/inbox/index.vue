@@ -5,7 +5,7 @@ import { Link } from '@adonisjs/inertia/vue'
 import { toast } from 'vue-sonner'
 
 type Report = {
-  id: number
+  id: string
   projectId: number
   title: string
   status: string
@@ -100,14 +100,14 @@ function copySnippet() {
     <div class="flex flex-wrap gap-3 mb-4 p-3 border border-slate-200 rounded-lg bg-white">
       <select
         v-model="projectFilter"
-        class="border border-slate-300 rounded-md px-2.5 py-1.5 text-sm bg-white"
+        class="border border-slate-300 rounded-md px-3 py-2 text-sm bg-white"
       >
         <option value="">All projects</option>
         <option v-for="p in props.projects" :key="p.id" :value="String(p.id)">{{ p.name }}</option>
       </select>
       <select
         v-model="statusFilter"
-        class="border border-slate-300 rounded-md px-2.5 py-1.5 text-sm bg-white"
+        class="border border-slate-300 rounded-md px-3 py-2 text-sm bg-white"
       >
         <option value="">Needs triage (open, unassigned)</option>
         <option value="open">open</option>
@@ -115,7 +115,7 @@ function copySnippet() {
       </select>
       <select
         v-model="priorityFilter"
-        class="border border-slate-300 rounded-md px-2.5 py-1.5 text-sm bg-white"
+        class="border border-slate-300 rounded-md px-3 py-2 text-sm bg-white"
       >
         <option value="">All priorities</option>
         <option value="low">low</option>

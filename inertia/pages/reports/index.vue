@@ -1,11 +1,11 @@
 <script setup lang="ts">
-import { ref, computed } from 'vue'
+import { ref, computed, watch } from 'vue'
 import { Head, router } from '@inertiajs/vue3'
 import { Link } from '@adonisjs/inertia/vue'
 import { tableFeatures, useTable, FlexRender } from '@tanstack/vue-table'
 
 type Report = {
-  id: number
+  id: string
   projectId: number
   title: string
   status: string
@@ -46,9 +46,26 @@ function applyFilters() {
   )
 }
 
+watch(
+  () => props.reports,
+  (v) => {
+    data.value = [...v]
+  }
+)
+
+watch(
+  () => props.filters,
+  (f) => {
+    statusFilter.value = f.status ?? ''
+    priorityFilter.value = f.priority ?? ''
+    projectFilter.value = f.projectId ? String(f.projectId) : ''
+  }
+)
+
 function clearFilters() {
   statusFilter.value = ''
   priorityFilter.value = ''
+  projectFilter.value = ''
   applyFilters()
 }
 
@@ -131,14 +148,14 @@ const table = useTable({
     <div class="flex flex-wrap gap-3 mb-4 p-3 border border-slate-200 rounded-lg bg-white">
       <select
         v-model="projectFilter"
-        class="border border-slate-300 rounded-md px-2.5 py-1.5 text-sm bg-white"
+        class="border border-slate-300 rounded-md px-3 py-2 text-sm bg-white"
       >
         <option value="">All projects</option>
         <option v-for="p in props.projects" :key="p.id" :value="String(p.id)">{{ p.name }}</option>
       </select>
       <select
         v-model="statusFilter"
-        class="border border-slate-300 rounded-md px-2.5 py-1.5 text-sm bg-white"
+        class="border border-slate-300 rounded-md px-3 py-2 text-sm bg-white"
       >
         <option value="">All statuses</option>
         <option value="needs_action">Needs action (unassigned)</option>
@@ -149,7 +166,7 @@ const table = useTable({
       </select>
       <select
         v-model="priorityFilter"
-        class="border border-slate-300 rounded-md px-2.5 py-1.5 text-sm bg-white"
+        class="border border-slate-300 rounded-md px-3 py-2 text-sm bg-white"
       >
         <option value="">All priorities</option>
         <option value="low">low</option>
