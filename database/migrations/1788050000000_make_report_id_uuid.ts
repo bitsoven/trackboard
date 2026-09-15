@@ -77,7 +77,12 @@ export default class extends BaseSchema {
 
       await db.schema.createTable('report_field_values', (table) => {
         table.increments('id').notNullable()
-        table.string('report_id', 36).references('id').inTable('reports').onDelete('CASCADE').notNullable()
+        table
+          .string('report_id', 36)
+          .references('id')
+          .inTable('reports')
+          .onDelete('CASCADE')
+          .notNullable()
         table.string('field_key').notNullable()
         table.text('value').nullable()
         table.unique(['report_id', 'field_key'])
@@ -85,7 +90,13 @@ export default class extends BaseSchema {
 
       await db.schema.createTable('conversations', (table) => {
         table.increments('id').notNullable()
-        table.string('report_id', 36).references('id').inTable('reports').onDelete('CASCADE').notNullable().unique()
+        table
+          .string('report_id', 36)
+          .references('id')
+          .inTable('reports')
+          .onDelete('CASCADE')
+          .notNullable()
+          .unique()
         table.timestamp('created_at').notNullable()
         table.timestamp('updated_at').nullable()
       })

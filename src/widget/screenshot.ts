@@ -281,7 +281,7 @@ function reEncodeToJpeg(dataUrl: string, quality: number): Promise<string> {
 
 async function captureWithHtmlToImage(
   node: HTMLElement,
-  mode: CaptureMode,
+  mode: CaptureMode
 ): Promise<string | null> {
   try {
     const opts = getHtmlToImageOptions(mode) as any
@@ -297,7 +297,7 @@ async function captureWithHtmlToImage(
 
 export async function captureScreenshot(
   apiBase: string,
-  targetOrOpts?: HTMLElement | { target?: HTMLElement; mode?: CaptureMode; highFidelity?: boolean },
+  targetOrOpts?: HTMLElement | { target?: HTMLElement; mode?: CaptureMode; highFidelity?: boolean }
 ): Promise<string | null> {
   // Normalize overloaded signature for backwards compat
   let target: HTMLElement | undefined
@@ -332,7 +332,7 @@ async function captureInternal(
   apiBase: string,
   mode: CaptureMode,
   target: HTMLElement | undefined,
-  highFidelity: boolean,
+  highFidelity: boolean
 ): Promise<string | null> {
   try {
     // Try high-fidelity first if opted-in - do this before any async waits

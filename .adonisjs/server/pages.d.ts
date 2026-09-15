@@ -25,6 +25,7 @@ declare module '@adonisjs/inertia/types' {
     'reports/index': ExtractProps<(typeof import('../../inertia/pages/reports/index.vue'))['default']>
     'reports/show': ExtractProps<(typeof import('../../inertia/pages/reports/show.vue'))['default']>
     'settings/index': ExtractProps<(typeof import('../../inertia/pages/settings/index.vue'))['default']>
+    'team/index': ExtractProps<(typeof import('../../inertia/pages/team/index.vue'))['default']>
     'templates/form': ExtractProps<(typeof import('../../inertia/pages/templates/form.vue'))['default']>
     'templates/index': ExtractProps<(typeof import('../../inertia/pages/templates/index.vue'))['default']>
     'verify_report': ExtractProps<(typeof import('../../inertia/pages/verify_report.vue'))['default']>

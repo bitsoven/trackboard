@@ -122,6 +122,7 @@ export function WidgetApp(props: WidgetAppProps) {
     setBanner(i18n.t('widget.pinHint'))
     const stop = startElementPin((_el: Element, selector: string) => {
       setPinned(selector)
+      stopPinRef.current?.()
       stopPinRef.current = null
       setPinActive(false)
       setBanner(null)
@@ -304,56 +305,80 @@ export function WidgetApp(props: WidgetAppProps) {
 
         {(status === 'ready' || status === 'submitting' || status === 'error') && config && (
           <div>
-            <div class="tb-field">
-              <label class="tb-label" for="tb-title">
-                {i18n.t('widget.titleLabel')}
-                <span class="tb-req"> *</span>
-              </label>
-              <input
-                id="tb-title"
-                class="tb-input"
-                type="text"
-                placeholder={i18n.t('widget.titlePlaceholder')}
-                value={title}
-                onInput={(e: Event) => setTitle((e.target as HTMLInputElement).value)}
-              />
-              {titleError && <div class="tb-error">{titleError}</div>}
-            </div>
+            <div class="tb-section">
+              <div class="tb-section-title">{i18n.t('widget.sectionDetails')}</div>
+              <div class="tb-field">
+                <label class="tb-label" for="tb-title">
+                  {i18n.t('widget.titleLabel')}
+                  <span class="tb-req"> *</span>
+                </label>
+                <input
+                  id="tb-title"
+                  class="tb-input"
+                  type="text"
+                  placeholder={i18n.t('widget.titlePlaceholder')}
+                  value={title}
+                  onInput={(e: Event) => setTitle((e.target as HTMLInputElement).value)}
+                />
+                {titleError && <div class="tb-error">{titleError}</div>}
+              </div>
 
-            <div class="tb-field">
-              <label class="tb-label" for="tb-email">
-                {i18n.t('widget.emailLabel')}
-                <span class="tb-req"> *</span>
-              </label>
-              <input
-                id="tb-email"
-                class="tb-input"
-                type="email"
-                placeholder={i18n.t('widget.emailPlaceholder')}
-                value={email}
-                onInput={(e: Event) => setEmail((e.target as HTMLInputElement).value)}
-              />
-              {emailError && <div class="tb-error">{emailError}</div>}
-              {config.project.requireEmailVerification && (
-                <div class="tb-hint">{i18n.t('widget.emailRequired')}</div>
+              <div class="tb-field">
+                <label class="tb-label" for="tb-email">
+                  {i18n.t('widget.emailLabel')}
+                  <span class="tb-req"> *</span>
+                </label>
+                <input
+                  id="tb-email"
+                  class="tb-input"
+                  type="email"
+                  placeholder={i18n.t('widget.emailPlaceholder')}
+                  value={email}
+                  onInput={(e: Event) => setEmail((e.target as HTMLInputElement).value)}
+                />
+                {emailError && <div class="tb-error">{emailError}</div>}
+                {config.project.requireEmailVerification && (
+                  <div class="tb-hint">{i18n.t('widget.emailRequired')}</div>
+                )}
+              </div>
+
+              {config.template && (
+                <DynamicForm
+                  fields={config.template.fields}
+                  values={values}
+                  errors={errors}
+                  i18n={i18n}
+                  onChange={onFieldChange}
+                />
               )}
             </div>
 
-            {config.template && (
-              <DynamicForm
-                fields={config.template.fields}
-                values={values}
-                errors={errors}
-                i18n={i18n}
-                onChange={onFieldChange}
-              />
-            )}
+            <div class="tb-section">
+              <div class="tb-section-title">{i18n.t('widget.sectionContext')}</div>
+              <button type="button" class="tb-pin-btn" onClick={togglePin}>
+                {pinned ? i18n.t('widget.pinned', { selector: pinned }) : i18n.t('widget.pin')}
+              </button>
+              {pinned && (
+                <div class="tb-pinned">
+                  <span class="tb-pinned-selector">{pinned}</span>
+                  <button
+                    type="button"
+                    class="tb-pinned-clear"
+                    aria-label={i18n.t('widget.pinClear')}
+                    onClick={() => setPinned(null)}
+                  >
+                    ×
+                  </button>
+                </div>
+              )}
 
-            <div class="tb-hint">{i18n.t('widget.screenshot')}</div>
-            <button type="button" class="tb-submit" onClick={togglePin}>
-              {pinned ? i18n.t('widget.pinned', { selector: pinned }) : i18n.t('widget.pin')}
-            </button>
-            {pinned && <div class="tb-pinned">{pinned}</div>}
+              <div class="tb-hint">{i18n.t('widget.pinHint')}</div>
+            </div>
+
+            <div class="tb-section">
+              <div class="tb-section-title">{i18n.t('widget.sectionScreenshot')}</div>
+              <div class="tb-hint">{i18n.t('widget.screenshotNote')}</div>
+            </div>
 
             <button
               id="tb-submit-btn"
@@ -363,6 +388,7 @@ export function WidgetApp(props: WidgetAppProps) {
             >
               {status === 'submitting' ? i18n.t('widget.sending') : i18n.t('widget.submit')}
             </button>
+            <div class="tb-screenshot-note">{i18n.t('widget.screenshotHint')}</div>
           </div>
         )}
       </div>

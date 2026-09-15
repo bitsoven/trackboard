@@ -8,10 +8,10 @@ allow-list that origin.
 
 ## What the widget needs
 
-| Directive     | Why                                                          | Example value                         |
-| ------------- | ------------------------------------------------------------ | ------------------------------------- |
-| `script-src`  | Load the widget bundle (`/widget/v1/widget.js`)               | `https://bugs.example.com`            |
-| `connect-src` | `fetch`/XHR calls to the Trackboard API and screenshot proxy | `https://bugs.example.com`            |
+| Directive     | Why                                                          | Example value                        |
+| ------------- | ------------------------------------------------------------ | ------------------------------------ |
+| `script-src`  | Load the widget bundle (`/widget/v1/widget.js`)              | `https://bugs.example.com`           |
+| `connect-src` | `fetch`/XHR calls to the Trackboard API and screenshot proxy | `https://bugs.example.com`           |
 | `img-src`     | Screenshot uploads to your S3/MinIO bucket + `data:`/`blob:` | `https://s3.example.com data: blob:` |
 
 The widget mounts inside a **closed Shadow DOM**, so its internal styles,

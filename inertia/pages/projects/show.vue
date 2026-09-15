@@ -2,6 +2,7 @@
 import { computed, ref } from 'vue'
 import { Head, router, useForm } from '@inertiajs/vue3'
 import { Link } from '@adonisjs/inertia/vue'
+import { FileText, Plug, Users, Settings, ShieldCheck, LayoutTemplate } from '@lucide/vue'
 
 type TemplateField = {
   id: number
@@ -33,7 +34,6 @@ const props = defineProps<{
   templates: Template[]
 }>()
 
-// ---- Settings ----
 const inputClass =
   'w-full border border-slate-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-teal-600'
 
@@ -56,7 +56,6 @@ function destroyProject() {
   router.delete(`/projects/${props.project.id}/settings`)
 }
 
-// ---- Templates ----
 function destroyTemplate(id: number) {
   if (!confirm('Delete this template and all its fields?')) return
   router.delete(`/templates/${id}`)
@@ -130,15 +129,53 @@ function useDefaultTemplate() {
     ],
   } as any)
 }
+
+const quickLinks = computed(() => [
+  {
+    label: 'Integrations',
+    desc: 'API tokens & webhooks',
+    icon: Plug,
+    href: `/projects/${props.project.id}/integrations`,
+  },
+  {
+    label: 'Team',
+    desc: 'Invite & manage collaborators',
+    icon: Users,
+    href: `/projects/${props.project.id}/team`,
+  },
+  {
+    label: 'Settings',
+    desc: 'Name, slug & verification',
+    icon: Settings,
+    href: `/projects/${props.project.id}/settings`,
+  },
+])
 </script>
 
 <template>
   <Head :title="`${props.project.name} — Project`" />
 
-  <div class="max-w-5xl mx-auto p-6">
-    <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between mb-6">
+  <div class="max-w-6xl mx-auto p-6">
+    <!-- Header -->
+    <div class="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between mb-6">
       <div class="min-w-0">
-        <h1 class="text-2xl font-semibold tracking-tight">{{ props.project.name }}</h1>
+        <div class="flex items-center gap-2 flex-wrap">
+          <h1 class="text-2xl font-semibold tracking-tight font-heading">
+            {{ props.project.name }}
+          </h1>
+          <span
+            v-if="props.project.requireEmailVerification"
+            class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-amber-50 text-amber-700 border border-amber-200"
+          >
+            <ShieldCheck class="h-3 w-3" /> Verification required
+          </span>
+          <span
+            v-else
+            class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-slate-100 text-slate-600 border border-slate-200"
+          >
+            Open reporting
+          </span>
+        </div>
         <p class="text-sm text-slate-500 mt-1">
           <span class="font-mono">/{{ props.project.slug }}</span>
           — templates, settings and project-level configuration.
@@ -160,190 +197,263 @@ function useDefaultTemplate() {
       </div>
     </div>
 
-    <!-- Templates -->
-    <section class="bg-white border border-slate-200 rounded-xl overflow-hidden">
-      <div class="px-5 py-4 border-b border-slate-200">
-        <h2 class="text-sm font-semibold flex items-center gap-2">
-          <span class="h-2 w-2 rounded-full bg-brand-teal-600"></span>
-          Templates
-        </h2>
-        <p class="text-xs text-slate-500 mt-1">
-          Report templates define the fields the widget collects.
-        </p>
-      </div>
+    <!-- Two-column layout -->
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <!-- Left: templates summary -->
+      <div class="lg:col-span-2 space-y-6">
+        <section class="bg-white border border-slate-200 rounded-xl overflow-hidden">
+          <div class="px-5 py-4 border-b border-slate-200">
+            <h2 class="text-sm font-semibold flex items-center gap-2 font-heading">
+              <span class="h-2 w-2 rounded-full bg-brand-teal-600"></span>
+              Report templates
+            </h2>
+            <p class="text-xs text-slate-500 mt-1">
+              Report templates define the fields the widget collects.
+              <Link
+                :href="`/projects/${props.project.id}/templates`"
+                class="text-brand-indigo-700 hover:underline ml-1"
+                >View all →</Link
+              >
+            </p>
+          </div>
 
-      <div class="p-5">
-        <div
-          v-if="props.templates.length === 0"
-          class="text-center border border-dashed border-slate-300 rounded-lg bg-slate-50 p-8"
-        >
-          <p class="text-sm text-slate-600 mb-3">
-            Every project needs at least one report template.
-          </p>
-          <div class="mt-3 flex items-center justify-center gap-3">
+          <div class="p-5">
+            <div
+              v-if="props.templates.length === 0"
+              class="text-center border border-dashed border-slate-300 rounded-lg bg-slate-50 p-8"
+            >
+              <div
+                class="mx-auto h-10 w-10 rounded-lg bg-brand-indigo-100 text-brand-indigo-700 flex items-center justify-center mb-3"
+              >
+                <LayoutTemplate class="h-5 w-5" />
+              </div>
+              <p class="text-sm text-slate-600 mb-3">
+                Every project needs at least one report template.
+              </p>
+              <div class="mt-3 flex items-center justify-center gap-3">
+                <button
+                  type="button"
+                  class="px-4 py-2 bg-brand-indigo-700 text-white rounded-md hover:bg-brand-indigo-500 text-sm font-medium"
+                  @click="useDefaultTemplate"
+                >
+                  Use default template
+                </button>
+                <Link
+                  :href="`/projects/${props.project.id}/templates/create`"
+                  class="px-4 py-2 border border-slate-300 rounded-md bg-white text-slate-700 hover:bg-slate-50 text-sm font-medium"
+                >
+                  Create custom
+                </Link>
+              </div>
+            </div>
+
+            <div v-else class="space-y-3">
+              <div
+                v-for="tpl in props.templates"
+                :key="tpl.id"
+                class="border border-slate-200 rounded-xl p-4 flex items-start justify-between hover:border-slate-300 transition-colors"
+              >
+                <div class="min-w-0">
+                  <div class="flex items-center gap-2 flex-wrap">
+                    <h3 class="font-medium text-slate-900 flex items-center gap-1.5">
+                      <FileText class="h-4 w-4 text-slate-400" /> {{ tpl.name }}
+                    </h3>
+                    <span
+                      v-if="tpl.isDefault"
+                      class="text-xs bg-brand-indigo-50 text-brand-indigo-700 border border-brand-indigo-200 px-2 py-0.5 rounded-full font-medium"
+                      >default</span
+                    >
+                    <span class="text-xs text-slate-400">#{{ tpl.id }}</span>
+                  </div>
+                  <p class="text-sm text-slate-500 mt-1">{{ tpl.fields.length }} fields</p>
+                  <div class="flex flex-wrap gap-1.5 mt-2">
+                    <span
+                      v-for="f in tpl.fields"
+                      :key="f.key"
+                      class="text-xs border border-slate-200 px-2 py-1 rounded-full bg-slate-50 text-slate-700"
+                    >
+                      {{ f.key }} · {{ f.type
+                      }}<span v-if="f.isRequired" class="text-red-500">*</span>
+                    </span>
+                  </div>
+                </div>
+                <div class="flex gap-2 ml-4 shrink-0">
+                  <Link
+                    :href="`/templates/${tpl.id}/edit`"
+                    class="text-sm px-3 py-1.5 border border-slate-300 rounded-md bg-white text-slate-700 hover:bg-slate-50 font-medium"
+                    >Edit</Link
+                  >
+                  <button
+                    type="button"
+                    class="text-sm px-3 py-1.5 border border-red-200 rounded-md bg-white text-red-600 hover:bg-red-50 font-medium"
+                    @click="destroyTemplate(tpl.id)"
+                  >
+                    Delete
+                  </button>
+                </div>
+              </div>
+              <div class="flex justify-between items-center pt-2">
+                <Link
+                  :href="`/projects/${props.project.id}/templates`"
+                  class="text-sm text-brand-indigo-700 hover:text-brand-indigo-500 font-medium"
+                  >Manage templates →</Link
+                >
+                <span class="text-xs text-slate-400">{{ props.templates.length }} template(s)</span>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- Project settings inline -->
+        <form @submit.prevent="saveSettings">
+          <section class="bg-white border border-slate-200 rounded-xl overflow-hidden">
+            <div class="px-5 py-4 border-b border-slate-200">
+              <h2 class="text-sm font-semibold flex items-center gap-2 font-heading">
+                <span class="h-2 w-2 rounded-full bg-brand-teal-600"></span>
+                Project settings
+              </h2>
+              <p class="text-xs text-slate-500 mt-1">
+                Rename the project or control how reports are queued.
+              </p>
+            </div>
+
+            <div class="p-5 space-y-4">
+              <div>
+                <label for="name" class="block text-xs font-medium text-slate-700 mb-1"
+                  >Project name</label
+                >
+                <input
+                  id="name"
+                  v-model="settingsForm.name"
+                  type="text"
+                  :data-invalid="settingsForm.errors.name ? 'true' : undefined"
+                  :class="inputClass"
+                />
+                <div v-if="settingsForm.errors.name" class="text-xs text-red-600 mt-1">
+                  {{ settingsForm.errors.name }}
+                </div>
+              </div>
+
+              <div>
+                <label for="slug" class="block text-xs font-medium text-slate-700 mb-1">Slug</label>
+                <input
+                  id="slug"
+                  v-model="settingsForm.slug"
+                  type="text"
+                  :data-invalid="settingsForm.errors.slug ? 'true' : undefined"
+                  :class="inputClass"
+                />
+                <div v-if="settingsForm.errors.slug" class="text-xs text-red-600 mt-1">
+                  {{ settingsForm.errors.slug }}
+                </div>
+              </div>
+
+              <label class="flex items-start gap-3 cursor-pointer">
+                <input
+                  v-model="settingsForm.requireEmailVerification"
+                  type="checkbox"
+                  class="mt-0.5 rounded border-slate-300"
+                />
+                <span>
+                  <span class="block text-sm font-medium text-slate-700"
+                    >Require email verification</span
+                  >
+                  <span class="block text-xs text-slate-500 mt-0.5">
+                    When enabled, new reports start hidden in a "pending verification" state and the
+                    reporter is emailed a magic link to confirm before the report is shown to your
+                    team.
+                  </span>
+                </span>
+              </label>
+
+              <div class="flex justify-end">
+                <button
+                  type="submit"
+                  :disabled="settingsForm.processing"
+                  class="px-4 py-2 rounded-md bg-brand-indigo-700 text-white text-sm font-medium hover:bg-brand-indigo-500 disabled:opacity-50"
+                >
+                  Save changes
+                </button>
+              </div>
+            </div>
+          </section>
+        </form>
+
+        <!-- Danger zone -->
+        <section class="bg-white border border-red-200 rounded-xl overflow-hidden">
+          <div class="px-5 py-4 border-b border-red-100">
+            <h2 class="text-sm font-semibold flex items-center gap-2 text-red-700">
+              <span class="h-2 w-2 rounded-full bg-red-500"></span>
+              Danger zone
+            </h2>
+            <p class="text-xs text-slate-500 mt-1">
+              Deleting a project removes all reports, templates, API keys and team access.
+            </p>
+          </div>
+
+          <div class="p-5 space-y-3">
+            <p class="text-xs text-slate-600">
+              Type <span class="font-medium">{{ props.project.name }}</span> to confirm deletion.
+            </p>
+            <input
+              v-model="confirmText"
+              type="text"
+              placeholder="Project name"
+              :class="inputClass"
+            />
             <button
               type="button"
-              class="px-4 py-2 bg-brand-indigo-700 text-white rounded-md hover:bg-brand-indigo-500 text-sm font-medium"
-              @click="useDefaultTemplate"
+              :disabled="!canDelete"
+              class="px-4 py-2 rounded-md bg-red-600 text-white text-sm font-medium hover:bg-red-500 disabled:opacity-50 disabled:cursor-not-allowed"
+              @click="destroyProject"
             >
-              Use default template
+              Delete project
             </button>
+          </div>
+        </section>
+      </div>
+
+      <!-- Right: quick links -->
+      <div class="space-y-4">
+        <div class="bg-white border border-slate-200 rounded-xl overflow-hidden">
+          <div class="px-5 py-4 border-b border-slate-200">
+            <h2 class="text-sm font-semibold font-heading">Quick links</h2>
+            <p class="text-xs text-slate-500 mt-1">Jump to project areas</p>
+          </div>
+          <div class="p-3 space-y-2">
             <Link
-              :href="`/projects/${props.project.id}/templates/create`"
-              class="px-4 py-2 border border-slate-300 rounded-md bg-white text-slate-700 hover:bg-slate-50 text-sm font-medium"
+              v-for="link in quickLinks"
+              :key="link.label"
+              :href="link.href"
+              class="flex items-center gap-3 p-3 rounded-lg border border-slate-200 hover:border-brand-indigo-200 hover:bg-brand-indigo-50/50 transition-colors group"
             >
-              Create custom
+              <span
+                class="h-9 w-9 rounded-lg bg-slate-100 group-hover:bg-brand-indigo-100 text-slate-600 group-hover:text-brand-indigo-700 flex items-center justify-center shrink-0 transition-colors"
+              >
+                <component :is="link.icon" class="h-4 w-4" />
+              </span>
+              <span class="flex-1 min-w-0">
+                <span class="block text-sm font-medium text-slate-900">{{ link.label }}</span>
+                <span class="block text-xs text-slate-500 truncate">{{ link.desc }}</span>
+              </span>
+              <span class="text-slate-400 group-hover:text-brand-indigo-700">→</span>
             </Link>
           </div>
         </div>
 
-        <div v-else class="space-y-3">
-          <div
-            v-for="tpl in props.templates"
-            :key="tpl.id"
-            class="border border-slate-200 rounded-xl p-4 flex items-start justify-between hover:border-slate-300 transition-colors"
-          >
-            <div class="min-w-0">
-              <div class="flex items-center gap-2 flex-wrap">
-                <h3 class="font-medium text-slate-900">{{ tpl.name }}</h3>
-                <span
-                  v-if="tpl.isDefault"
-                  class="text-xs bg-brand-indigo-50 text-brand-indigo-700 border border-brand-indigo-200 px-2 py-0.5 rounded-full font-medium"
-                  >default</span
-                >
-                <span class="text-xs text-slate-400">#{{ tpl.id }}</span>
-              </div>
-              <p class="text-sm text-slate-500 mt-1">{{ tpl.fields.length }} fields</p>
-              <div class="flex flex-wrap gap-1.5 mt-2">
-                <span
-                  v-for="f in tpl.fields"
-                  :key="f.key"
-                  class="text-xs border border-slate-200 px-2 py-1 rounded-full bg-slate-50 text-slate-700"
-                >
-                  {{ f.key }} · {{ f.type }}<span v-if="f.isRequired" class="text-red-500">*</span>
-                </span>
-              </div>
-            </div>
-            <div class="flex gap-2 ml-4 shrink-0">
-              <Link
-                :href="`/templates/${tpl.id}/edit`"
-                class="text-sm px-3 py-1.5 border border-slate-300 rounded-md bg-white text-slate-700 hover:bg-slate-50 font-medium"
-                >Edit</Link
-              >
-              <button
-                type="button"
-                class="text-sm px-3 py-1.5 border border-red-200 rounded-md bg-white text-red-600 hover:bg-red-50 font-medium"
-                @click="destroyTemplate(tpl.id)"
-              >
-                Delete
-              </button>
-            </div>
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <!-- Settings -->
-    <form class="mt-6" @submit.prevent="saveSettings">
-      <section class="bg-white border border-slate-200 rounded-xl overflow-hidden">
-        <div class="px-5 py-4 border-b border-slate-200">
-          <h2 class="text-sm font-semibold flex items-center gap-2">
-            <span class="h-2 w-2 rounded-full bg-brand-teal-600"></span>
-            Project settings
-          </h2>
-          <p class="text-xs text-slate-500 mt-1">
-            Rename the project or control how reports are queued.
+        <div class="bg-slate-50 border border-dashed border-slate-300 rounded-xl p-4">
+          <h3 class="text-xs font-semibold tracking-widest uppercase text-slate-500">Templates</h3>
+          <p class="text-sm text-slate-600 mt-1">
+            Templates define what the widget asks. Manage them to match your triage workflow.
           </p>
+          <Link
+            :href="`/projects/${props.project.id}/templates`"
+            class="inline-flex items-center mt-3 text-xs font-medium text-brand-indigo-700 hover:text-brand-indigo-500"
+            >Open templates →</Link
+          >
         </div>
-
-        <div class="p-5 space-y-4">
-          <div>
-            <label for="name" class="block text-xs font-medium text-slate-700 mb-1"
-              >Project name</label
-            >
-            <input
-              id="name"
-              v-model="settingsForm.name"
-              type="text"
-              :data-invalid="settingsForm.errors.name ? 'true' : undefined"
-              :class="inputClass"
-            />
-            <div v-if="settingsForm.errors.name" class="text-xs text-red-600 mt-1">
-              {{ settingsForm.errors.name }}
-            </div>
-          </div>
-
-          <div>
-            <label for="slug" class="block text-xs font-medium text-slate-700 mb-1">Slug</label>
-            <input
-              id="slug"
-              v-model="settingsForm.slug"
-              type="text"
-              :data-invalid="settingsForm.errors.slug ? 'true' : undefined"
-              :class="inputClass"
-            />
-            <div v-if="settingsForm.errors.slug" class="text-xs text-red-600 mt-1">
-              {{ settingsForm.errors.slug }}
-            </div>
-          </div>
-
-          <label class="flex items-start gap-3 cursor-pointer">
-            <input
-              v-model="settingsForm.requireEmailVerification"
-              type="checkbox"
-              class="mt-0.5 rounded border-slate-300"
-            />
-            <span>
-              <span class="block text-sm font-medium text-slate-700"
-                >Require email verification</span
-              >
-              <span class="block text-xs text-slate-500 mt-0.5">
-                When enabled, new reports start hidden in a "pending verification" state and the
-                reporter is emailed a magic link to confirm before the report is shown to your team.
-              </span>
-            </span>
-          </label>
-
-          <div class="flex justify-end">
-            <button
-              type="submit"
-              :disabled="settingsForm.processing"
-              class="px-4 py-2 rounded-md bg-brand-indigo-700 text-white text-sm font-medium hover:bg-brand-indigo-500 disabled:opacity-50"
-            >
-              Save changes
-            </button>
-          </div>
-        </div>
-      </section>
-    </form>
-
-    <!-- Danger zone -->
-    <section class="mt-6 bg-white border border-red-200 rounded-xl overflow-hidden">
-      <div class="px-5 py-4 border-b border-red-100">
-        <h2 class="text-sm font-semibold flex items-center gap-2 text-red-700">
-          <span class="h-2 w-2 rounded-full bg-red-500"></span>
-          Danger zone
-        </h2>
-        <p class="text-xs text-slate-500 mt-1">
-          Deleting a project removes all reports, templates, API keys and team access.
-        </p>
       </div>
-
-      <div class="p-5 space-y-3">
-        <p class="text-xs text-slate-600">
-          Type <span class="font-medium">{{ props.project.name }}</span> to confirm deletion.
-        </p>
-        <input v-model="confirmText" type="text" placeholder="Project name" :class="inputClass" />
-        <button
-          type="button"
-          :disabled="!canDelete"
-          class="px-4 py-2 rounded-md bg-red-600 text-white text-sm font-medium hover:bg-red-500 disabled:opacity-50 disabled:cursor-not-allowed"
-          @click="destroyProject"
-        >
-          Delete project
-        </button>
-      </div>
-    </section>
+    </div>
 
     <div class="mt-6 text-sm">
       <Link href="/projects" class="text-slate-500 hover:text-brand-indigo-700 hover:underline"

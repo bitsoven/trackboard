@@ -20,12 +20,12 @@ under **Integrations → API Tokens**).
 
 ## Data attributes
 
-| Attribute           | Required | Description                                                              |
-| ------------------- | -------- | ------------------------------------------------------------------------ |
-| `data-project-key`  | yes      | API key that ties submissions to a project.                              |
-| `src`               | yes      | URL of `widget.js` on your Trackboard domain.                            |
-| `data-api-base`     | no       | Override the API base URL (defaults to the `src` origin).                |
-| `data-locale`       | no       | Force a locale (`en`, `es`, `de`, …). Defaults to the browser language.  |
+| Attribute          | Required | Description                                                             |
+| ------------------ | -------- | ----------------------------------------------------------------------- |
+| `data-project-key` | yes      | API key that ties submissions to a project.                             |
+| `src`              | yes      | URL of `widget.js` on your Trackboard domain.                           |
+| `data-api-base`    | no       | Override the API base URL (defaults to the `src` origin).               |
+| `data-locale`      | no       | Force a locale (`en`, `es`, `de`, …). Defaults to the browser language. |
 
 Example with options:
 

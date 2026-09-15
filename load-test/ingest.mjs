@@ -51,7 +51,7 @@ async function hit() {
   try {
     const res = await fetch(`${BASE}/api/public/reports?key=${KEY}`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json', Origin: ORIGIN },
+      headers: { 'Content-Type': 'application/json', 'Origin': ORIGIN },
       body: JSON.stringify({
         title: 'Load test report',
         reporterEmail: 'loadtest@example.com',

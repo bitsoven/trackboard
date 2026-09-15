@@ -13,20 +13,20 @@ home lab via environment variables.
 
 ## Environment variables
 
-| Variable                | Purpose                                              |
-| ----------------------- | ---------------------------------------------------- |
-| `PORT` / `HOST`         | Listen port / host (default `3333` / `0.0.0.0`)      |
-| `APP_KEY`               | App encryption key — generate with `node ace gen:key` |
-| `APP_URL`               | Public base URL (used in verification/magic links)   |
-| `DB_CONNECTION`         | `sqlite` (dev) or `pg` (prod)                        |
-| `DB_HOST` / `DB_PORT`   | Postgres host / port                                 |
-| `DB_USER` / `DB_PASSWORD` / `DB_DATABASE` | Postgres credentials                |
-| `DRIVE_DISK`            | `s3` for MinIO/S3 (or `fs` for local dev)            |
-| `S3_ENDPOINT`           | MinIO/S3 endpoint                                    |
-| `S3_REGION` / `S3_BUCKET` | Bucket region / name                              |
-| `S3_ACCESS_KEY_ID` / `S3_SECRET_ACCESS_KEY` | S3 credentials               |
-| `S3_FORCE_PATH_STYLE`   | `true` for MinIO                                     |
-| `SMTP_*` / `RESEND_API_KEY` | Outbound email for verification + replies        |
+| Variable                                    | Purpose                                               |
+| ------------------------------------------- | ----------------------------------------------------- |
+| `PORT` / `HOST`                             | Listen port / host (default `3333` / `0.0.0.0`)       |
+| `APP_KEY`                                   | App encryption key — generate with `node ace gen:key` |
+| `APP_URL`                                   | Public base URL (used in verification/magic links)    |
+| `DB_CONNECTION`                             | `sqlite` (dev) or `pg` (prod)                         |
+| `DB_HOST` / `DB_PORT`                       | Postgres host / port                                  |
+| `DB_USER` / `DB_PASSWORD` / `DB_DATABASE`   | Postgres credentials                                  |
+| `DRIVE_DISK`                                | `s3` for MinIO/S3 (or `fs` for local dev)             |
+| `S3_ENDPOINT`                               | MinIO/S3 endpoint                                     |
+| `S3_REGION` / `S3_BUCKET`                   | Bucket region / name                                  |
+| `S3_ACCESS_KEY_ID` / `S3_SECRET_ACCESS_KEY` | S3 credentials                                        |
+| `S3_FORCE_PATH_STYLE`                       | `true` for MinIO                                      |
+| `SMTP_*` / `RESEND_API_KEY`                 | Outbound email for verification + replies             |
 
 See `.env.example` for the full list.
 

@@ -68,10 +68,8 @@ function roleChipClasses(role: string) {
 
   <div class="max-w-5xl mx-auto p-6">
     <div class="mb-6">
-      <Link
-        :href="`/projects/${props.project.id}/integrations`"
-        class="text-sm text-slate-500 hover:text-brand-indigo-700 hover:underline"
-        >← Back to integrations</Link
+      <Link href="/" class="text-sm text-slate-500 hover:text-brand-indigo-700 hover:underline"
+        >← Back to overview</Link
       >
       <h1 class="text-2xl font-semibold tracking-tight mt-2 font-heading">
         {{ props.project.name }} — Team
@@ -88,16 +86,13 @@ function roleChipClasses(role: string) {
       {{ flash.success }}
     </div>
 
-    <!-- Members -->
     <section class="bg-white border border-slate-200 rounded-xl overflow-hidden mb-6">
       <div class="px-5 py-4 border-b border-slate-200">
         <h2 class="text-sm font-semibold flex items-center gap-2 font-heading">
           <span class="h-2 w-2 rounded-full bg-brand-teal-600"></span>
           Members
         </h2>
-        <p class="text-xs text-slate-500 mt-1">
-          {{ props.members.length }} people · roles control access
-        </p>
+        <p class="text-xs text-slate-500 mt-1">{{ props.members.length }} people</p>
       </div>
       <div class="divide-y divide-slate-100">
         <div v-for="m in props.members" :key="m.id" class="flex items-center gap-3 px-5 py-4">
@@ -152,7 +147,6 @@ function roleChipClasses(role: string) {
       </div>
     </section>
 
-    <!-- Invite -->
     <section
       v-if="props.canManage"
       class="bg-white border border-slate-200 rounded-xl overflow-hidden"

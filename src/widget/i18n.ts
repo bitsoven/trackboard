@@ -4,7 +4,7 @@ type Dict = Record<string, string>
 
 const dictionaries: Record<string, Dict> = {
   en: {
-    'widget.title': 'Report a problem',
+    'widget.title': 'Report a bug',
     'widget.open': 'Report a bug',
     'widget.close': 'Close',
     'widget.submit': 'Send report',
@@ -16,10 +16,15 @@ const dictionaries: Record<string, Dict> = {
     'widget.emailRequired': 'Email is required so we can follow up.',
     'widget.titleLabel': 'Summary',
     'widget.titlePlaceholder': 'Short summary of the issue',
-    'widget.pinHint': 'Pin an element to highlight what is wrong',
-    'widget.pin': 'Pick element',
+    'widget.pinHint': 'Click to select an element on the page that shows the problem',
+    'widget.pin': 'Pick element on page',
     'widget.pinned': 'Pinned: {selector}',
     'widget.screenshot': 'Attach a screenshot',
+    'widget.screenshotNote': 'A screenshot helps us see the issue in context.',
+    'widget.screenshotHint': 'A screenshot of this page will be attached automatically.',
+    'widget.sectionDetails': 'Details',
+    'widget.sectionContext': 'Context',
+    'widget.sectionScreenshot': 'Screenshot',
     'widget.retry': 'Retry now',
     'widget.fieldRequired': 'This field is required',
     'widget.consentTitle': 'High-fidelity screenshot',
@@ -32,7 +37,8 @@ const dictionaries: Record<string, Dict> = {
     'widget.captureModeFullpage': 'Full page',
     'widget.captureModeElement': 'Pinned element',
     'widget.screenshotTooLarge': 'Screenshot too large, recompressing…',
-    'widget.verifySent': 'We sent a confirmation email to {email}. Please check your inbox and click the link to verify your report.',
+    'widget.verifySent':
+      'We sent a confirmation email to {email}. Please check your inbox and click the link to verify your report.',
   },
   es: {
     'widget.title': 'Reportar un problema',
@@ -63,7 +69,8 @@ const dictionaries: Record<string, Dict> = {
     'widget.captureModeFullpage': 'Página completa',
     'widget.captureModeElement': 'Elemento fijado',
     'widget.screenshotTooLarge': 'Captura muy grande, recomprimiendo…',
-    'widget.verifySent': 'Enviamos un correo de confirmación a {email}. Revisa tu bandeja y haz clic en el enlace para verificar tu reporte.',
+    'widget.verifySent':
+      'Enviamos un correo de confirmación a {email}. Revisa tu bandeja y haz clic en el enlace para verificar tu reporte.',
   },
   de: {
     'widget.title': 'Problem melden',
@@ -94,7 +101,8 @@ const dictionaries: Record<string, Dict> = {
     'widget.captureModeFullpage': 'Gesamte Seite',
     'widget.captureModeElement': 'Angeheftetes Element',
     'widget.screenshotTooLarge': 'Screenshot zu groß, wird neu kodiert…',
-    'widget.verifySent': 'Wir haben eine Bestätigungs-E-Mail an {email} gesendet. Bitte prüfe dein Postfach und klicke auf den Link, um deinen Bericht zu bestätigen.',
+    'widget.verifySent':
+      'Wir haben eine Bestätigungs-E-Mail an {email} gesendet. Bitte prüfe dein Postfach und klicke auf den Link, um deinen Bericht zu bestätigen.',
   },
 }
 

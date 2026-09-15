@@ -87,7 +87,7 @@ const navItems = computed(() => {
       label: 'Projects',
       icon: FolderKanban,
       href: '/projects',
-      active: page.url === '/projects',
+      active: page.url.startsWith('/projects') && !page.url.includes('/integrations') && !page.url.includes('/team') && !page.url.includes('/settings'),
     },
     { label: 'Inbox', icon: Inbox, href: '/inbox', active: page.url.startsWith('/inbox') },
     {
@@ -143,7 +143,7 @@ const navItems = computed(() => {
         <img :src="'/logo.svg'" alt="Trackboard" class="h-7 w-7 rounded-md shrink-0" />
         <span
           v-if="!collapsed || mobileOpen"
-          class="font-display font-bold tracking-[-0.01em] text-white whitespace-nowrap"
+          class="font-heading font-bold tracking-[-0.01em] text-white whitespace-nowrap"
           >Trackboard</span
         >
         <button
@@ -277,7 +277,7 @@ const navItems = computed(() => {
           <Menu class="h-5 w-5" />
         </button>
         <img :src="'/logo.svg'" alt="Trackboard" class="h-6 w-6 rounded" />
-        <span class="font-display font-bold tracking-[-0.01em] text-brand-indigo-700"
+        <span class="font-heading font-bold tracking-[-0.01em] text-brand-indigo-700"
           >Trackboard</span
         >
         <span class="ml-auto text-xs text-slate-500 truncate">{{
@@ -298,7 +298,7 @@ const navItems = computed(() => {
         <div>
           <Link route="home" class="flex items-center gap-2">
             <img :src="'/logo.svg'" alt="Trackboard" class="h-7 w-auto" />
-            <span class="font-display font-bold tracking-[-0.01em] text-brand text-lg"
+            <span class="font-heading font-bold tracking-[-0.01em] text-brand text-lg"
               >Trackboard</span
             >
           </Link>

@@ -49,7 +49,17 @@ export class ConversationSchema extends BaseModel {
 }
 
 export class MessageSchema extends BaseModel {
-  static $columns = ['authorId', 'authorType', 'body', 'conversationId', 'createdAt', 'direction', 'emailMessageId', 'id', 'inReplyTo'] as const
+  static $columns = [
+    'authorId',
+    'authorType',
+    'body',
+    'conversationId',
+    'createdAt',
+    'direction',
+    'emailMessageId',
+    'id',
+    'inReplyTo',
+  ] as const
   $columns = MessageSchema.$columns
   @column()
   declare authorId: number | null
@@ -91,7 +101,15 @@ export class NotificationSchema extends BaseModel {
 }
 
 export class ProjectSchema extends BaseModel {
-  static $columns = ['createdAt', 'id', 'name', 'ownerId', 'requireEmailVerification', 'slug', 'updatedAt'] as const
+  static $columns = [
+    'createdAt',
+    'id',
+    'name',
+    'ownerId',
+    'requireEmailVerification',
+    'slug',
+    'updatedAt',
+  ] as const
   $columns = ProjectSchema.$columns
   @column.dateTime({ autoCreate: true })
   declare createdAt: DateTime
@@ -140,7 +158,27 @@ export class ReportTemplateSchema extends BaseModel {
 }
 
 export class ReportSchema extends BaseModel {
-  static $columns = ['assigneeId', 'browserInfo', 'consoleErrors', 'createdAt', 'id', 'networkErrors', 'pageUrl', 'priority', 'projectId', 'replyToToken', 'reporterEmail', 'reporterVerifiedAt', 'screenshotUrl', 'status', 'templateId', 'title', 'updatedAt', 'verificationSentAt', 'verificationToken'] as const
+  static $columns = [
+    'assigneeId',
+    'browserInfo',
+    'consoleErrors',
+    'createdAt',
+    'id',
+    'networkErrors',
+    'pageUrl',
+    'priority',
+    'projectId',
+    'replyToToken',
+    'reporterEmail',
+    'reporterVerifiedAt',
+    'screenshotUrl',
+    'status',
+    'templateId',
+    'title',
+    'updatedAt',
+    'verificationSentAt',
+    'verificationToken',
+  ] as const
   $columns = ReportSchema.$columns
   @column()
   declare assigneeId: number | null
@@ -183,7 +221,18 @@ export class ReportSchema extends BaseModel {
 }
 
 export class TeamMemberSchema extends BaseModel {
-  static $columns = ['acceptedAt', 'createdAt', 'email', 'id', 'inviteToken', 'invitedAt', 'projectId', 'role', 'updatedAt', 'userId'] as const
+  static $columns = [
+    'acceptedAt',
+    'createdAt',
+    'email',
+    'id',
+    'inviteToken',
+    'invitedAt',
+    'projectId',
+    'role',
+    'updatedAt',
+    'userId',
+  ] as const
   $columns = TeamMemberSchema.$columns
   @column.dateTime()
   declare acceptedAt: DateTime | null
@@ -208,7 +257,17 @@ export class TeamMemberSchema extends BaseModel {
 }
 
 export class TemplateFieldSchema extends BaseModel {
-  static $columns = ['id', 'isRequired', 'key', 'label', 'options', 'reportTemplateId', 'showIf', 'sortOrder', 'type'] as const
+  static $columns = [
+    'id',
+    'isRequired',
+    'key',
+    'label',
+    'options',
+    'reportTemplateId',
+    'showIf',
+    'sortOrder',
+    'type',
+  ] as const
   $columns = TemplateFieldSchema.$columns
   @column({ isPrimary: true })
   declare id: number
@@ -231,7 +290,15 @@ export class TemplateFieldSchema extends BaseModel {
 }
 
 export class UserSchema extends BaseModel {
-  static $columns = ['createdAt', 'email', 'fullName', 'id', 'password', 'role', 'updatedAt'] as const
+  static $columns = [
+    'createdAt',
+    'email',
+    'fullName',
+    'id',
+    'password',
+    'role',
+    'updatedAt',
+  ] as const
   $columns = UserSchema.$columns
   @column.dateTime({ autoCreate: true })
   declare createdAt: DateTime
@@ -250,7 +317,16 @@ export class UserSchema extends BaseModel {
 }
 
 export class WebhookSubscriptionSchema extends BaseModel {
-  static $columns = ['active', 'createdAt', 'events', 'id', 'projectId', 'secret', 'updatedAt', 'url'] as const
+  static $columns = [
+    'active',
+    'createdAt',
+    'events',
+    'id',
+    'projectId',
+    'secret',
+    'updatedAt',
+    'url',
+  ] as const
   $columns = WebhookSubscriptionSchema.$columns
   @column()
   declare active: boolean

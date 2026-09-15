@@ -99,7 +99,7 @@ const chartMax = computed(() => Math.max(1, ...trend.value.map((d) => d.count)))
           Self-hosted bug reporting
         </div>
         <h1
-          class="font-display font-bold tracking-[-0.01em] text-4xl sm:text-5xl text-slate-900 leading-tight"
+          class="font-heading font-bold tracking-[-0.01em] text-4xl sm:text-5xl text-slate-900 leading-tight"
         >
           Bug reports that live where your users do.
         </h1>
@@ -146,10 +146,10 @@ const chartMax = computed(() => Math.max(1, ...trend.value.map((d) => d.count)))
     <div class="max-w-6xl mx-auto p-6 space-y-6">
       <div class="flex items-center gap-3">
         <img :src="'/logo.svg'" alt="Trackboard" class="h-8 w-8 rounded-md" />
-        <span class="font-display font-bold tracking-[-0.01em] text-slate-900">Trackboard</span>
+        <span class="font-heading font-bold tracking-[-0.01em] text-slate-900">Trackboard</span>
       </div>
       <div>
-        <h1 class="text-2xl font-semibold tracking-tight">Overview</h1>
+        <h1 class="text-2xl font-semibold tracking-tight font-heading">Overview</h1>
         <p class="text-sm text-slate-500 mt-1">
           Status at a glance — what needs your attention now
         </p>
