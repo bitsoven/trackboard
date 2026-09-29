@@ -22,6 +22,7 @@ export default class OverviewController {
         stats,
         trend,
         worklist,
+        breadcrumb: [{ label: 'Dashboard' }],
       } as any
     )
   }

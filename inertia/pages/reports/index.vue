@@ -1,270 +1,268 @@
 <script setup lang="ts">
-import { ref, computed, watch } from 'vue'
+import { ref, watch } from 'vue'
 import { Head, router } from '@inertiajs/vue3'
-import { Link } from '@adonisjs/inertia/vue'
-import { tableFeatures, useTable, FlexRender } from '@tanstack/vue-table'
+import { toast } from 'vue-sonner'
+import AppShell from '~/layouts/app_shell.vue'
+import ReportAvatar from '~/components/report_avatar.vue'
+import {
+  displayNameFromEmail,
+  initialsFromName,
+  priorityDotClasses,
+  priorityLabel,
+  relativeTime,
+  toneForEmail,
+  typeTag,
+  typeTagClasses,
+} from '~/composables/use_report_display'
 
-type Report = {
+type BoardReport = {
   id: string
-  projectId: number
+  number: number | null
   title: string
   status: string
   priority: string
-  reporterEmail: string
-  pageUrl: string | null
-  screenshotUrl: string | null
+  reporterEmail: string | null
+  templateName: string | null
   createdAt: string | null
-  project: { id: number; name: string; slug: string } | null
+  updatedAt: string | null
 }
 
+type BoardColumn = {
+  key: 'new' | 'in_progress' | 'resolved' | 'canceled' | 'not_now'
+  label: string
+  reports: BoardReport[]
+}
+
+defineOptions({ layout: AppShell })
+
 const props = defineProps<{
-  reports: Report[]
-  meta: any | null
-  filters: {
-    projectId?: number
-    status?: string
-    priority?: string
-    page?: number
-    perPage?: number
-  }
-  projects: Array<{ id: number; name: string; slug: string }>
+  columns: BoardColumn[]
 }>()
 
-const statusFilter = ref(props.filters.status ?? '')
-const priorityFilter = ref(props.filters.priority ?? '')
-const projectFilter = ref(props.filters.projectId ? String(props.filters.projectId) : '')
+/** Canonical status applied when a card lands in each column. */
+const COLUMN_STATUS: Record<BoardColumn['key'], string> = {
+  new: 'open',
+  in_progress: 'in_progress',
+  resolved: 'resolved',
+  canceled: 'canceled',
+  not_now: 'not_now',
+}
 
-function applyFilters() {
-  router.get(
-    '/reports',
+const columnDots: Record<BoardColumn['key'], string> = {
+  new: 'bg-mark-dot',
+  in_progress: 'bg-accent',
+  resolved: 'bg-avatar-teal',
+  canceled: 'bg-ink-300',
+  not_now: 'bg-avatar-amber',
+}
+
+/**
+ * Local board state so cards move optimistically while the PATCH request is in
+ * flight; resynced whenever Inertia delivers fresh columns.
+ */
+const board = ref<BoardColumn[]>(
+  props.columns.map((column) => ({ ...column, reports: [...column.reports] }))
+)
+
+watch(
+  () => props.columns,
+  (next) => {
+    board.value = next.map((column) => ({ ...column, reports: [...column.reports] }))
+  }
+)
+
+const draggingId = ref<string | null>(null)
+const dragOverKey = ref<BoardColumn['key'] | null>(null)
+
+function onDragStart(report: BoardReport, event: DragEvent) {
+  draggingId.value = report.id
+  event.dataTransfer?.setData('text/plain', report.id)
+  if (event.dataTransfer) event.dataTransfer.effectAllowed = 'move'
+}
+
+function onDragOver(column: BoardColumn) {
+  if (draggingId.value) dragOverKey.value = column.key
+}
+
+function onDrop(column: BoardColumn) {
+  const id = draggingId.value
+  dragOverKey.value = null
+  draggingId.value = null
+  if (!id) return
+
+  const source = board.value.find((c) => c.reports.some((r) => r.id === id))
+  if (!source) return
+
+  const status = COLUMN_STATUS[column.key]
+  const report = source.reports.find((r) => r.id === id)
+  if (!report) return
+
+  if (source.key === column.key) return
+
+  source.reports = source.reports.filter((r) => r.id !== id)
+  column.reports = [...column.reports, { ...report, status }]
+
+  router.patch(
+    `/reports/${id}`,
+    { status },
     {
-      status: statusFilter.value || undefined,
-      priority: priorityFilter.value || undefined,
-      projectId: projectFilter.value || undefined,
-    },
-    { preserveState: true, replace: true }
+      preserveScroll: true,
+      preserveState: true,
+      onError: () => {
+        toast.error('Could not move the report — please try again')
+        board.value = props.columns.map((c) => ({ ...c, reports: [...c.reports] }))
+      },
+    }
   )
 }
 
-watch(
-  () => props.reports,
-  (v) => {
-    data.value = [...v]
-  }
-)
-
-watch(
-  () => props.filters,
-  (f) => {
-    statusFilter.value = f.status ?? ''
-    priorityFilter.value = f.priority ?? ''
-    projectFilter.value = f.projectId ? String(f.projectId) : ''
-  }
-)
-
-function clearFilters() {
-  statusFilter.value = ''
-  priorityFilter.value = ''
-  projectFilter.value = ''
-  applyFilters()
+function onDragEnd() {
+  draggingId.value = null
+  dragOverKey.value = null
 }
 
-function statusBadge(status: string): string {
-  const map: Record<string, string> = {
-    open: 'bg-brand-indigo-500 text-white',
-    in_progress: 'bg-amber-100 text-amber-700',
-    pending_verification: 'bg-slate-100 text-slate-600 border border-dashed border-slate-300',
-    resolved: 'bg-brand-teal-600 text-white',
-    closed: 'bg-slate-200 text-slate-600',
+function metaText(column: BoardColumn, report: BoardReport): string {
+  if (column.key === 'in_progress') return `assigned · ${relativeTime(report.updatedAt)}`
+  if (column.key === 'resolved') {
+    return `${report.status === 'closed' ? 'closed' : 'resolved'} · ${relativeTime(report.updatedAt)}`
   }
-  return map[status] ?? 'bg-slate-100 text-slate-700'
+  if (column.key === 'canceled') return `canceled · ${relativeTime(report.updatedAt)}`
+  if (column.key === 'not_now') return `parked · ${relativeTime(report.updatedAt)}`
+  return relativeTime(report.createdAt)
 }
 
-function priorityBadge(priority: string): string {
-  const map: Record<string, string> = {
-    low: 'bg-gray-100 text-gray-700',
-    medium: 'bg-blue-100 text-blue-700',
-    high: 'bg-orange-100 text-orange-700',
-    critical: 'bg-red-100 text-red-700',
-  }
-  return map[priority] ?? 'bg-gray-100 text-gray-700'
+function comingSoon() {
+  toast.info('Reports arrive from the widget — manual creation is coming soon')
 }
-
-const isFiltered = computed(
-  () => !!(props.filters.status || props.filters.priority || props.filters.projectId)
-)
-
-const features = tableFeatures({})
-
-const columns = [
-  { accessorKey: 'title', header: 'Title' },
-  {
-    accessorKey: 'project',
-    header: 'Project',
-    cell: (info: any) => info.getValue()?.name ?? '—',
-  },
-  { accessorKey: 'status', header: 'Status' },
-  { accessorKey: 'priority', header: 'Priority' },
-  { accessorKey: 'reporterEmail', header: 'Reporter' },
-  {
-    accessorKey: 'createdAt',
-    header: 'Created',
-    cell: (info: any) =>
-      info.getValue() ? new Date(info.getValue() as string).toLocaleString() : '—',
-  },
-  {
-    id: 'actions',
-    header: 'Actions',
-  },
-]
-
-const data = ref(props.reports)
-
-const table = useTable({
-  features,
-  columns: columns as any,
-  data,
-})
 </script>
 
 <template>
   <Head title="Reports" />
 
-  <div class="max-w-6xl mx-auto p-6">
-    <div class="flex items-center justify-between mb-6">
-      <div>
-        <h1 class="text-2xl font-semibold tracking-tight">All Reports</h1>
-        <p class="text-sm text-slate-500 mt-1">
-          Searchable archive — every report across your projects
+  <div class="flex flex-col gap-7">
+    <!-- Board header -->
+    <div class="flex flex-wrap items-center justify-between gap-4">
+      <div class="flex flex-col gap-1.5">
+        <h1 class="font-heading text-[28px] font-bold tracking-[-0.28px] text-ink-900">Reports</h1>
+        <p class="font-heading text-[15px] text-ink-600">
+          Every bug, issue and support case your team is tracking right now.
         </p>
       </div>
-      <Link
-        href="/"
-        class="text-sm font-medium text-slate-500 hover:text-brand-indigo-700 hover:underline"
-        >← Overview</Link
-      >
-    </div>
-
-    <div class="flex flex-wrap gap-3 mb-4 p-3 border border-slate-200 rounded-lg bg-white">
-      <select
-        v-model="projectFilter"
-        class="border border-slate-300 rounded-md px-3 py-2 text-sm bg-white"
-      >
-        <option value="">All projects</option>
-        <option v-for="p in props.projects" :key="p.id" :value="String(p.id)">{{ p.name }}</option>
-      </select>
-      <select
-        v-model="statusFilter"
-        class="border border-slate-300 rounded-md px-3 py-2 text-sm bg-white"
-      >
-        <option value="">All statuses</option>
-        <option value="needs_action">Needs action (unassigned)</option>
-        <option value="open">open</option>
-        <option value="in_progress">in_progress</option>
-        <option value="resolved">resolved</option>
-        <option value="closed">closed</option>
-      </select>
-      <select
-        v-model="priorityFilter"
-        class="border border-slate-300 rounded-md px-3 py-2 text-sm bg-white"
-      >
-        <option value="">All priorities</option>
-        <option value="low">low</option>
-        <option value="medium">medium</option>
-        <option value="high">high</option>
-        <option value="critical">critical</option>
-      </select>
       <button
-        class="text-sm px-3 py-1.5 bg-brand-indigo-700 text-white rounded-md hover:bg-brand-indigo-500"
-        @click="applyFilters"
+        type="button"
+        class="inline-flex items-center gap-2 rounded-[10px] bg-accent px-[22px] py-[13px] font-heading text-[15px] font-bold text-white transition-colors hover:bg-accent-strong"
+        @click="comingSoon"
       >
-        Apply
-      </button>
-      <button
-        class="text-sm px-3 py-1.5 border border-slate-300 rounded-md bg-white text-slate-700 hover:bg-slate-50"
-        @click="clearFilters"
-      >
-        Clear
+        <span class="text-[16px]">+</span> New Report
       </button>
     </div>
 
-    <div class="border border-slate-200 rounded-xl bg-white overflow-x-auto">
-      <table class="w-full text-sm">
-        <thead class="bg-slate-50">
-          <tr v-for="headerGroup in table.getHeaderGroups()" :key="headerGroup.id">
-            <th
-              v-for="header in headerGroup.headers"
-              :key="header.id"
-              class="text-left px-3 py-2 font-medium text-slate-700"
+    <!-- Columns -->
+    <div class="grid grid-cols-1 items-start gap-6 lg:grid-cols-5">
+      <div
+        v-for="column in board"
+        :key="column.key"
+        class="flex min-w-0 flex-col gap-4 rounded-2xl transition-shadow"
+        :class="dragOverKey === column.key ? 'ring-2 ring-accent/50' : ''"
+        @dragover.prevent="onDragOver(column)"
+        @drop.prevent="onDrop(column)"
+      >
+        <!-- Column header -->
+        <div class="flex items-center justify-between">
+          <div class="flex items-center gap-2">
+            <span class="size-2 rounded-full" :class="columnDots[column.key]" />
+            <p class="font-heading text-[13px] font-bold tracking-[0.65px] text-ink-900">
+              {{ column.label.toUpperCase() }}
+            </p>
+            <span
+              class="rounded-[10px] bg-hairline px-2 py-0.5 font-heading text-[11px] font-bold text-ink-600"
             >
-              <FlexRender v-if="!header.isPlaceholder" :header="header" />
-            </th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr
-            v-for="row in table.getRowModel().rows"
-            :key="row.id"
-            class="border-t border-slate-200 hover:bg-slate-50"
+              {{ column.reports.length }}
+            </span>
+          </div>
+          <button
+            type="button"
+            class="flex size-[26px] items-center justify-center rounded-[13px] border border-hairline bg-transparent font-heading text-[14px] font-bold leading-none text-label hover:bg-surface"
+            :aria-label="`Add report to ${column.label}`"
+            @click="comingSoon"
           >
-            <td v-for="cell in row.getAllCells()" :key="cell.id" class="px-3 py-2">
-              <template v-if="cell.column.id === 'actions'">
-                <Link
-                  :href="`/reports/${(row.original as any).id}`"
-                  class="text-brand-indigo-700 hover:text-brand-indigo-500 hover:underline font-medium"
-                  >View</Link
-                >
-              </template>
-              <template v-else-if="cell.column.id === 'status'">
-                <span
-                  class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium"
-                  :class="statusBadge(cell.getValue() as string)"
-                  >{{ cell.getValue() }}</span
-                >
-              </template>
-              <template v-else-if="cell.column.id === 'priority'">
-                <span
-                  class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium"
-                  :class="priorityBadge(cell.getValue() as string)"
-                  >{{ cell.getValue() }}</span
-                >
-              </template>
-              <template v-else>
-                <FlexRender :cell="cell" />
-              </template>
-            </td>
-          </tr>
-          <tr v-if="table.getRowModel().rows.length === 0">
-            <td colspan="8" class="text-center py-8">
-              <div v-if="isFiltered" class="text-sm text-slate-600">
-                No reports match your filters.
-                <button
-                  class="ml-2 text-sm font-medium text-brand-indigo-700 hover:text-brand-indigo-500"
-                  @click="clearFilters"
-                >
-                  Clear filters
-                </button>
-              </div>
-              <div v-else class="flex flex-col items-center gap-3">
-                <div
-                  class="h-20 w-full max-w-md mx-auto rounded-lg flex items-center justify-center"
-                  style="background: linear-gradient(135deg, #4338ca 0%, #0d9488 100%)"
-                >
-                  <span class="text-white/90 text-sm font-medium">No reports yet</span>
-                </div>
-                <p class="text-sm text-slate-600">
-                  Your widget will populate this table once reports arrive.
-                </p>
-              </div>
-            </td>
-          </tr>
-        </tbody>
-      </table>
-    </div>
+            +
+          </button>
+        </div>
 
-    <div v-if="props.meta" class="mt-4 text-sm text-slate-500">
-      Page {{ props.meta.current_page }} of {{ props.meta.last_page }} —
-      {{ props.meta.total }} total
+        <!-- Cards -->
+        <p
+          v-if="column.reports.length === 0"
+          class="rounded-xl border border-dashed border-hairline bg-white/60 py-8 text-center font-heading text-[13px] text-ink-300"
+        >
+          Nothing here
+        </p>
+        <div
+          v-for="report in column.reports"
+          :key="report.id"
+          role="link"
+          tabindex="0"
+          draggable="true"
+          class="flex cursor-pointer flex-col gap-3 rounded-xl border border-hairline bg-white p-4 transition-colors hover:border-accent/40 active:cursor-grabbing"
+          :class="draggingId === report.id ? 'opacity-50' : ''"
+          @click="router.visit(`/reports/${report.id}`)"
+          @keydown.enter.prevent="router.visit(`/reports/${report.id}`)"
+          @dragstart="onDragStart(report, $event)"
+          @dragend="onDragEnd"
+        >
+          <div class="flex w-full items-center justify-between">
+            <span
+              class="inline-flex items-center rounded-md px-2.5 py-1 font-heading text-[11px] font-bold leading-none"
+              :class="typeTagClasses(report.templateName)"
+            >
+              {{ typeTag(report.templateName) }}
+            </span>
+            <span
+              v-if="column.key === 'resolved'"
+              class="flex size-[18px] items-center justify-center rounded-full bg-avatar-teal font-heading text-[10px] font-bold text-white"
+              title="Resolved"
+            >
+              ✓
+            </span>
+            <span
+              v-else
+              class="size-2 shrink-0 rounded-full"
+              :class="priorityDotClasses(report.priority)"
+              :title="`${priorityLabel(report.priority)} priority`"
+            />
+          </div>
+
+          <p class="font-heading text-[14px] font-medium leading-[1.38] text-ink-900">
+            {{ report.title }}
+          </p>
+
+          <div class="flex w-full items-center justify-between">
+            <span class="flex min-w-0 items-center gap-1.5">
+              <ReportAvatar
+                :initials="initialsFromName(displayNameFromEmail(report.reporterEmail))"
+                :tone="toneForEmail(report.reporterEmail)"
+                size="xs"
+              />
+              <span class="truncate font-heading text-[12px] text-label">
+                {{ displayNameFromEmail(report.reporterEmail) }}
+              </span>
+            </span>
+            <span class="shrink-0 font-heading text-[12px] text-ink-300">
+              {{ metaText(column, report) }}
+            </span>
+          </div>
+        </div>
+
+        <!-- Add ghost -->
+        <button
+          type="button"
+          class="flex w-full items-center justify-center rounded-xl border border-dashed border-hairline bg-transparent p-0 py-3.5 font-heading text-[14px] font-medium text-label transition-colors hover:bg-surface"
+          :aria-label="`Add report to ${column.label}`"
+          @click="comingSoon"
+        >
+          + Add report
+        </button>
+      </div>
     </div>
   </div>
 </template>

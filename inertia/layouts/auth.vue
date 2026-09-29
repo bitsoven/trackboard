@@ -1,9 +1,10 @@
 <script setup lang="ts">
-import AuthShell from '~/components/auth_shell.vue'
+/**
+ * Auth pages render their own full-screen shell (`AuthShell`), so this layout
+ * intentionally renders nothing but the page — no app chrome.
+ */
 </script>
 
 <template>
-  <AuthShell title="Trackboard">
-    <slot />
-  </AuthShell>
+  <slot />
 </template>

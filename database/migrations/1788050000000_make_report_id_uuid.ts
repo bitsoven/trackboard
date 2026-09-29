@@ -1,246 +1,219 @@
 import { BaseSchema } from '@adonisjs/lucid/schema'
-import { randomUUID } from 'node:crypto'
 
 /**
  * Convert report IDs from auto-increment integers to UUID strings.
  *
- * SQLite cannot alter a primary key's type, so the `reports`,
- * `report_field_values` and `conversations` tables are rebuilt. `conversations.id`
- * is preserved (messages reference it) while `reports.id` and the two columns
- * that reference it (`report_field_values.report_id`, `conversations.report_id`)
- * become UUID strings. Existing rows are backfilled with generated UUIDs.
+ * SQLite cannot alter a primary key's type, so `reports`, `report_field_values`
+ * and `conversations` are dropped and recreated. PostgreSQL supports
+ * `ALTER COLUMN ... TYPE`, so the foreign keys are dropped, the columns are
+ * widened to `varchar(36)` and the foreign keys are recreated.
  *
- * Foreign-key enforcement is disabled for the rebuild and transactions are
- * disabled so the PRAGMA takes effect.
+ * Existing rows are intentionally discarded: the tables are recreated from
+ * scratch rather than migrated.
  */
 export default class extends BaseSchema {
   static disableTransactions = true
 
+  private isSqlite() {
+    const dialect = this.db.dialect.name
+    return dialect === 'better-sqlite3' || dialect === 'sqlite3' || dialect === 'libsql'
+  }
+
   async up() {
+    if (this.isSqlite()) {
+      return this.rebuildSqlite(true)
+    }
+    return this.alterPostgres(true)
+  }
+
+  async down() {
+    if (this.isSqlite()) {
+      return this.rebuildSqlite(false)
+    }
+    return this.alterPostgres(false)
+  }
+
+  /**
+   * SQLite: drop and recreate the three tables. `uuid` selects the new
+   * string-based schema, `false` restores the original integer schema.
+   */
+  private async rebuildSqlite(uuid: boolean) {
     const db = this.db
     await db.rawQuery('PRAGMA foreign_keys = OFF')
 
     try {
-      // Snapshot existing data
-      const reports = await db.from('reports').select('*')
-      const fieldValues = await db.from('report_field_values').select('*')
-      const conversations = await db.from('conversations').select('*')
-
-      const idMap = new Map<number, string>()
-      for (const r of reports) idMap.set(Number(r.id), randomUUID())
-
-      // Drop children first, then reports
       await db.schema.dropTableIfExists('conversations')
       await db.schema.dropTableIfExists('report_field_values')
       await db.schema.dropTableIfExists('reports')
 
-      // Recreate
-      await db.schema.createTable('reports', (table) => {
-        table.string('id', 36).notNullable().primary()
-        table
-          .integer('project_id')
-          .unsigned()
-          .references('id')
-          .inTable('projects')
-          .onDelete('CASCADE')
-          .notNullable()
-        table
-          .integer('template_id')
-          .unsigned()
-          .references('id')
-          .inTable('report_templates')
-          .onDelete('SET NULL')
-          .nullable()
-        table.string('title').notNullable()
-        table.string('status').notNullable().defaultTo('open')
-        table.string('priority').notNullable().defaultTo('medium')
-        table.string('reporter_email', 254).nullable()
-        table.timestamp('reporter_verified_at').nullable()
-        table.string('page_url').nullable()
-        table.json('browser_info').nullable()
-        table.json('console_errors').nullable()
-        table.json('network_errors').nullable()
-        table.string('screenshot_url').nullable()
-        table
-          .integer('assignee_id')
-          .unsigned()
-          .references('id')
-          .inTable('users')
-          .onDelete('SET NULL')
-          .nullable()
-        table.timestamp('created_at').notNullable()
-        table.timestamp('updated_at').nullable()
-        table.string('verification_token').nullable()
-        table.timestamp('verification_sent_at').nullable()
-        table.string('reply_to_token').nullable()
-      })
-
-      await db.schema.createTable('report_field_values', (table) => {
-        table.increments('id').notNullable()
-        table
-          .string('report_id', 36)
-          .references('id')
-          .inTable('reports')
-          .onDelete('CASCADE')
-          .notNullable()
-        table.string('field_key').notNullable()
-        table.text('value').nullable()
-        table.unique(['report_id', 'field_key'])
-      })
-
-      await db.schema.createTable('conversations', (table) => {
-        table.increments('id').notNullable()
-        table
-          .string('report_id', 36)
-          .references('id')
-          .inTable('reports')
-          .onDelete('CASCADE')
-          .notNullable()
-          .unique()
-        table.timestamp('created_at').notNullable()
-        table.timestamp('updated_at').nullable()
-      })
-
-      // Backfill data (preserve conversations.id so messages keep working)
-      for (const r of reports) {
-        await db.table('reports').insert({
-          id: idMap.get(Number(r.id)),
-          project_id: r.project_id,
-          template_id: r.template_id,
-          title: r.title,
-          status: r.status,
-          priority: r.priority,
-          reporter_email: r.reporter_email,
-          reporter_verified_at: r.reporter_verified_at,
-          page_url: r.page_url,
-          browser_info: r.browser_info,
-          console_errors: r.console_errors,
-          network_errors: r.network_errors,
-          screenshot_url: r.screenshot_url,
-          assignee_id: r.assignee_id,
-          created_at: r.created_at,
-          updated_at: r.updated_at,
-          verification_token: r.verification_token,
-          verification_sent_at: r.verification_sent_at,
-          reply_to_token: r.reply_to_token,
-        })
-      }
-      for (const fv of fieldValues) {
-        await db.table('report_field_values').insert({
-          id: fv.id,
-          report_id: idMap.get(Number(fv.report_id)),
-          field_key: fv.field_key,
-          value: fv.value,
-        })
-      }
-      for (const c of conversations) {
-        await db.table('conversations').insert({
-          id: c.id,
-          report_id: idMap.get(Number(c.report_id)),
-          created_at: c.created_at,
-          updated_at: c.updated_at,
-        })
+      if (uuid) {
+        await this.createUuidTables()
+      } else {
+        await this.createIntegerTables()
       }
     } finally {
       await db.rawQuery('PRAGMA foreign_keys = ON')
     }
   }
 
-  async down() {
+  /**
+   * PostgreSQL: widen the id columns to `varchar(36)` (or narrow them back to
+   * integer on rollback) without recreating the tables.
+   */
+  private async alterPostgres(uuid: boolean) {
     const db = this.db
-    await db.rawQuery('PRAGMA foreign_keys = OFF')
 
-    try {
-      const reports = await db.from('reports').select('*')
-      const fieldValues = await db.from('report_field_values').select('*')
-      const conversations = await db.from('conversations').select('*')
+    await this.dropReportForeignKeys()
 
-      const idMap = new Map<string, number>()
-      let seq = 1
-      for (const r of reports) idMap.set(r.id, seq++)
-
-      await db.schema.dropTableIfExists('conversations')
-      await db.schema.dropTableIfExists('report_field_values')
-      await db.schema.dropTableIfExists('reports')
-
-      await db.schema.createTable('reports', (table) => {
-        table.increments('id').notNullable()
-        table.integer('project_id').unsigned().notNullable()
-        table.integer('template_id').unsigned().nullable()
-        table.string('title').notNullable()
-        table.string('status').notNullable().defaultTo('open')
-        table.string('priority').notNullable().defaultTo('medium')
-        table.string('reporter_email', 254).nullable()
-        table.timestamp('reporter_verified_at').nullable()
-        table.string('page_url').nullable()
-        table.json('browser_info').nullable()
-        table.json('console_errors').nullable()
-        table.json('network_errors').nullable()
-        table.string('screenshot_url').nullable()
-        table.integer('assignee_id').unsigned().nullable()
-        table.timestamp('created_at').notNullable()
-        table.timestamp('updated_at').nullable()
-        table.string('verification_token').nullable()
-        table.timestamp('verification_sent_at').nullable()
-        table.string('reply_to_token').nullable()
-      })
-
-      await db.schema.createTable('report_field_values', (table) => {
-        table.increments('id').notNullable()
-        table.integer('report_id').unsigned().notNullable()
-        table.string('field_key').notNullable()
-        table.text('value').nullable()
-        table.unique(['report_id', 'field_key'])
-      })
-
-      await db.schema.createTable('conversations', (table) => {
-        table.increments('id').notNullable()
-        table.integer('report_id').unsigned().notNullable().unique()
-        table.timestamp('created_at').notNullable()
-        table.timestamp('updated_at').nullable()
-      })
-
-      for (const r of reports) {
-        await db.table('reports').insert({
-          id: idMap.get(r.id),
-          project_id: r.project_id,
-          template_id: r.template_id,
-          title: r.title,
-          status: r.status,
-          priority: r.priority,
-          reporter_email: r.reporter_email,
-          reporter_verified_at: r.reporter_verified_at,
-          page_url: r.page_url,
-          browser_info: r.browser_info,
-          console_errors: r.console_errors,
-          network_errors: r.network_errors,
-          screenshot_url: r.screenshot_url,
-          assignee_id: r.assignee_id,
-          created_at: r.created_at,
-          updated_at: r.updated_at,
-          verification_token: r.verification_token,
-          verification_sent_at: r.verification_sent_at,
-          reply_to_token: r.reply_to_token,
-        })
-      }
-      for (const fv of fieldValues) {
-        await db.table('report_field_values').insert({
-          id: fv.id,
-          report_id: idMap.get(fv.report_id),
-          field_key: fv.field_key,
-          value: fv.value,
-        })
-      }
-      for (const c of conversations) {
-        await db.table('conversations').insert({
-          id: c.id,
-          report_id: idMap.get(c.report_id),
-          created_at: c.created_at,
-          updated_at: c.updated_at,
-        })
-      }
-    } finally {
-      await db.rawQuery('PRAGMA foreign_keys = ON')
+    if (uuid) {
+      await db.rawQuery('ALTER TABLE reports ALTER COLUMN id DROP DEFAULT')
+      await db.rawQuery('ALTER TABLE reports ALTER COLUMN id TYPE varchar(36) USING id::text')
+    } else {
+      await db.rawQuery('ALTER TABLE reports ALTER COLUMN id TYPE integer USING id::integer')
+      await db.rawQuery('CREATE SEQUENCE IF NOT EXISTS reports_id_seq OWNED BY reports.id')
+      await db.rawQuery("ALTER TABLE reports ALTER COLUMN id SET DEFAULT nextval('reports_id_seq')")
+      await db.rawQuery(
+        "SELECT setval('reports_id_seq', COALESCE((SELECT MAX(id) FROM reports), 1))"
+      )
     }
+
+    const reportIdType = uuid
+      ? 'varchar(36) USING report_id::text'
+      : 'integer USING report_id::integer'
+    await db.rawQuery(`ALTER TABLE report_field_values ALTER COLUMN report_id TYPE ${reportIdType}`)
+    await db.rawQuery(`ALTER TABLE conversations ALTER COLUMN report_id TYPE ${reportIdType}`)
+
+    await this.createReportForeignKeys()
+  }
+
+  private async dropReportForeignKeys() {
+    const db = this.db
+    await db.rawQuery(
+      'ALTER TABLE report_field_values DROP CONSTRAINT IF EXISTS report_field_values_report_id_foreign'
+    )
+    await db.rawQuery(
+      'ALTER TABLE conversations DROP CONSTRAINT IF EXISTS conversations_report_id_foreign'
+    )
+  }
+
+  private async createReportForeignKeys() {
+    const db = this.db
+    await db.rawQuery(
+      'ALTER TABLE report_field_values ADD CONSTRAINT report_field_values_report_id_foreign FOREIGN KEY (report_id) REFERENCES reports (id) ON DELETE CASCADE'
+    )
+    await db.rawQuery(
+      'ALTER TABLE conversations ADD CONSTRAINT conversations_report_id_foreign FOREIGN KEY (report_id) REFERENCES reports (id) ON DELETE CASCADE'
+    )
+  }
+
+  private async createUuidTables() {
+    const db = this.db
+
+    await db.schema.createTable('reports', (table) => {
+      table.string('id', 36).notNullable().primary()
+      table
+        .integer('project_id')
+        .unsigned()
+        .references('id')
+        .inTable('projects')
+        .onDelete('CASCADE')
+        .notNullable()
+      table
+        .integer('template_id')
+        .unsigned()
+        .references('id')
+        .inTable('report_templates')
+        .onDelete('SET NULL')
+        .nullable()
+      table.string('title').notNullable()
+      table.string('status').notNullable().defaultTo('open')
+      table.string('priority').notNullable().defaultTo('medium')
+      table.string('reporter_email', 254).nullable()
+      table.timestamp('reporter_verified_at').nullable()
+      table.string('page_url').nullable()
+      table.json('browser_info').nullable()
+      table.json('console_errors').nullable()
+      table.json('network_errors').nullable()
+      table.string('screenshot_url').nullable()
+      table
+        .integer('assignee_id')
+        .unsigned()
+        .references('id')
+        .inTable('users')
+        .onDelete('SET NULL')
+        .nullable()
+      table.timestamp('created_at').notNullable()
+      table.timestamp('updated_at').nullable()
+      table.string('verification_token').nullable()
+      table.timestamp('verification_sent_at').nullable()
+      table.string('reply_to_token').nullable()
+    })
+
+    await db.schema.createTable('report_field_values', (table) => {
+      table.increments('id').notNullable()
+      table
+        .string('report_id', 36)
+        .references('id')
+        .inTable('reports')
+        .onDelete('CASCADE')
+        .notNullable()
+      table.string('field_key').notNullable()
+      table.text('value').nullable()
+      table.unique(['report_id', 'field_key'])
+    })
+
+    await db.schema.createTable('conversations', (table) => {
+      table.increments('id').notNullable()
+      table
+        .string('report_id', 36)
+        .references('id')
+        .inTable('reports')
+        .onDelete('CASCADE')
+        .notNullable()
+        .unique()
+      table.timestamp('created_at').notNullable()
+      table.timestamp('updated_at').nullable()
+    })
+  }
+
+  private async createIntegerTables() {
+    const db = this.db
+
+    await db.schema.createTable('reports', (table) => {
+      table.increments('id').notNullable()
+      table.integer('project_id').unsigned().notNullable()
+      table.integer('template_id').unsigned().nullable()
+      table.string('title').notNullable()
+      table.string('status').notNullable().defaultTo('open')
+      table.string('priority').notNullable().defaultTo('medium')
+      table.string('reporter_email', 254).nullable()
+      table.timestamp('reporter_verified_at').nullable()
+      table.string('page_url').nullable()
+      table.json('browser_info').nullable()
+      table.json('console_errors').nullable()
+      table.json('network_errors').nullable()
+      table.string('screenshot_url').nullable()
+      table.integer('assignee_id').unsigned().nullable()
+      table.timestamp('created_at').notNullable()
+      table.timestamp('updated_at').nullable()
+      table.string('verification_token').nullable()
+      table.timestamp('verification_sent_at').nullable()
+      table.string('reply_to_token').nullable()
+    })
+
+    await db.schema.createTable('report_field_values', (table) => {
+      table.increments('id').notNullable()
+      table.integer('report_id').unsigned().notNullable()
+      table.string('field_key').notNullable()
+      table.text('value').nullable()
+      table.unique(['report_id', 'field_key'])
+    })
+
+    await db.schema.createTable('conversations', (table) => {
+      table.increments('id').notNullable()
+      table.integer('report_id').unsigned().notNullable().unique()
+      table.timestamp('created_at').notNullable()
+      table.timestamp('updated_at').nullable()
+    })
   }
 }

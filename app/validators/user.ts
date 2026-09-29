@@ -47,17 +47,13 @@ export function updateAccountValidator(userId: number, currentPasswordHash: stri
 }
 
 /**
- * "passwordConfirmation" is declared explicitly, so that it is part of the
- * request body type shared with the frontend. Otherwise the signup form has
- * no way to know about the errors reported for this field.
+ * The signup form has no "confirm password" field, so the password is not
+ * checked against a confirmation here.
  */
 export const signupValidator = vine.create({
   fullName: vine.string().nullable(),
   email: email().unique({ table: 'users', column: 'email' }),
-  password: password().confirmed({
-    confirmationField: 'passwordConfirmation',
-  }),
-  passwordConfirmation: vine.string(),
+  password: password(),
   inviteToken: vine.string().optional(),
 })
 

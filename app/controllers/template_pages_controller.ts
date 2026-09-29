@@ -41,6 +41,10 @@ export default class TemplatePagesController {
       {
         project: { id: project.id, name: project.name, slug: project.slug },
         template: null,
+        breadcrumb: [
+          { label: project.name, href: `/projects/${project.id}` },
+          { label: 'Templates' },
+        ],
       } as any
     )
   }
@@ -73,6 +77,10 @@ export default class TemplatePagesController {
       {
         project: { id: project.id, name: project.name, slug: project.slug },
         template: data,
+        breadcrumb: [
+          { label: project.name, href: `/projects/${project.id}` },
+          { label: 'Templates' },
+        ],
       } as any
     )
   }

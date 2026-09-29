@@ -10,11 +10,10 @@ export default class HttpExceptionHandler extends ExceptionHandler {
   protected debug = !app.inProduction
 
   /**
-   * Status pages are used to display a custom HTML pages for certain error
-   * codes. You might want to enable them in production only, but feel
-   * free to enable them in development as well.
+   * Always render the custom status pages (styled 404/500) instead of the
+   * framework's raw error dump.
    */
-  protected renderStatusPages = app.inProduction
+  protected renderStatusPages = true
 
   /**
    * Status pages is a collection of error code range and a callback
@@ -30,6 +29,14 @@ export default class HttpExceptionHandler extends ExceptionHandler {
    * response to the client
    */
   async handle(error: unknown, ctx: HttpContext) {
+    // JSON clients get a JSON body for 404s; HTML clients fall through to the
+    // status page renderer below.
+    if ((error as { status?: number }).status === 404) {
+      if (ctx.request.accepts(['html', 'json']) === 'json') {
+        return ctx.response.status(404).send({ message: 'Not found' })
+      }
+    }
+
     return super.handle(error, ctx)
   }
 

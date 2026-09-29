@@ -1,8 +1,12 @@
 <script setup lang="ts">
-import { computed, ref } from 'vue'
+import { ref, computed } from 'vue'
 import { Head, router, useForm, usePage } from '@inertiajs/vue3'
-import { Link } from '@adonisjs/inertia/vue'
-import { ShieldCheck, Clock, Mail, Crown } from '@lucide/vue'
+import { initialsFromName } from '~/composables/use_report_display'
+import AppShell from '~/layouts/app_shell.vue'
+import SettingsShell from '~/layouts/settings_shell.vue'
+import ReportAvatar from '~/components/report_avatar.vue'
+import TbInput from '~/components/ui/tb_input.vue'
+import TbButton from '~/components/ui/tb_button.vue'
 
 type Member = {
   id: number
@@ -16,6 +20,8 @@ type Member = {
 }
 type Project = { id: number; name: string; slug: string }
 
+defineOptions({ layout: AppShell })
+
 const props = defineProps<{
   project: Project
   members: Member[]
@@ -25,178 +31,234 @@ const props = defineProps<{
 const TEAM_ROLES: Array<Member['role']> = ['owner', 'admin', 'member']
 const flash = computed(() => (usePage().flash as any) || {})
 
+const showModal = ref(false)
+
 const inviteForm = useForm({ email: '', role: 'member' as Member['role'] })
 
+function openInvite() {
+  inviteForm.reset()
+  showModal.value = true
+}
+
 function sendInvite() {
-  inviteForm.post(`/projects/${props.project.id}/team/invite`)
-}
-
-const roleForms = ref<Record<number, { role: Member['role'] }>>({})
-function roleFor(member: Member): Member['role'] {
-  return roleForms.value[member.id]?.role ?? member.role
-}
-
-function updateRole(member: Member) {
-  router.patch(`/projects/${props.project.id}/team/${member.id}/role`, {
-    role: roleFor(member),
+  inviteForm.post(`/projects/${props.project.id}/team/invite`, {
+    preserveScroll: true,
+    onSuccess: () => {
+      showModal.value = false
+      router.reload({ only: ['members'] })
+    },
   })
 }
 
-function onRoleChange(member: Member, event: Event) {
-  const value = (event.target as HTMLSelectElement).value
-  roleForms.value[member.id] = { role: value as Member['role'] }
-  updateRole(member)
+/** Re-invite a pending member: same endpoint regenerates their token + email. */
+function resendInvite(member: Member) {
+  router.post(
+    `/projects/${props.project.id}/team/invite`,
+    { email: member.email, role: member.role },
+    { preserveScroll: true }
+  )
 }
 
 function removeMember(member: Member) {
   if (!confirm(`Remove ${member.email} from this project?`)) return
-  router.post(`/projects/${props.project.id}/team/${member.id}/remove`)
+  router.post(
+    `/projects/${props.project.id}/team/${member.id}/remove`,
+    {},
+    { preserveScroll: true }
+  )
 }
 
-function roleChipClasses(role: string) {
-  const map: Record<string, string> = {
-    owner: 'bg-brand-indigo-100 text-brand-indigo-700 border-brand-indigo-200',
-    admin: 'bg-brand-teal-50 text-brand-teal-600 border-brand-teal-100',
-    member: 'bg-slate-100 text-slate-600 border-slate-200',
-  }
-  return map[role] ?? 'bg-slate-100 text-slate-600 border-slate-200'
+function changeRole(member: Member, role: Member['role']) {
+  if (role === member.role) return
+  router.patch(
+    `/projects/${props.project.id}/team/${member.id}/role`,
+    { role },
+    { preserveScroll: true }
+  )
+}
+
+const tones = ['indigo', 'teal', 'amber'] as const
+
+/** Stable per-person avatar tone so rows feel distinct, matching the Figma. */
+function toneFor(member: Member) {
+  const seed = `${member.email}`.split('').reduce((acc, ch) => acc + ch.charCodeAt(0), 0)
+  return tones[seed % tones.length]
+}
+
+function displayNameFor(member: Member): string {
+  if (member.name) return member.name
+  const local = member.email.split('@')[0] ?? member.email
+  return local
+    .split(/[._-]+/)
+    .filter(Boolean)
+    .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
+    .join(' ')
 }
 </script>
 
 <template>
-  <Head :title="`${props.project.name} — Team`" />
+  <Head title="Team Members" />
 
-  <div class="max-w-5xl mx-auto p-6">
-    <div class="mb-6">
-      <Link
-        :href="`/projects/${props.project.id}/integrations`"
-        class="text-sm text-slate-500 hover:text-brand-indigo-700 hover:underline"
-        >← Back to integrations</Link
-      >
-      <h1 class="text-2xl font-semibold tracking-tight mt-2 font-heading">
-        {{ props.project.name }} — Team
-      </h1>
-      <p class="text-sm text-slate-500 mt-1">
-        Collaborators who can access this project's reports and settings.
-      </p>
-    </div>
-
+  <SettingsShell active="team">
+    <!-- Flash feedback -->
     <div
       v-if="flash.success"
-      class="mb-4 border border-emerald-200 bg-emerald-50 text-emerald-700 rounded-lg p-3 text-sm"
+      class="mb-6 rounded-lg border border-emerald-200 bg-emerald-50 p-3 text-sm text-emerald-700"
     >
       {{ flash.success }}
     </div>
 
-    <!-- Members -->
-    <section class="bg-white border border-slate-200 rounded-xl overflow-hidden mb-6">
-      <div class="px-5 py-4 border-b border-slate-200">
-        <h2 class="text-sm font-semibold flex items-center gap-2 font-heading">
-          <span class="h-2 w-2 rounded-full bg-brand-teal-600"></span>
-          Members
-        </h2>
-        <p class="text-xs text-slate-500 mt-1">
-          {{ props.members.length }} people · roles control access
+    <!-- Header -->
+    <div class="flex flex-wrap items-center justify-between gap-4">
+      <div class="flex flex-col gap-1.5">
+        <h1 class="font-heading text-[26px] font-bold tracking-[-0.26px] text-ink-900">
+          Team Members
+        </h1>
+        <p class="font-heading text-[15px] text-ink-600">
+          Manage who has access to this workspace.
         </p>
       </div>
-      <div class="divide-y divide-slate-100">
-        <div v-for="m in props.members" :key="m.id" class="flex items-center gap-3 px-5 py-4">
-          <span
-            class="h-9 w-9 rounded-full bg-brand-indigo-100 text-brand-indigo-700 flex items-center justify-center text-sm font-semibold shrink-0"
-          >
-            {{ (m.name || m.email).slice(0, 1).toUpperCase() }}
-          </span>
-          <div class="flex-1 min-w-0">
-            <div class="flex items-center gap-2 flex-wrap">
-              <span class="text-sm font-medium truncate">{{ m.name || m.email }}</span>
-              <span
-                class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium border"
-                :class="roleChipClasses(m.role)"
-              >
-                <Crown v-if="m.role === 'owner'" class="h-3 w-3" />
-                <ShieldCheck v-else-if="m.role === 'admin'" class="h-3 w-3" />
-                <span>{{ m.role }}</span>
-              </span>
-              <span
-                class="inline-flex items-center gap-1 text-xs"
-                :class="m.acceptedAt ? 'text-brand-teal-600' : 'text-amber-600'"
-              >
-                <ShieldCheck v-if="m.acceptedAt" class="h-3 w-3" />
-                <Clock v-else class="h-3 w-3" />
-                {{ m.acceptedAt ? 'Accepted' : 'Pending invite' }}
-              </span>
-            </div>
-            <div class="text-xs text-slate-500 truncate flex items-center gap-1 mt-0.5">
-              <Mail class="h-3 w-3 text-slate-400" /> {{ m.email }}
-            </div>
-          </div>
+      <TbButton v-if="props.canManage" variant="accent" size="lg" @click="openInvite">
+        <span class="mr-1 text-[16px]">+</span> Invite Member
+      </TbButton>
+    </div>
 
-          <div v-if="props.canManage" class="flex items-center gap-2">
-            <select
-              :value="roleFor(m)"
-              class="border border-slate-300 rounded-md px-3 py-2 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-brand-teal-600"
-              @change="onRoleChange(m, $event)"
+    <!-- Members table -->
+    <div class="mt-6 overflow-hidden rounded-2xl border border-hairline bg-white">
+      <div
+        class="flex items-center border-b border-hairline bg-surface px-5 py-3.5 font-heading text-[11px] font-bold tracking-[0.55px] text-label"
+      >
+        <p class="min-w-0 flex-1">MEMBER</p>
+        <p class="w-40 shrink-0">ROLE</p>
+        <p class="w-52 shrink-0">STATUS</p>
+      </div>
+
+      <p
+        v-if="props.members.length === 0"
+        class="px-5 py-10 text-center font-heading text-[14px] text-ink-600"
+      >
+        No members yet — invite a collaborator to get started.
+      </p>
+
+      <div
+        v-for="(member, index) in props.members"
+        :key="member.id"
+        :class="[
+          'flex flex-wrap items-center gap-y-2 px-5 py-3.5',
+          index < props.members.length - 1 ? 'border-b border-hairline' : '',
+        ]"
+      >
+        <!-- Member cell -->
+        <div class="flex min-w-0 flex-1 items-center gap-2.5">
+          <ReportAvatar
+            :initials="initialsFromName(displayNameFor(member))"
+            :tone="toneFor(member)"
+            size="md"
+          />
+          <div class="min-w-0">
+            <p class="truncate font-heading text-[13px] font-bold text-ink-900">
+              {{ displayNameFor(member) }}
+            </p>
+            <p class="truncate font-heading text-[12px] text-ink-600">{{ member.email }}</p>
+          </div>
+        </div>
+
+        <!-- Role -->
+        <div class="w-40 shrink-0">
+          <select
+            v-if="props.canManage && member.role !== 'owner'"
+            :value="member.role"
+            class="w-fit cursor-pointer appearance-none rounded border-0 bg-none py-1 pl-0 pr-6 font-heading text-[13px] font-medium text-ink-600 focus:ring-2 focus:ring-accent focus:outline-none"
+            :aria-label="`Role for ${displayNameFor(member)}`"
+            @change="
+              changeRole(member, ($event.target as HTMLSelectElement).value as Member['role'])
+            "
+          >
+            <option v-for="role in TEAM_ROLES" :key="role" :value="role" class="capitalize">
+              {{ role.charAt(0).toUpperCase() + role.slice(1) }}
+            </option>
+          </select>
+          <p v-else class="font-heading text-[13px] font-medium capitalize text-ink-600">
+            {{ member.role }}
+          </p>
+        </div>
+
+        <!-- Status + actions -->
+        <div class="flex w-52 shrink-0 items-center justify-between gap-2">
+          <span
+            class="inline-flex items-center rounded-md px-2.5 py-1 font-heading text-[11px] font-bold"
+            :class="
+              member.acceptedAt ? 'bg-[#ccf2f1] text-[#00b8a9]' : 'bg-[#fff2d9] text-[#a47912]'
+            "
+          >
+            {{ member.acceptedAt ? 'Active' : 'Pending' }}
+          </span>
+          <span v-if="props.canManage && member.role !== 'owner'" class="flex items-center gap-2">
+            <button
+              v-if="!member.acceptedAt"
+              type="button"
+              class="bg-transparent p-0 font-heading text-[12px] font-medium text-ink-600 hover:text-accent"
+              @click="resendInvite(member)"
             >
-              <option v-for="r in TEAM_ROLES" :key="r" :value="r">{{ r }}</option>
-            </select>
+              Resend
+            </button>
             <button
               type="button"
-              class="text-xs px-3 py-1.5 border border-red-200 rounded-md bg-white text-red-600 hover:bg-red-50 font-medium"
-              @click="removeMember(m)"
+              class="bg-transparent p-0 font-heading text-[12px] font-medium text-ink-600 hover:text-red-600"
+              @click="removeMember(member)"
             >
               Remove
             </button>
-          </div>
-          <span v-else class="text-xs uppercase tracking-wide text-slate-400">{{ m.role }}</span>
+          </span>
         </div>
       </div>
-    </section>
+    </div>
 
-    <!-- Invite -->
-    <section
-      v-if="props.canManage"
-      class="bg-white border border-slate-200 rounded-xl overflow-hidden"
+    <!-- Invite modal -->
+    <div
+      v-if="showModal"
+      class="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4 font-heading"
+      @click.self="showModal = false"
     >
-      <div class="px-5 py-4 border-b border-slate-200">
-        <h2 class="text-sm font-semibold flex items-center gap-2 font-heading">
-          <span class="h-2 w-2 rounded-full bg-brand-teal-600"></span>
-          Invite a collaborator
-        </h2>
-        <p class="text-xs text-slate-500 mt-1">They'll receive an email with an accept link.</p>
+      <div class="w-full max-w-md rounded-2xl bg-white p-6">
+        <h2 class="text-[20px] font-bold text-ink-900">Invite member</h2>
+        <p class="mt-1 text-[14px] text-ink-600">They'll receive an email with an accept link.</p>
+
+        <form class="mt-5 flex flex-col gap-4" @submit.prevent="sendInvite">
+          <TbInput
+            id="invite-email"
+            v-model="inviteForm.email"
+            name="email"
+            variant="auth"
+            label="Work email"
+            type="email"
+            placeholder="teammate@example.com"
+            :error="inviteForm.errors.email"
+          >
+            <template #hint>
+              <select
+                v-model="inviteForm.role"
+                class="mt-4 h-12 w-full rounded-[10px] border border-hairline bg-white px-3.5 text-[14px] focus:ring-2 focus:ring-accent focus:outline-none"
+                aria-label="Role"
+              >
+                <option v-for="role in TEAM_ROLES" :key="role" :value="role" class="capitalize">
+                  {{ role.charAt(0).toUpperCase() + role.slice(1) }}
+                </option>
+              </select>
+            </template>
+          </TbInput>
+
+          <TbButton
+            variant="accent"
+            size="xl"
+            type="submit"
+            full-width
+            :disabled="inviteForm.processing"
+          >
+            Send invite
+          </TbButton>
+        </form>
       </div>
-      <form class="p-5 space-y-3" @submit.prevent="sendInvite">
-        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-          <div>
-            <label class="block text-xs font-medium text-slate-700 mb-1">Email</label>
-            <input
-              v-model="inviteForm.email"
-              type="email"
-              placeholder="teammate@example.com"
-              class="w-full border border-slate-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-teal-600"
-              :class="{ 'border-red-400': inviteForm.errors.email }"
-            />
-            <p v-if="inviteForm.errors.email" class="text-xs text-red-600 mt-1">
-              {{ inviteForm.errors.email }}
-            </p>
-          </div>
-          <div>
-            <label class="block text-xs font-medium text-slate-700 mb-1">Role</label>
-            <select
-              v-model="inviteForm.role"
-              class="w-full border border-slate-300 rounded-md px-3 py-2 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-brand-teal-600"
-            >
-              <option v-for="r in TEAM_ROLES" :key="r" :value="r">{{ r }}</option>
-            </select>
-          </div>
-        </div>
-        <button
-          type="submit"
-          :disabled="inviteForm.processing"
-          class="w-full py-2 rounded-md bg-brand-indigo-700 text-white text-sm font-medium hover:bg-brand-indigo-500 disabled:opacity-50"
-        >
-          Send invite
-        </button>
-      </form>
-    </section>
-  </div>
+    </div>
+  </SettingsShell>
 </template>

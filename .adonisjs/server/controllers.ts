@@ -5,12 +5,12 @@
 
 export const controllers = {
   AdminReports: () => import('#controllers/admin_reports_controller'),
-  Inbox: () => import('#controllers/inbox_controller'),
   IntegrationPages: () => import('#controllers/integration_pages_controller'),
   Integrations: () => import('#controllers/integrations_controller'),
   Messages: () => import('#controllers/messages_controller'),
   NewAccount: () => import('#controllers/new_account_controller'),
   Overview: () => import('#controllers/overview_controller'),
+  PasswordReset: () => import('#controllers/password_reset_controller'),
   Portal: () => import('#controllers/portal_controller'),
   Projects: () => import('#controllers/projects_controller'),
   PublicReports: () => import('#controllers/public_reports_controller'),

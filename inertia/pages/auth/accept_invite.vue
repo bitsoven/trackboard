@@ -1,9 +1,13 @@
 <script setup lang="ts">
 import { Form, Link } from '@adonisjs/inertia/vue'
+import { Head } from '@inertiajs/vue3'
+import AuthLayout from '~/layouts/auth.vue'
 import AuthShell from '~/components/auth_shell.vue'
 import TbButton from '~/components/ui/tb_button.vue'
 import TbInput from '~/components/ui/tb_input.vue'
 import TbAlert from '~/components/ui/tb_alert.vue'
+
+defineOptions({ layout: AuthLayout })
 
 const props = defineProps<{
   token: string | null
@@ -22,61 +26,62 @@ const props = defineProps<{
         : 'Create your account to continue.'
     "
   >
-    <TbAlert v-if="props.error" variant="error" class="mb-4">
-      {{ props.error }}
-    </TbAlert>
+    <Head title="Accept invitation" />
+    <Form v-slot="{ processing, errors }" route="new_account.store" class="flex flex-col gap-6">
+      <TbAlert v-if="props.error" variant="error">{{ props.error }}</TbAlert>
 
-    <Form v-slot="{ processing, errors }" route="new_account.store" class="space-y-4">
       <TbAlert v-if="(errors as any)._global || (errors as any).form" variant="error">
         {{ (errors as any)._global || (errors as any).form }}
       </TbAlert>
 
       <input type="hidden" name="inviteToken" :value="props.token ?? ''" />
 
-      <TbInput
-        id="fullName"
-        name="fullName"
-        label="Full name"
-        type="text"
-        :error="(errors as any).fullName"
-      />
+      <div class="flex flex-col gap-4">
+        <TbInput
+          id="fullName"
+          name="fullName"
+          variant="auth"
+          label="Full name"
+          type="text"
+          placeholder="Ada Lovelace"
+          autocomplete="name"
+          :error="(errors as any).fullName"
+        />
 
-      <TbInput
-        id="email"
-        name="email"
-        label="Email"
-        type="email"
-        :default-value="props.email ?? ''"
-        readonly
-        hint="This email is tied to your invitation"
-        :error="(errors as any).email"
-      />
+        <TbInput
+          id="email"
+          name="email"
+          variant="auth"
+          label="Work email"
+          type="email"
+          :default-value="props.email ?? ''"
+          readonly
+          hint="This email is tied to your invitation"
+          :error="(errors as any).email"
+        />
 
-      <TbInput
-        id="password"
-        name="password"
-        label="Password"
-        type="password"
-        :error="(errors as any).password"
-      />
+        <TbInput
+          id="password"
+          name="password"
+          variant="auth"
+          label="Password"
+          type="password"
+          placeholder="Create a password"
+          autocomplete="new-password"
+          :error="(errors as any).password"
+        />
+      </div>
 
-      <TbInput
-        id="passwordConfirmation"
-        name="passwordConfirmation"
-        label="Confirm password"
-        type="password"
-        :error="(errors as any).passwordConfirmation"
-      />
-
-      <TbButton type="submit" :disabled="processing" full-width>
-        Create account & accept invite
+      <TbButton variant="accent" size="xl" type="submit" :disabled="processing" full-width>
+        Create account &amp; accept invite
       </TbButton>
     </Form>
 
     <template #footer>
-      Already have an account?
-      <Link href="/login" class="text-brand-indigo-700 font-medium hover:underline">Log in</Link>
-      — your invite will be accepted automatically.
+      <div class="flex items-center justify-center gap-1.5">
+        <span>Already have an account?</span>
+        <Link href="/login" class="font-bold text-accent hover:underline">Sign in</Link>
+      </div>
     </template>
   </AuthShell>
 </template>

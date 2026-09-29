@@ -3,6 +3,7 @@ import type { BelongsTo } from '@adonisjs/lucid/types/relations'
 import { belongsTo } from '@adonisjs/lucid/orm'
 import Project from '#models/project'
 import hash from '@adonisjs/core/services/hash'
+import encryption from '@adonisjs/core/services/encryption'
 import { randomBytes } from 'node:crypto'
 
 export default class ApiKey extends ApiKeySchema {
@@ -10,6 +11,19 @@ export default class ApiKey extends ApiKeySchema {
     foreignKey: 'projectId',
   })
   declare project: BelongsTo<typeof Project>
+
+  /**
+   * Decrypt the stored copy of the raw key. Returns null for keys created
+   * before reversible storage existed (hash-only).
+   */
+  get revealedKey(): string | null {
+    if (!this.keyEncrypted) return null
+    try {
+      return encryption.decrypt(this.keyEncrypted) as string
+    } catch {
+      return null
+    }
+  }
 
   /**
    * Generate a new API key pair.
@@ -25,6 +39,7 @@ export default class ApiKey extends ApiKeySchema {
     const record = await ApiKey.create({
       projectId,
       keyHash,
+      keyEncrypted: encryption.encrypt(rawKey),
       label: label ?? null,
     })
 

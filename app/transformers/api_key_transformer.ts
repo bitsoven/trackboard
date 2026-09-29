@@ -16,7 +16,7 @@ export default class ApiKeyTransformer extends BaseTransformer<ApiKey> {
       projectId: r.projectId,
       label: r.label,
       keyPreview: r.keyHash ? `${r.keyHash.slice(0, 12)}…` : null,
-      rawKey: this.rawKey ?? null,
+      rawKey: this.rawKey ?? r.revealedKey ?? null,
       createdAt: r.createdAt?.toISO() ?? null,
       revokedAt: r.revokedAt?.toISO() ?? null,
     }

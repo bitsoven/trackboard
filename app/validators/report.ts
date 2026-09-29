@@ -19,7 +19,9 @@ export const ingestReportValidator = vine.compile(
 
 export const updateReportValidator = vine.compile(
   vine.object({
-    status: vine.enum(['open', 'in_progress', 'resolved', 'closed']).optional(),
+    status: vine
+      .enum(['open', 'in_progress', 'resolved', 'closed', 'canceled', 'not_now'])
+      .optional(),
     priority: vine.enum(['low', 'medium', 'high', 'critical']).optional(),
     assigneeId: vine.number().optional().nullable(),
     title: vine.string().trim().minLength(1).maxLength(255).optional(),

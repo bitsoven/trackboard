@@ -41,6 +41,11 @@ export interface ApiDefinition {
     store: typeof routes['session.store']
     destroy: typeof routes['session.destroy']
   }
+  password: {
+    forgot: typeof routes['password.forgot']
+    email: typeof routes['password.email']
+    reset: typeof routes['password.reset']
+  }
   projects: {
     index: typeof routes['projects.index']
     show: typeof routes['projects.show']
@@ -74,9 +79,6 @@ export interface ApiDefinition {
       store: typeof routes['portal.messages.store']
     }
   }
-  inbox: {
-    index: typeof routes['inbox.index']
-  }
   reports: {
     index: typeof routes['reports.index']
     show: typeof routes['reports.show']
@@ -96,8 +98,10 @@ export interface ApiDefinition {
     remove: typeof routes['team.remove']
     role: typeof routes['team.role']
     accept: typeof routes['team.accept']
+    settings: typeof routes['team.settings']
   }
   settings: {
+    widget: typeof routes['settings.widget']
     index: typeof routes['settings.index']
     update: typeof routes['settings.update']
   }

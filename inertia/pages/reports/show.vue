@@ -1,101 +1,139 @@
 <script setup lang="ts">
-import { computed, ref } from 'vue'
-import { Head, router, useForm } from '@inertiajs/vue3'
-import { Link } from '@adonisjs/inertia/vue'
+import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
+import { Head, router, useForm, usePage } from '@inertiajs/vue3'
+import { ChevronDown, Download, X } from '@lucide/vue'
+import AppShell from '~/layouts/app_shell.vue'
+import ReportPill from '~/components/report_pill.vue'
+import ReportCard from '~/components/report_card.vue'
+import ReportAvatar from '~/components/report_avatar.vue'
+import {
+  initialsFromName,
+  priorityLabel,
+  priorityPillClasses,
+  relativeTime,
+  statusLabel,
+  statusPillClasses,
+  useReportDisplay,
+  type ReportView,
+} from '~/composables/use_report_display'
 
-type FieldValue = { fieldKey: string; label: string; value: string | null }
-
-type Message = {
+type ThreadMessage = {
   id: number
   direction: string
   authorType: string
   authorName: string
+  authorInitials: string | null
   body: string
   createdAt: string
 }
 
-type Report = {
+type AssignableUser = {
   id: number
-  projectId: number
-  templateId: number | null
-  title: string
-  status: string
-  priority: string
-  reporterEmail: string
-  reporterVerifiedAt: string | null
-  pageUrl: string | null
-  browserInfo: any
-  consoleErrors: any
-  networkErrors: any
-  screenshotUrl: string | null
-  assigneeId: number | null
-  createdAt: string | null
-  updatedAt: string | null
-  fieldValues: FieldValue[]
-  project: { id: number; name: string; slug: string } | null
+  name: string
+  initials: string
+  email: string
 }
 
-const props = defineProps<{ report: Report; thread: Message[] }>()
+defineOptions({ layout: AppShell })
 
-const status = ref(props.report.status)
-const priority = ref(props.report.priority)
+const props = defineProps<{
+  report: ReportView
+  thread: ThreadMessage[]
+  assignableUsers: AssignableUser[]
+}>()
 
-/** Turn a camelCase/underscore key into a friendly label. */
-function prettyLabel(key: string): string {
-  return key
-    .split('.')
-    .map((part) =>
-      part
-        .replace(/([a-z0-9])([A-Z])/g, '$1 $2')
-        .replace(/([A-Z]+)([A-Z][a-z])/g, '$1 $2')
-        .replace(/_/g, ' ')
-        .trim()
-    )
-    .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
-    .join(' · ')
+const page = usePage<any>()
+
+const {
+  reporterName,
+  reporterInitials,
+  reference,
+  environmentRows,
+  descriptionFields,
+  extraFields,
+} = useReportDisplay(() => props.report)
+
+const STATUS_OPTIONS = [
+  { value: 'open', label: 'Open' },
+  { value: 'in_progress', label: 'In Progress' },
+  { value: 'resolved', label: 'Resolved' },
+  { value: 'closed', label: 'Closed' },
+  { value: 'canceled', label: 'Canceled' },
+  { value: 'not_now', label: 'Not Now' },
+]
+
+const PRIORITY_OPTIONS = [
+  { value: 'low', label: 'Low' },
+  { value: 'medium', label: 'Medium' },
+  { value: 'high', label: 'High' },
+  { value: 'critical', label: 'Critical' },
+]
+
+const pillSelectClasses =
+  'h-auto appearance-none border-0 bg-none rounded-[20px] py-[5px] pl-3 pr-8 font-heading text-[12px] font-bold focus:outline-none focus:ring-2 focus:ring-accent'
+
+function patchReport(payload: Record<string, string | number | null>) {
+  router.patch(`/reports/${props.report.id}`, payload, { preserveScroll: true })
 }
 
-/** Flatten browser info (which may be nested) into ordered label/value rows. */
-const browserRows = computed(() => {
-  const obj = props.report.browserInfo
-  if (!obj || typeof obj !== 'object' || Array.isArray(obj)) return []
-  const rows: { label: string; value: string }[] = []
-  const walk = (o: Record<string, unknown>, prefix: string) => {
-    for (const [k, v] of Object.entries(o)) {
-      const label = prefix ? `${prefix}.${k}` : k
-      if (v !== null && typeof v === 'object' && !Array.isArray(v)) {
-        walk(v as Record<string, unknown>, label)
-      } else {
-        rows.push({
-          label: prettyLabel(label),
-          value: Array.isArray(v) ? JSON.stringify(v) : String(v ?? ''),
-        })
-      }
-    }
-  }
-  walk(obj, '')
-  return rows
+const status = computed({
+  get: () => props.report.status,
+  set: (value: string) => patchReport({ status: value }),
 })
 
-/** Only treat as a real screenshot when the stored URL is servable. */
+const priority = computed({
+  get: () => props.report.priority,
+  set: (value: string) => patchReport({ priority: value }),
+})
+
+const assignee = computed({
+  get: () => props.report.assigneeId ?? '',
+  set: (value: string | number) => patchReport({ assigneeId: value === '' ? null : value }),
+})
+
+const selectedAssignable = computed(() =>
+  props.assignableUsers.find((user) => user.id === props.report.assigneeId)
+)
+
 const hasScreenshot = computed(() => {
   const url = props.report.screenshotUrl
   return !!url && (url.startsWith('data:image') || url.startsWith('http'))
 })
 
-const lightboxOpen = ref(false)
+const screenshotSrc = computed(() => `/reports/${props.report.id}/screenshot`)
+const screenshotOpen = ref(false)
 
-function updateReport() {
-  router.patch(
-    `/reports/${props.report.id}`,
-    { status: status.value, priority: priority.value },
-    { preserveScroll: true }
-  )
+function openScreenshot() {
+  screenshotOpen.value = true
 }
 
-const replyForm = useForm({
-  body: '',
-})
+function closeScreenshot() {
+  screenshotOpen.value = false
+}
+
+function onWindowKeydown(event: KeyboardEvent) {
+  if (event.key === 'Escape' && screenshotOpen.value) closeScreenshot()
+}
+
+onMounted(() => window.addEventListener('keydown', onWindowKeydown))
+onBeforeUnmount(() => window.removeEventListener('keydown', onWindowKeydown))
+
+function formatDate(iso?: string | null): string {
+  if (!iso) return '—'
+  return new Date(iso).toLocaleDateString('en-US', {
+    month: 'short',
+    day: 'numeric',
+    year: 'numeric',
+  })
+}
+
+function prettyJson(value: unknown): string {
+  if (value === null || value === undefined) return 'None recorded'
+  if (Array.isArray(value) && value.length === 0) return 'None recorded'
+  return JSON.stringify(value, null, 2)
+}
+
+const replyForm = useForm({ body: '' })
 
 function sendReply() {
   replyForm.post(`/api/reports/${props.report.id}/messages`, {
@@ -106,331 +144,345 @@ function sendReply() {
     },
   })
 }
-
-function statusBadge(statusValue: string): string {
-  const map: Record<string, string> = {
-    open: 'bg-brand-indigo-500 text-white',
-    in_progress: 'bg-amber-100 text-amber-700',
-    pending_verification: 'bg-slate-100 text-slate-600 border border-dashed border-slate-300',
-    resolved: 'bg-brand-teal-600 text-white',
-    closed: 'bg-slate-200 text-slate-600',
-  }
-  return map[statusValue] ?? 'bg-slate-100 text-slate-700'
-}
-
-function priorityBadge(priorityValue: string): string {
-  const map: Record<string, string> = {
-    low: 'bg-slate-100 text-slate-700',
-    medium: 'bg-blue-100 text-blue-700',
-    high: 'bg-orange-100 text-orange-700',
-    critical: 'bg-red-100 text-red-700',
-  }
-  return map[priorityValue] ?? 'bg-slate-100 text-slate-700'
-}
 </script>
 
 <template>
   <Head :title="props.report.title" />
 
-  <div class="max-w-7xl mx-auto p-6">
-    <Link href="/reports" class="text-sm text-slate-500 hover:text-brand-indigo-700 hover:underline"
-      >← Back to reports</Link
-    >
+  <div class="flex items-start gap-8">
+    <!-- Main column -->
+    <div class="flex min-w-0 flex-1 flex-col gap-6">
+      <!-- Header -->
+      <div class="flex flex-col gap-3">
+        <div class="flex flex-wrap items-center gap-2">
+          <ReportPill :class="statusPillClasses(props.report.status)">
+            {{ statusLabel(props.report.status) }}
+          </ReportPill>
+          <ReportPill :class="priorityPillClasses(props.report.priority)">
+            {{ priorityLabel(props.report.priority) }} Priority
+          </ReportPill>
+          <ReportPill v-if="props.report.template" class="bg-type-bg text-type-fg">
+            {{ props.report.template.name }}
+          </ReportPill>
+        </div>
 
-    <div class="mt-3 flex flex-wrap items-start justify-between gap-3">
-      <div class="min-w-0">
-        <h1 class="text-xl font-semibold tracking-tight truncate">{{ props.report.title }}</h1>
-        <p class="text-sm text-slate-500 mt-1">
-          #{{ props.report.id }} · {{ props.report.project?.name ?? 'Unknown project' }} ·
-          {{ props.report.createdAt ? new Date(props.report.createdAt).toLocaleString() : '' }}
-        </p>
-        <p class="text-sm mt-1">
-          Reporter: <span class="font-medium">{{ props.report.reporterEmail }}</span>
-          <span
-            v-if="props.report.reporterVerifiedAt"
-            class="ml-2 inline-flex items-center gap-1 text-[11px] font-medium px-1.5 py-0.5 rounded bg-brand-teal-600/10 text-brand-teal-600"
-          >
-            ✓ verified
-          </span>
-        </p>
-      </div>
-      <div class="flex gap-2 shrink-0">
-        <span
-          class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium"
-          :class="statusBadge(props.report.status)"
-          >{{ props.report.status }}</span
+        <h1
+          class="font-heading text-[26px] font-bold leading-[1.25] tracking-[-0.26px] text-ink-900"
         >
-        <span
-          class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium"
-          :class="priorityBadge(props.report.priority)"
-          >{{ props.report.priority }}</span
-        >
-      </div>
-    </div>
+          {{ props.report.title }}
+        </h1>
 
-    <div class="mt-6 grid grid-cols-1 lg:grid-cols-12 gap-6">
-      <!-- Report details: full reporter submission -->
-      <div class="lg:col-span-12">
-        <div class="bg-white border border-slate-200 rounded-xl overflow-hidden">
-          <div class="px-5 py-4 border-b border-slate-200">
-            <h2 class="text-sm font-semibold flex items-center gap-2">
-              <span class="h-2 w-2 rounded-full bg-brand-teal-600"></span>
-              Report details
-            </h2>
-            <p class="text-xs text-slate-500 mt-1">What the reporter submitted.</p>
-          </div>
-          <div
-            v-if="props.report.fieldValues.length === 0"
-            class="px-5 py-4 text-sm text-slate-500"
+        <p class="font-heading text-[14px] text-ink-600">
+          Reported by {{ reporterName }} · {{ relativeTime(props.report.createdAt) }} ·
+          {{ reference }}
+        </p>
+      </div>
+
+      <!-- Description -->
+      <ReportCard label="DESCRIPTION">
+        <div v-if="descriptionFields.length === 0" class="font-heading text-[14px] text-ink-600">
+          No description provided.
+        </div>
+        <div v-else class="flex flex-col gap-4">
+          <p
+            v-for="field in descriptionFields"
+            :key="field.fieldKey"
+            class="whitespace-pre-wrap font-heading text-[14px] leading-[1.65] text-ink-900"
           >
-            No custom fields.
-          </div>
-          <div v-else class="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-5 p-5">
-            <div v-for="fv in props.report.fieldValues" :key="fv.fieldKey" class="min-w-0">
-              <div class="text-xs font-medium tracking-wide uppercase text-slate-500 mb-1">
-                {{ fv.label }}
-              </div>
-              <div class="text-sm text-slate-800 whitespace-pre-wrap break-words leading-relaxed">
-                {{ fv.value }}
-              </div>
-            </div>
-          </div>
+            {{ field.value }}
+          </p>
         </div>
-      </div>
+      </ReportCard>
 
-      <!-- Left: metadata -->
-      <div class="lg:col-span-3 space-y-4">
-        <div class="bg-white border border-slate-200 rounded-xl overflow-hidden">
-          <div class="px-4 py-3 border-b border-slate-200">
-            <h2 class="text-sm font-semibold">Screenshot</h2>
-          </div>
-          <div class="p-4">
-            <div v-if="hasScreenshot">
-              <img
-                :src="`/reports/${props.report.id}/screenshot`"
-                alt="screenshot"
-                class="w-full border border-slate-200 rounded-lg cursor-zoom-in"
-                @click="lightboxOpen = true"
-              />
-              <p
-                class="text-xs text-slate-400 mt-2 text-center cursor-zoom-in"
-                @click="lightboxOpen = true"
-              >
-                Click to enlarge
-              </p>
-            </div>
-            <p v-else class="text-sm text-slate-500 py-4 text-center">No screenshot</p>
-          </div>
-        </div>
-
-        <div v-if="props.report.pageUrl" class="bg-white border border-slate-200 rounded-xl p-4">
-          <h3 class="text-xs font-semibold tracking-widest uppercase text-slate-500 mb-2">
-            Page URL
-          </h3>
-          <a
-            :href="props.report.pageUrl"
-            target="_blank"
-            class="text-sm text-brand-indigo-700 hover:text-brand-indigo-500 break-all hover:underline"
-            >{{ props.report.pageUrl }}</a
-          >
-        </div>
-
-        <div class="bg-white border border-slate-200 rounded-xl p-4">
-          <h3 class="text-xs font-semibold tracking-widest uppercase text-slate-500 mb-2">
-            Browser info
-          </h3>
-          <div v-if="browserRows.length === 0" class="text-sm text-slate-500 py-2 text-center">
-            No info
-          </div>
-          <div v-else class="space-y-2">
-            <div
-              v-for="row in browserRows"
-              :key="row.label"
-              class="flex justify-between items-start gap-3 text-sm"
-            >
-              <span class="text-slate-500 shrink-0 text-xs pt-0.5">{{ row.label }}</span>
-              <span class="text-slate-800 text-right break-all leading-relaxed">{{
-                row.value
-              }}</span>
-            </div>
-          </div>
-        </div>
-
-        <div class="bg-white border border-slate-200 rounded-xl p-4">
-          <h3 class="text-xs font-semibold tracking-widest uppercase text-slate-500 mb-2">
-            Console errors
-          </h3>
-          <pre
-            class="text-xs bg-slate-50 border border-slate-200 p-3 rounded-lg overflow-auto max-h-48"
-            >{{ JSON.stringify(props.report.consoleErrors, null, 2) }}</pre>
-        </div>
-
-        <div class="bg-white border border-slate-200 rounded-xl p-4">
-          <h3 class="text-xs font-semibold tracking-widest uppercase text-slate-500 mb-2">
-            Network errors
-          </h3>
-          <pre
-            class="text-xs bg-slate-50 border border-slate-200 p-3 rounded-lg overflow-auto max-h-48"
-            >{{ JSON.stringify(props.report.networkErrors, null, 2) }}</pre>
-        </div>
-      </div>
-
-      <!-- Center: conversation -->
-      <div class="lg:col-span-5">
+      <!-- Attachments -->
+      <ReportCard label="ATTACHMENTS">
         <div
-          class="bg-white border border-slate-200 rounded-xl overflow-hidden flex flex-col min-h-[480px]"
+          v-if="hasScreenshot"
+          class="flex items-center gap-3 rounded-[10px] bg-surface py-2.5 pr-3.5 pl-2.5"
         >
-          <div class="px-4 py-3 border-b border-slate-200 flex items-center justify-between">
-            <h2 class="text-sm font-semibold">Conversation</h2>
-            <span class="text-xs text-slate-500">{{ props.thread.length }} messages</span>
-          </div>
-
-          <div class="flex-1 overflow-y-auto p-4 space-y-3 bg-slate-50/50">
-            <div v-if="props.thread.length === 0" class="text-sm text-slate-500 text-center py-12">
-              No messages yet — reply to start the thread.
-            </div>
-            <div
-              v-for="message in props.thread"
-              :key="message.id"
-              class="flex"
-              :class="message.direction === 'outbound' ? 'justify-end' : 'justify-start'"
+          <button
+            type="button"
+            class="flex min-w-0 flex-1 cursor-pointer items-center gap-3 bg-transparent p-0 text-left"
+            aria-label="View screenshot"
+            @click="openScreenshot"
+          >
+            <span
+              class="flex size-10 shrink-0 items-center justify-center rounded-[10px] bg-status-bg"
             >
-              <div
-                class="max-w-[82%] rounded-2xl px-4 py-3 text-sm shadow-sm"
-                :class="
-                  message.direction === 'outbound'
-                    ? 'bg-indigo-50 text-brand-indigo-700 border border-indigo-200'
-                    : 'bg-white text-slate-900 border border-slate-200'
-                "
-              >
-                <p class="text-xs font-medium mb-1 opacity-70">
-                  {{ message.authorName }} ·
-                  {{ message.createdAt ? new Date(message.createdAt).toLocaleString() : '' }}
-                </p>
-                <p class="whitespace-pre-wrap leading-relaxed">{{ message.body }}</p>
-              </div>
-            </div>
-          </div>
-
-          <form class="p-4 border-t border-slate-200 bg-white" @submit.prevent="sendReply">
-            <textarea
-              v-model="replyForm.body"
-              rows="3"
-              class="w-full border border-slate-300 rounded-lg p-3 text-sm focus:outline-none focus:ring-2 focus:ring-brand-indigo-500 focus:border-brand-indigo-500"
-              placeholder="Write a reply to the reporter…"
-            ></textarea>
-            <div class="mt-3 flex justify-end">
-              <button
-                type="submit"
-                class="px-4 py-2 bg-brand-indigo-700 text-white rounded-md text-sm font-medium hover:bg-brand-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed"
-                :disabled="replyForm.processing || !replyForm.body"
-              >
-                Send reply
-              </button>
-            </div>
-          </form>
-        </div>
-      </div>
-
-      <!-- Right: action panel -->
-      <div class="lg:col-span-4 space-y-4">
-        <div class="bg-white border border-slate-200 rounded-xl p-4 lg:sticky lg:top-6">
-          <h2 class="text-sm font-semibold mb-3">Actions</h2>
-          <div class="space-y-3">
-            <div>
-              <label class="block text-xs font-medium text-slate-700 mb-1">Status</label>
-              <select
-                v-model="status"
-                class="w-full border border-slate-300 rounded-md px-3 py-2 text-sm bg-white"
-              >
-                <option value="open">open</option>
-                <option value="in_progress">in_progress</option>
-                <option value="resolved">resolved</option>
-                <option value="closed">closed</option>
-              </select>
-            </div>
-            <div>
-              <label class="block text-xs font-medium text-slate-700 mb-1">Priority</label>
-              <select
-                v-model="priority"
-                class="w-full border border-slate-300 rounded-md px-3 py-2 text-sm bg-white"
-              >
-                <option value="low">low</option>
-                <option value="medium">medium</option>
-                <option value="high">high</option>
-                <option value="critical">critical</option>
-              </select>
-            </div>
-            <button
-              class="w-full px-4 py-2 bg-brand-indigo-700 text-white rounded-md text-sm font-medium hover:bg-brand-indigo-500"
-              @click="updateReport"
-            >
-              Update report
-            </button>
-          </div>
-
-          <div class="mt-6 pt-6 border-t border-slate-200">
-            <h3 class="text-xs font-semibold tracking-widest uppercase text-slate-500 mb-2">
-              Assignee
-            </h3>
-            <p class="text-sm">
-              <span v-if="props.report.assigneeId" class="inline-flex items-center gap-2">
-                <span
-                  class="h-6 w-6 rounded-full bg-slate-200 flex items-center justify-center text-xs font-medium"
-                  >{{ String(props.report.assigneeId).slice(0, 2) }}</span
-                >
-                #{{ props.report.assigneeId }}
+              <span class="size-[18px] rounded-[4px] bg-accent" />
+            </span>
+            <span class="flex min-w-0 flex-1 flex-col gap-0.5">
+              <span class="truncate font-heading text-[13px] font-bold text-ink-900">
+                screenshot.png
               </span>
-              <span v-else class="text-slate-500">Unassigned</span>
+              <span class="font-heading text-[12px] text-ink-600">Screenshot</span>
+            </span>
+          </button>
+          <button
+            type="button"
+            class="shrink-0 cursor-pointer bg-transparent p-0 font-heading text-[13px] font-bold text-accent hover:underline"
+            @click="openScreenshot"
+          >
+            View
+          </button>
+        </div>
+        <p v-else class="font-heading text-[14px] text-ink-600">No attachments.</p>
+      </ReportCard>
+
+      <!-- Environment -->
+      <ReportCard label="ENVIRONMENT">
+        <div class="grid grid-cols-1 gap-6 sm:grid-cols-2">
+          <div v-for="row in environmentRows" :key="row.label" class="flex flex-col gap-1">
+            <p class="font-heading text-[11px] font-bold tracking-[0.44px] text-ink-300">
+              {{ row.label }}
+            </p>
+            <p class="break-all font-heading text-[14px] font-medium text-ink-900">
+              {{ row.value }}
             </p>
           </div>
         </div>
+      </ReportCard>
 
-        <div class="bg-slate-50 border border-dashed border-slate-300 rounded-xl p-4">
-          <h3 class="text-xs font-semibold tracking-widest uppercase text-slate-500">
-            Linked GitHub issue
-          </h3>
-          <p class="text-sm text-slate-500 mt-1">
-            No issue linked. Connect via Integrations to create one.
-          </p>
-          <Link
-            :href="`/projects/${props.report.projectId}/integrations`"
-            class="inline-flex mt-3 text-xs font-medium text-brand-indigo-700 hover:text-brand-indigo-500"
-            >Go to Integrations →</Link
+      <!-- Activity -->
+      <ReportCard label="ACTIVITY">
+        <p v-if="props.thread.length === 0" class="font-heading text-[14px] text-ink-600">
+          No comments yet — start the conversation below.
+        </p>
+        <div v-else class="flex flex-col gap-5">
+          <div v-for="message in props.thread" :key="message.id" class="flex items-start gap-3">
+            <ReportAvatar
+              :initials="message.authorInitials ?? initialsFromName(message.authorName)"
+              :tone="message.authorType === 'team' ? 'indigo' : 'amber'"
+            />
+            <div class="flex min-w-0 flex-1 flex-col gap-1">
+              <div class="flex flex-wrap items-center gap-2">
+                <p class="font-heading text-[13px] font-bold text-ink-900">
+                  {{ message.authorName }}
+                </p>
+                <p class="font-heading text-[12px] text-ink-300">
+                  {{ relativeTime(message.createdAt) }}
+                </p>
+              </div>
+              <p class="whitespace-pre-wrap font-heading text-[14px] leading-[1.5] text-ink-600">
+                {{ message.body }}
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <div class="h-px w-full bg-hairline" />
+
+        <form class="flex flex-row items-center gap-3" @submit.prevent="sendReply">
+          <ReportAvatar :initials="page.props.user?.initials ?? ''" tone="indigo" />
+          <input
+            v-model="replyForm.body"
+            type="text"
+            placeholder="Write a reply..."
+            class="h-11 min-w-0 flex-1 rounded-[10px] border-0 bg-surface px-3.5 font-heading text-[14px] text-ink-900 placeholder:text-ink-300 focus:ring-2 focus:ring-accent focus:outline-none"
+          />
+          <button
+            type="submit"
+            :disabled="replyForm.processing || !replyForm.body"
+            class="shrink-0 rounded-[10px] bg-accent px-5 py-3 font-heading text-[14px] font-bold text-white transition-colors hover:bg-accent-strong disabled:pointer-events-none disabled:opacity-50"
           >
+            Send
+          </button>
+        </form>
+      </ReportCard>
+
+      <!-- Diagnostics -->
+      <details class="rounded-2xl border border-hairline bg-white">
+        <summary
+          class="cursor-pointer px-6 py-4 font-heading text-[12px] font-bold tracking-[0.6px] text-label"
+        >
+          DIAGNOSTICS
+        </summary>
+        <div class="flex flex-col gap-5 px-6 pb-6">
+          <div class="flex flex-col gap-2">
+            <p class="font-heading text-[11px] font-bold tracking-[0.44px] text-ink-300">
+              CONSOLE ERRORS
+            </p>
+            <pre
+              class="max-h-56 overflow-auto rounded-[10px] bg-surface p-3 font-mono text-xs text-ink-900"
+              >{{ prettyJson(props.report.consoleErrors) }}</pre>
+          </div>
+          <div class="flex flex-col gap-2">
+            <p class="font-heading text-[11px] font-bold tracking-[0.44px] text-ink-300">
+              NETWORK ERRORS
+            </p>
+            <pre
+              class="max-h-56 overflow-auto rounded-[10px] bg-surface p-3 font-mono text-xs text-ink-900"
+              >{{ prettyJson(props.report.networkErrors) }}</pre>
+          </div>
+        </div>
+      </details>
+    </div>
+
+    <!-- Details sidebar -->
+    <aside class="w-[340px] shrink-0">
+      <div class="flex flex-col gap-[18px] rounded-2xl border border-hairline bg-white p-5">
+        <!-- Status -->
+        <div class="flex flex-col gap-2">
+          <p class="font-heading text-[11px] font-bold tracking-[0.44px] text-ink-300">STATUS</p>
+          <div class="relative inline-flex w-fit">
+            <select
+              v-model="status"
+              :class="[pillSelectClasses, statusPillClasses(status)]"
+              aria-label="Status"
+            >
+              <option v-for="option in STATUS_OPTIONS" :key="option.value" :value="option.value">
+                {{ option.label }}
+              </option>
+            </select>
+            <ChevronDown
+              class="pointer-events-none absolute top-1/2 right-2.5 size-4 -translate-y-1/2 opacity-60"
+            />
+          </div>
+        </div>
+
+        <div class="h-px w-full bg-hairline" />
+
+        <!-- Priority -->
+        <div class="flex flex-col gap-2">
+          <p class="font-heading text-[11px] font-bold tracking-[0.44px] text-ink-300">PRIORITY</p>
+          <div class="relative inline-flex w-fit">
+            <select
+              v-model="priority"
+              :class="[pillSelectClasses, priorityPillClasses(priority)]"
+              aria-label="Priority"
+            >
+              <option v-for="option in PRIORITY_OPTIONS" :key="option.value" :value="option.value">
+                {{ option.label }}
+              </option>
+            </select>
+            <ChevronDown
+              class="pointer-events-none absolute top-1/2 right-2.5 size-4 -translate-y-1/2 opacity-60"
+            />
+          </div>
+        </div>
+
+        <div class="h-px w-full bg-hairline" />
+
+        <!-- Assignee -->
+        <div class="flex flex-col gap-2">
+          <p class="font-heading text-[11px] font-bold tracking-[0.44px] text-ink-300">ASSIGNEE</p>
+          <div class="relative inline-flex w-fit">
+            <ReportAvatar
+              v-if="selectedAssignable"
+              :initials="selectedAssignable.initials"
+              tone="indigo"
+              size="xs"
+              class="pointer-events-none absolute top-1/2 left-1.5 z-10 -translate-y-1/2"
+            />
+            <select
+              v-model="assignee"
+              aria-label="Assignee"
+              :class="[
+                pillSelectClasses,
+                selectedAssignable ? 'bg-surface text-ink-900 pl-8' : 'bg-type-bg text-ink-600',
+              ]"
+            >
+              <option value="">Unassigned</option>
+              <option v-for="user in props.assignableUsers" :key="user.id" :value="user.id">
+                {{ user.name }}
+              </option>
+            </select>
+            <ChevronDown
+              class="pointer-events-none absolute top-1/2 right-2.5 size-4 -translate-y-1/2 opacity-60"
+            />
+          </div>
+        </div>
+
+        <div class="h-px w-full bg-hairline" />
+
+        <!-- Reporter -->
+        <div class="flex flex-col gap-2">
+          <p class="font-heading text-[11px] font-bold tracking-[0.44px] text-ink-300">REPORTER</p>
+          <div class="flex items-center gap-2">
+            <ReportAvatar :initials="reporterInitials" tone="teal" size="sm" />
+            <div class="min-w-0">
+              <p class="font-heading text-[14px] font-medium text-ink-900">{{ reporterName }}</p>
+              <p class="truncate font-heading text-[12px] text-ink-600">
+                {{ props.report.reporterEmail ?? '—' }}
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Extra template fields -->
+        <template v-for="field in extraFields" :key="field.fieldKey">
+          <div class="h-px w-full bg-hairline" />
+          <div class="flex flex-col gap-2">
+            <p class="font-heading text-[11px] font-bold tracking-[0.44px] text-ink-300 uppercase">
+              {{ field.label }}
+            </p>
+            <p class="font-heading text-[14px] font-medium whitespace-pre-wrap text-ink-900">
+              {{ field.value ?? '—' }}
+            </p>
+          </div>
+        </template>
+
+        <div class="h-px w-full bg-hairline" />
+
+        <!-- Created -->
+        <div class="flex flex-col gap-2">
+          <p class="font-heading text-[11px] font-bold tracking-[0.44px] text-ink-300">CREATED</p>
+          <p class="font-heading text-[14px] font-medium text-ink-900">
+            {{ formatDate(props.report.createdAt) }}
+          </p>
+        </div>
+
+        <div class="h-px w-full bg-hairline" />
+
+        <!-- Updated -->
+        <div class="flex flex-col gap-2">
+          <p class="font-heading text-[11px] font-bold tracking-[0.44px] text-ink-300">UPDATED</p>
+          <p class="font-heading text-[14px] font-medium text-ink-900">
+            {{ relativeTime(props.report.updatedAt) }}
+          </p>
+        </div>
+      </div>
+    </aside>
+  </div>
+
+  <!-- Screenshot preview lightbox -->
+  <Teleport to="body">
+    <div
+      v-if="screenshotOpen"
+      class="fixed inset-0 z-50 flex items-center justify-center bg-ink-900/75 p-6"
+      @click.self="closeScreenshot"
+    >
+      <div
+        class="flex max-h-[90vh] w-full max-w-4xl flex-col overflow-hidden rounded-2xl bg-white shadow-2xl"
+      >
+        <div class="flex items-center justify-between border-b border-hairline px-5 py-3.5">
+          <p class="font-heading text-[13px] font-bold text-ink-900">screenshot.png</p>
+          <div class="flex items-center gap-2">
+            <a
+              :href="screenshotSrc"
+              :download="true"
+              class="inline-flex cursor-pointer items-center gap-1.5 rounded-[10px] bg-surface px-3.5 py-2 font-heading text-[13px] font-bold text-ink-900 transition-colors hover:bg-hairline/60"
+            >
+              <Download class="size-4" /> Download
+            </a>
+            <button
+              type="button"
+              class="flex size-8 cursor-pointer items-center justify-center rounded-full bg-surface text-ink-600 transition-colors hover:bg-hairline/60 hover:text-ink-900"
+              aria-label="Close preview"
+              @click="closeScreenshot"
+            >
+              <X class="size-4" />
+            </button>
+          </div>
+        </div>
+        <div class="flex min-h-0 flex-1 items-center justify-center bg-ink-900/95 p-4">
+          <img
+            :src="screenshotSrc"
+            alt="Report screenshot"
+            class="max-h-[calc(90vh-6rem)] max-w-full rounded-lg object-contain"
+          />
         </div>
       </div>
     </div>
-
-    <!-- Screenshot lightbox -->
-    <Teleport to="body">
-      <div
-        v-if="lightboxOpen"
-        class="fixed inset-0 z-[60] flex items-center justify-center bg-black/80 p-4"
-        @click.self="lightboxOpen = false"
-      >
-        <div class="rounded-xl border-2 border-white/30 bg-slate-950/90 shadow-2xl overflow-hidden">
-          <div class="flex items-center justify-between px-3 py-2 border-b border-white/10">
-            <span class="text-xs text-white/60">Screenshot</span>
-            <button
-              type="button"
-              class="h-8 px-3 flex items-center gap-1.5 rounded-md bg-white/10 text-white text-sm font-medium hover:bg-white/20"
-              title="Close (Esc)"
-              @click="lightboxOpen = false"
-            >
-              ✕ <span class="hidden sm:inline">Close</span>
-            </button>
-          </div>
-          <img
-            :src="`/reports/${props.report.id}/screenshot`"
-            alt="screenshot"
-            class="max-h-[82vh] max-w-[88vw] block object-contain"
-          />
-          <p class="text-center text-xs text-white/60 px-3 py-2 border-t border-white/10">
-            Click outside or press ✕ to close
-          </p>
-        </div>
-      </div>
-    </Teleport>
-  </div>
+  </Teleport>
 </template>

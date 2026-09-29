@@ -19,12 +19,22 @@ export class AllowedOriginSchema extends BaseModel {
 }
 
 export class ApiKeySchema extends BaseModel {
-  static $columns = ['createdAt', 'id', 'keyHash', 'label', 'projectId', 'revokedAt'] as const
+  static $columns = [
+    'createdAt',
+    'id',
+    'keyEncrypted',
+    'keyHash',
+    'label',
+    'projectId',
+    'revokedAt',
+  ] as const
   $columns = ApiKeySchema.$columns
   @column.dateTime({ autoCreate: true })
   declare createdAt: DateTime
   @column({ isPrimary: true })
   declare id: number
+  @column()
+  declare keyEncrypted: string | null
   @column()
   declare keyHash: string
   @column()
@@ -165,6 +175,7 @@ export class ReportSchema extends BaseModel {
     'createdAt',
     'id',
     'networkErrors',
+    'number',
     'pageUrl',
     'priority',
     'projectId',
@@ -192,6 +203,8 @@ export class ReportSchema extends BaseModel {
   declare id: string
   @column()
   declare networkErrors: any | null
+  @column()
+  declare number: number | null
   @column()
   declare pageUrl: string | null
   @column()
@@ -296,6 +309,8 @@ export class UserSchema extends BaseModel {
     'fullName',
     'id',
     'password',
+    'passwordResetExpiresAt',
+    'passwordResetToken',
     'role',
     'updatedAt',
   ] as const
@@ -310,6 +325,10 @@ export class UserSchema extends BaseModel {
   declare id: number
   @column({ serializeAs: null })
   declare password: string
+  @column.dateTime()
+  declare passwordResetExpiresAt: DateTime | null
+  @column()
+  declare passwordResetToken: string | null
   @column()
   declare role: string
   @column.dateTime({ autoCreate: true, autoUpdate: true })
@@ -332,12 +351,8 @@ export class WebhookSubscriptionSchema extends BaseModel {
   declare active: boolean
   @column.dateTime({ autoCreate: true })
   declare createdAt: DateTime
-  @column({
-    prepare: (value: string[]) => JSON.stringify(value ?? []),
-    consume: (value: string | string[]) =>
-      Array.isArray(value) ? value : value ? JSON.parse(value) : [],
-  })
-  declare events: string[]
+  @column()
+  declare events: string
   @column({ isPrimary: true })
   declare id: number
   @column()

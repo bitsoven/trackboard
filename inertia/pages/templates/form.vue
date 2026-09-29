@@ -3,6 +3,9 @@ import { ref, computed } from 'vue'
 import { Head, router, usePage } from '@inertiajs/vue3'
 import { Link } from '@adonisjs/inertia/vue'
 import { VueDraggableNext } from 'vue-draggable-next'
+import AppShell from '~/layouts/app_shell.vue'
+
+defineOptions({ layout: AppShell })
 
 type TemplateFieldDraft = {
   key: string
@@ -158,11 +161,11 @@ const hasErrors = computed(() => Object.keys(formErrors.value).length > 0)
 <template>
   <Head :title="isEditing ? `Edit ${props.template?.name}` : 'New template'" />
 
-  <div class="max-w-5xl mx-auto p-6">
+  <div class="mx-auto max-w-5xl">
     <div class="mb-6">
       <Link
         :href="`/projects/${props.project.id}/templates`"
-        class="text-sm text-gray-500 hover:underline"
+        class="text-sm text-ink-600 hover:underline"
         >← Back to templates</Link
       >
       <h1 class="text-2xl font-semibold mt-2">
@@ -178,21 +181,21 @@ const hasErrors = computed(() => Object.keys(formErrors.value).length > 0)
     </div>
 
     <div class="grid grid-cols-1 lg:grid-cols-5 gap-6">
-      <div class="lg:col-span-3 bg-white border border-slate-200 rounded-xl p-5 space-y-4">
+      <div class="lg:col-span-3 bg-white border border-hairline rounded-xl p-5 space-y-4">
         <div>
           <label class="block text-sm font-medium mb-1">Template name</label>
           <input
             v-model="name"
-            class="w-full border border-slate-300 rounded-md px-3 py-2"
+            class="w-full border border-hairline rounded-md px-3 py-2"
             placeholder="Bug Report"
           />
         </div>
 
-        <label class="flex items-center gap-2.5 text-sm text-slate-700">
+        <label class="flex items-center gap-2.5 text-sm text-ink-900">
           <input
             v-model="isDefault"
             type="checkbox"
-            class="h-4 w-4 rounded border-slate-300 text-brand-indigo-700 focus:ring-brand-indigo-500 focus:ring-2"
+            class="h-4 w-4 rounded border-hairline text-accent focus:ring-accent focus:ring-2"
           />
           Set as default template for this project
         </label>
@@ -201,7 +204,7 @@ const hasErrors = computed(() => Object.keys(formErrors.value).length > 0)
           <h2 class="font-medium">Fields (drag to reorder)</h2>
           <button
             type="button"
-            class="text-sm px-3 py-1 border border-slate-300 rounded-md bg-white hover:bg-slate-50 text-slate-700"
+            class="text-sm px-3 py-1 border border-hairline rounded-md bg-white hover:bg-surface text-ink-900"
             @click="addField"
           >
             + Add field
@@ -212,7 +215,7 @@ const hasErrors = computed(() => Object.keys(formErrors.value).length > 0)
           :list="fields"
           handle=".drag-handle"
           ghost-class="opacity-50"
-          chosen-class="ring-2 ring-brand-indigo-500 !border-brand-indigo-500 bg-indigo-50"
+          chosen-class="ring-2 ring-accent !border-brand-indigo-500 bg-indigo-50"
           drag-class="opacity-80 rotate-1 shadow-lg"
           class="space-y-3"
           @end="onDragEnd"
@@ -220,52 +223,52 @@ const hasErrors = computed(() => Object.keys(formErrors.value).length > 0)
           <div
             v-for="(field, idx) in fields"
             :key="idx"
-            class="border rounded-lg p-3 bg-slate-50 cursor-pointer transition-all"
+            class="border rounded-lg p-3 bg-surface cursor-pointer transition-all"
             :class="
               selectedIndex === idx
-                ? 'ring-2 ring-brand-indigo-500 border-brand-indigo-500 bg-indigo-50'
-                : 'border-slate-200 hover:border-slate-300'
+                ? 'ring-2 ring-accent border-brand-indigo-500 bg-indigo-50'
+                : 'border-hairline hover:border-hairline'
             "
             @click="selectedIndex = idx"
           >
             <div class="flex items-start gap-3">
               <span
-                class="flex items-center justify-center h-6 w-6 rounded-full bg-slate-100 border border-slate-200 text-xs font-medium text-slate-600 shrink-0 mt-6"
+                class="flex items-center justify-center h-6 w-6 rounded-full bg-surface border border-hairline text-xs font-medium text-ink-600 shrink-0 mt-6"
                 >{{ idx + 1 }}</span
               >
-              <span class="drag-handle cursor-move text-slate-400 mt-7 select-none">⋮⋮</span>
+              <span class="drag-handle cursor-move text-ink-300 mt-7 select-none">⋮⋮</span>
               <div class="flex-1 grid grid-cols-1 md:grid-cols-2 gap-3">
                 <div>
-                  <label class="block text-xs font-medium text-slate-700">Key (a-z, _, 0-9)</label>
+                  <label class="block text-xs font-medium text-ink-900">Key (a-z, _, 0-9)</label>
                   <input
                     v-model="field.key"
-                    class="w-full border border-slate-300 rounded-md px-3 py-2 text-sm bg-white"
+                    class="w-full border border-hairline rounded-md px-3 py-2 text-sm bg-white"
                     placeholder="title"
                   />
                 </div>
                 <div>
-                  <label class="block text-xs font-medium text-slate-700">Label</label>
+                  <label class="block text-xs font-medium text-ink-900">Label</label>
                   <input
                     v-model="field.label"
-                    class="w-full border border-slate-300 rounded-md px-3 py-2 text-sm bg-white"
+                    class="w-full border border-hairline rounded-md px-3 py-2 text-sm bg-white"
                     placeholder="Title"
                   />
                 </div>
                 <div>
-                  <label class="block text-xs font-medium text-slate-700">Type</label>
+                  <label class="block text-xs font-medium text-ink-900">Type</label>
                   <select
                     v-model="field.type"
-                    class="w-full border border-slate-300 rounded-md px-3 py-2 text-sm bg-white"
+                    class="w-full border border-hairline rounded-md px-3 py-2 text-sm bg-white"
                   >
                     <option v-for="t in fieldTypes" :key="t" :value="t">{{ t }}</option>
                   </select>
                 </div>
                 <div class="flex items-end gap-2">
-                  <label class="flex items-center gap-1.5 text-sm text-slate-700 mt-4">
+                  <label class="flex items-center gap-1.5 text-sm text-ink-900 mt-4">
                     <input
                       v-model="field.isRequired"
                       type="checkbox"
-                      class="h-4 w-4 rounded border-slate-300 text-brand-indigo-700 focus:ring-brand-indigo-500 focus:ring-2"
+                      class="h-4 w-4 rounded border-hairline text-accent focus:ring-accent focus:ring-2"
                     />
                     Required
                   </label>
@@ -275,26 +278,24 @@ const hasErrors = computed(() => Object.keys(formErrors.value).length > 0)
                   v-if="['select', 'radio', 'checkbox'].includes(field.type)"
                   class="md:col-span-2"
                 >
-                  <label class="block text-xs font-medium text-slate-700"
+                  <label class="block text-xs font-medium text-ink-900"
                     >Choices (comma-separated)</label
                   >
                   <input
                     v-model="(field as any).choicesText"
-                    class="w-full border border-slate-300 rounded-md px-3 py-2 text-sm bg-white"
+                    class="w-full border border-hairline rounded-md px-3 py-2 text-sm bg-white"
                     placeholder="low, medium, high"
                   />
-                  <p class="text-xs text-slate-500 mt-1">
-                    Used for select / radio / multi-checkbox
-                  </p>
+                  <p class="text-xs text-ink-600 mt-1">Used for select / radio / multi-checkbox</p>
                 </div>
 
                 <div v-if="field.type === 'number'" class="md:col-span-2 flex gap-3">
                   <div class="flex-1">
-                    <label class="block text-xs font-medium text-slate-700">Min</label>
+                    <label class="block text-xs font-medium text-ink-900">Min</label>
                     <input
                       :value="field.options?.min ?? ''"
                       type="number"
-                      class="w-full border border-slate-300 rounded-md px-3 py-2 text-sm bg-white"
+                      class="w-full border border-hairline rounded-md px-3 py-2 text-sm bg-white"
                       @input="
                         field.options = {
                           ...(field.options ?? {}),
@@ -307,11 +308,11 @@ const hasErrors = computed(() => Object.keys(formErrors.value).length > 0)
                     />
                   </div>
                   <div class="flex-1">
-                    <label class="block text-xs font-medium text-slate-700">Max</label>
+                    <label class="block text-xs font-medium text-ink-900">Max</label>
                     <input
                       :value="field.options?.max ?? ''"
                       type="number"
-                      class="w-full border border-slate-300 rounded-md px-3 py-2 text-sm bg-white"
+                      class="w-full border border-hairline rounded-md px-3 py-2 text-sm bg-white"
                       @input="
                         field.options = {
                           ...(field.options ?? {}),
@@ -327,11 +328,11 @@ const hasErrors = computed(() => Object.keys(formErrors.value).length > 0)
 
                 <div v-if="field.type === 'severity-scale'" class="md:col-span-2 flex gap-3">
                   <div class="flex-1">
-                    <label class="block text-xs font-medium text-slate-700">Scale min</label>
+                    <label class="block text-xs font-medium text-ink-900">Scale min</label>
                     <input
                       :value="field.options?.scaleMin ?? 1"
                       type="number"
-                      class="w-full border border-slate-300 rounded-md px-3 py-2 text-sm bg-white"
+                      class="w-full border border-hairline rounded-md px-3 py-2 text-sm bg-white"
                       @input="
                         field.options = {
                           ...(field.options ?? {}),
@@ -341,11 +342,11 @@ const hasErrors = computed(() => Object.keys(formErrors.value).length > 0)
                     />
                   </div>
                   <div class="flex-1">
-                    <label class="block text-xs font-medium text-slate-700">Scale max</label>
+                    <label class="block text-xs font-medium text-ink-900">Scale max</label>
                     <input
                       :value="field.options?.scaleMax ?? 5"
                       type="number"
-                      class="w-full border border-slate-300 rounded-md px-3 py-2 text-sm bg-white"
+                      class="w-full border border-hairline rounded-md px-3 py-2 text-sm bg-white"
                       @input="
                         field.options = {
                           ...(field.options ?? {}),
@@ -357,13 +358,13 @@ const hasErrors = computed(() => Object.keys(formErrors.value).length > 0)
                 </div>
 
                 <div v-if="['text', 'textarea'].includes(field.type)" class="md:col-span-2">
-                  <label class="block text-xs font-medium text-slate-700"
+                  <label class="block text-xs font-medium text-ink-900"
                     >Max length (optional)</label
                   >
                   <input
                     :value="field.options?.maxLength ?? ''"
                     type="number"
-                    class="w-full border border-slate-300 rounded-md px-3 py-2 text-sm bg-white"
+                    class="w-full border border-hairline rounded-md px-3 py-2 text-sm bg-white"
                     placeholder="500"
                     @input="
                       field.options = {
@@ -391,32 +392,32 @@ const hasErrors = computed(() => Object.keys(formErrors.value).length > 0)
         <div class="flex gap-3 pt-4">
           <button
             type="button"
-            class="px-4 py-2 bg-brand-indigo-700 text-white rounded-md hover:bg-brand-indigo-500 text-sm"
+            class="px-4 py-2 bg-accent text-white rounded-md hover:bg-accent-strong text-sm"
             @click="submit"
           >
             {{ isEditing ? 'Update template' : 'Create template' }}
           </button>
           <Link
             :href="`/projects/${props.project.id}/templates`"
-            class="px-4 py-2 border border-slate-300 rounded-md bg-white text-slate-700 hover:bg-slate-50 text-sm"
+            class="px-4 py-2 border border-hairline rounded-md bg-white text-ink-900 hover:bg-surface text-sm"
             >Cancel</Link
           >
         </div>
       </div>
 
       <div class="lg:col-span-2">
-        <div class="bg-white border border-slate-200 rounded-xl overflow-hidden lg:sticky lg:top-6">
-          <div class="px-4 py-3 border-b border-slate-200 bg-slate-50">
+        <div class="bg-white border border-hairline rounded-xl overflow-hidden lg:sticky lg:top-6">
+          <div class="px-4 py-3 border-b border-hairline bg-surface">
             <h3 class="text-sm font-semibold">Live preview</h3>
-            <p class="text-xs text-slate-500 mt-0.5">How reporters will see this template</p>
+            <p class="text-xs text-ink-600 mt-0.5">How reporters will see this template</p>
           </div>
           <div class="p-4 space-y-4">
-            <div v-if="fields.length === 0" class="text-sm text-slate-500 py-8 text-center">
+            <div v-if="fields.length === 0" class="text-sm text-ink-600 py-8 text-center">
               No fields — add one to preview
             </div>
             <div v-else class="space-y-4">
               <div v-for="(field, i) in fields" :key="field.key || String(i)" class="space-y-1">
-                <label class="block text-xs font-medium text-slate-700"
+                <label class="block text-xs font-medium text-ink-900"
                   >{{ field.label }}
                   <span v-if="field.isRequired" class="text-red-500">*</span></label
                 >
@@ -424,19 +425,19 @@ const hasErrors = computed(() => Object.keys(formErrors.value).length > 0)
                   v-if="field.type === 'text'"
                   disabled
                   :placeholder="field.label"
-                  class="w-full border border-slate-300 rounded-md px-3 py-2 text-sm bg-slate-50 text-slate-500"
+                  class="w-full border border-hairline rounded-md px-3 py-2 text-sm bg-surface text-ink-600"
                 />
                 <textarea
                   v-else-if="field.type === 'textarea'"
                   disabled
                   :placeholder="field.label"
                   rows="2"
-                  class="w-full border border-slate-300 rounded-md px-3 py-2 text-sm bg-slate-50 text-slate-500"
+                  class="w-full border border-hairline rounded-md px-3 py-2 text-sm bg-surface text-ink-600"
                 ></textarea>
                 <select
                   v-else-if="field.type === 'select'"
                   disabled
-                  class="w-full border border-slate-300 rounded-md px-3 py-2 text-sm bg-slate-50 text-slate-500"
+                  class="w-full border border-hairline rounded-md px-3 py-2 text-sm bg-surface text-ink-600"
                 >
                   <option>{{ (field as any).choicesText || '— Select —' }}</option>
                 </select>
@@ -444,10 +445,10 @@ const hasErrors = computed(() => Object.keys(formErrors.value).length > 0)
                   <label
                     v-for="c in ((field as any).choicesText || '').split(',').filter(Boolean)"
                     :key="c"
-                    class="flex items-center gap-2 text-sm text-slate-700"
+                    class="flex items-center gap-2 text-sm text-ink-900"
                     ><input type="radio" disabled /> {{ c.trim() }}</label
                   >
-                  <span v-if="!(field as any).choicesText" class="text-xs text-slate-400"
+                  <span v-if="!(field as any).choicesText" class="text-xs text-ink-300"
                     >No choices</span
                   >
                 </div>
@@ -455,10 +456,10 @@ const hasErrors = computed(() => Object.keys(formErrors.value).length > 0)
                   <label
                     v-for="c in ((field as any).choicesText || '').split(',').filter(Boolean)"
                     :key="c"
-                    class="flex items-center gap-2 text-sm text-slate-700"
+                    class="flex items-center gap-2 text-sm text-ink-900"
                     ><input type="checkbox" disabled /> {{ c.trim() }}</label
                   >
-                  <span v-if="!(field as any).choicesText" class="text-xs text-slate-400"
+                  <span v-if="!(field as any).choicesText" class="text-xs text-ink-300"
                     >No choices</span
                   >
                 </div>
@@ -467,13 +468,13 @@ const hasErrors = computed(() => Object.keys(formErrors.value).length > 0)
                   disabled
                   type="number"
                   :placeholder="`Min ${field.options?.min ?? ''} — Max ${field.options?.max ?? ''}`"
-                  class="w-full border border-slate-300 rounded-md px-3 py-2 text-sm bg-slate-50"
+                  class="w-full border border-hairline rounded-md px-3 py-2 text-sm bg-surface"
                 />
                 <input
                   v-else-if="field.type === 'date'"
                   disabled
                   type="date"
-                  class="w-full border border-slate-300 rounded-md px-3 py-2 text-sm bg-slate-50"
+                  class="w-full border border-hairline rounded-md px-3 py-2 text-sm bg-surface"
                 />
                 <input
                   v-else-if="field.type === 'file'"
@@ -485,18 +486,18 @@ const hasErrors = computed(() => Object.keys(formErrors.value).length > 0)
                   <span
                     v-for="n in (field.options?.scaleMax ?? 5) - (field.options?.scaleMin ?? 1) + 1"
                     :key="n"
-                    class="flex-1 h-8 rounded bg-slate-100 border border-slate-200 flex items-center justify-center text-xs"
+                    class="flex-1 h-8 rounded bg-surface border border-hairline flex items-center justify-center text-xs"
                     >{{ (field.options?.scaleMin ?? 1) + n - 1 }}</span
                   >
                 </div>
-                <span v-else class="text-xs text-slate-400"
+                <span v-else class="text-xs text-ink-300"
                   >Preview for {{ field.type }} — {{ field.key }}</span
                 >
               </div>
               <div class="pt-2">
                 <button
                   disabled
-                  class="w-full py-2 rounded-md bg-brand-indigo-700 text-white text-sm font-medium opacity-60"
+                  class="w-full py-2 rounded-md bg-accent text-white text-sm font-medium opacity-60"
                 >
                   Submit report
                 </button>
@@ -504,7 +505,7 @@ const hasErrors = computed(() => Object.keys(formErrors.value).length > 0)
             </div>
           </div>
         </div>
-        <div class="mt-4 p-3 border border-slate-200 rounded-lg bg-slate-50">
+        <div class="mt-4 p-3 border border-hairline rounded-lg bg-surface">
           <p class="text-xs font-medium mb-1">Payload preview</p>
           <pre class="whitespace-pre-wrap break-words text-[11px] leading-relaxed">{{
             JSON.stringify(buildPayload(), null, 2)

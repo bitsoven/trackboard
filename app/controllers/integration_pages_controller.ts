@@ -40,6 +40,40 @@ export default class IntegrationPagesController {
         webhooks: webhooks.map((w) => new WebhookTransformer(w).toObject()),
         appUrl,
         apiKeyRaw,
+        breadcrumb: [{ label: 'Settings', href: '/settings' }, { label: 'Integrations' }],
+      } as any
+    )
+  }
+
+  /**
+   * Widget install page (Figma: Widget Install). Presents the embed snippet for
+   * the user's first accessible project with setup steps and a live preview.
+   */
+  async widget({ inertia, auth }: HttpContext) {
+    const user = auth.user!
+    const project =
+      user.role === 'admin'
+        ? ((await Project.query().orderBy('id', 'asc').first()) as Project | null)
+        : ((await Project.query()
+            .where('ownerId', user.id)
+            .orderBy('id', 'asc')
+            .first()) as Project | null)
+
+    if (!project) return inertia.render('errors/not_found' as any, {} as any)
+    if (!(await TeamService.canAccess(project.id, user.id, user.role))) {
+      return inertia.render('errors/not_found' as any, {} as any)
+    }
+
+    const apiKeys = await ApiKeyService.listForProject(project.id)
+    const appUrl = process.env.APP_URL ?? 'http://localhost:3333'
+
+    return inertia.render(
+      'settings/widget' as any,
+      {
+        project: { id: project.id, name: project.name, slug: project.slug },
+        apiKeys: apiKeys.map((k) => new ApiKeyTransformer(k).toObject()),
+        appUrl,
+        breadcrumb: [{ label: 'Settings' }, { label: 'Widget' }],
       } as any
     )
   }

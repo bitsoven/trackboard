@@ -48,6 +48,24 @@ const routes = {
     tokens: [{"old":"/login","type":0,"val":"login","end":""}],
     types: placeholder as Registry['session.store']['types'],
   },
+  'password.forgot': {
+    methods: ["GET","HEAD"],
+    pattern: '/forgot-password',
+    tokens: [{"old":"/forgot-password","type":0,"val":"forgot-password","end":""}],
+    types: placeholder as Registry['password.forgot']['types'],
+  },
+  'password.email': {
+    methods: ["POST"],
+    pattern: '/forgot-password',
+    tokens: [{"old":"/forgot-password","type":0,"val":"forgot-password","end":""}],
+    types: placeholder as Registry['password.email']['types'],
+  },
+  'password.reset': {
+    methods: ["POST"],
+    pattern: '/reset-password',
+    tokens: [{"old":"/reset-password","type":0,"val":"reset-password","end":""}],
+    types: placeholder as Registry['password.reset']['types'],
+  },
   'session.destroy': {
     methods: ["POST"],
     pattern: '/logout',
@@ -210,12 +228,6 @@ const routes = {
     tokens: [{"old":"/portal/:reply_to_token/messages","type":0,"val":"portal","end":""},{"old":"/portal/:reply_to_token/messages","type":1,"val":"reply_to_token","end":""},{"old":"/portal/:reply_to_token/messages","type":0,"val":"messages","end":""}],
     types: placeholder as Registry['portal.messages.store']['types'],
   },
-  'inbox.index': {
-    methods: ["GET","HEAD"],
-    pattern: '/inbox',
-    tokens: [{"old":"/inbox","type":0,"val":"inbox","end":""}],
-    types: placeholder as Registry['inbox.index']['types'],
-  },
   'reports.index': {
     methods: ["GET","HEAD"],
     pattern: '/reports',
@@ -299,6 +311,18 @@ const routes = {
     pattern: '/accept-invite',
     tokens: [{"old":"/accept-invite","type":0,"val":"accept-invite","end":""}],
     types: placeholder as Registry['team.accept']['types'],
+  },
+  'settings.widget': {
+    methods: ["GET","HEAD"],
+    pattern: '/settings/widget',
+    tokens: [{"old":"/settings/widget","type":0,"val":"settings","end":""},{"old":"/settings/widget","type":0,"val":"widget","end":""}],
+    types: placeholder as Registry['settings.widget']['types'],
+  },
+  'team.settings': {
+    methods: ["GET","HEAD"],
+    pattern: '/settings/team',
+    tokens: [{"old":"/settings/team","type":0,"val":"settings","end":""},{"old":"/settings/team","type":0,"val":"team","end":""}],
+    types: placeholder as Registry['team.settings']['types'],
   },
   'settings.index': {
     methods: ["GET","HEAD"],

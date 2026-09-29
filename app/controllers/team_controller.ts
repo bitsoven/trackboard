@@ -24,6 +24,37 @@ export default class TeamController {
         project: { id: project.id, name: project.name, slug: project.slug },
         members: members.map((m) => new TeamMemberTransformer(m).toObject()),
         canManage,
+        breadcrumb: [{ label: 'Settings' }, { label: 'Team Members' }],
+      } as any
+    )
+  }
+
+  /**
+   * Alias so /settings/team shows the team view of the user's first
+   * accessible project with a fresh breadcrumb.
+   */
+  async settingsIndex({ inertia, auth }: HttpContext) {
+    const user = auth.user!
+    const project =
+      user.role === 'admin'
+        ? ((await Project.query().orderBy('id', 'asc').first()) as Project | null)
+        : ((await Project.query()
+            .where('ownerId', user.id)
+            .orderBy('id', 'asc')
+            .first()) as Project | null)
+
+    if (!project) return inertia.render('errors/not_found' as any, {} as any)
+
+    const members = await TeamService.listMembers(project.id)
+    const canManage = await TeamService.canManage(project.id, user.id, user.role)
+
+    return inertia.render(
+      'projects/team' as any,
+      {
+        project: { id: project.id, name: project.name, slug: project.slug },
+        members: members.map((m) => new TeamMemberTransformer(m).toObject()),
+        canManage,
+        breadcrumb: [{ label: 'Settings' }, { label: 'Team Members' }],
       } as any
     )
   }

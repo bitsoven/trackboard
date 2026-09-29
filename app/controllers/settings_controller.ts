@@ -9,7 +9,7 @@ import { updateProjectValidator } from '#validators/project'
 @inject()
 export default class SettingsController {
   async index({ inertia }: HttpContext) {
-    return inertia.render('settings/index' as any, {} as any)
+    return inertia.render('settings/index' as any, { breadcrumb: [{ label: 'Settings' }] } as any)
   }
 
   async update({ request, response, auth, session }: HttpContext) {

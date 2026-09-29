@@ -2,6 +2,9 @@
 import { Head } from '@inertiajs/vue3'
 import { Link } from '@adonisjs/inertia/vue'
 import { router } from '@inertiajs/vue3'
+import AppShell from '~/layouts/app_shell.vue'
+import ReportCard from '~/components/report_card.vue'
+import TbButton from '~/components/ui/tb_button.vue'
 
 type TemplateField = {
   id: number
@@ -20,6 +23,8 @@ type Template = {
   createdAt: string | null
   fields: TemplateField[]
 }
+
+defineOptions({ layout: AppShell })
 
 const props = defineProps<{
   project: { id: number; name: string; slug: string }
@@ -104,110 +109,101 @@ function useDefaultTemplate() {
 <template>
   <Head :title="`${props.project.name} — Templates`" />
 
-  <div class="max-w-5xl mx-auto p-6">
-    <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between mb-6">
-      <div class="min-w-0">
-        <h1 class="text-2xl font-semibold tracking-tight">{{ props.project.name }} — Templates</h1>
-        <p class="text-sm text-slate-500 mt-1">Manage bug report templates for this project</p>
+  <div class="flex flex-col gap-6">
+    <div class="flex flex-wrap items-center justify-between gap-4">
+      <div class="flex min-w-0 flex-col gap-1.5">
+        <h1 class="font-heading text-[28px] font-bold tracking-[-0.28px] text-ink-900">
+          Templates
+        </h1>
+        <p class="font-heading text-[15px] text-ink-600">
+          Report templates for {{ props.project.name }}.
+        </p>
       </div>
-      <div class="flex items-center gap-2 shrink-0">
-        <Link
-          :href="`/projects/${props.project.id}/templates/create`"
-          class="px-4 py-2 bg-brand-indigo-700 text-white rounded-md hover:bg-brand-indigo-500 text-sm font-medium whitespace-nowrap"
-        >
-          New template
-        </Link>
-        <Link
-          :href="`/projects/${props.project.id}/integrations`"
-          class="px-4 py-2 border border-slate-300 rounded-md bg-white text-slate-700 hover:bg-slate-50 text-sm font-medium whitespace-nowrap"
-        >
-          Integrations
-        </Link>
+      <div class="flex shrink-0 items-center gap-2">
+        <TbButton variant="accent" size="lg">
+          <Link :href="`/projects/${props.project.id}/templates/create`"> New template </Link>
+        </TbButton>
       </div>
     </div>
 
     <div
       v-if="props.templates.length === 0"
-      class="border border-slate-200 rounded-xl overflow-hidden bg-white"
+      class="overflow-hidden rounded-2xl border border-hairline bg-white text-center"
     >
       <div
-        class="h-28 flex flex-col items-center justify-center gap-2"
-        style="background: linear-gradient(135deg, #4338ca 0%, #0d9488 100%)"
+        class="flex h-28 flex-col items-center justify-center gap-2"
+        style="background: linear-gradient(135deg, #4c3fe0 0%, #00b8a9 100%)"
       >
-        <span class="text-white text-2xl">📝</span>
-        <span class="text-white/90 text-sm font-medium"
-          >Every project needs at least one report template</span
+        <span class="font-heading text-sm font-medium text-white">
+          Every project needs at least one report template
+        </span>
+      </div>
+      <div class="p-6">
+        <TbButton variant="accent" @click="useDefaultTemplate"> Use default template </TbButton>
+      </div>
+    </div>
+
+    <ReportCard v-else label="TEMPLATES">
+      <div class="flex flex-col gap-3">
+        <div
+          v-for="tpl in props.templates"
+          :key="tpl.id"
+          class="flex items-start justify-between rounded-[10px] bg-surface p-4"
         >
-      </div>
-      <div class="p-6 text-center">
-        <p class="text-sm text-slate-600">
-          Create a custom template or start from the default (title, steps, expected/actual,
-          severity).
-        </p>
-        <div class="mt-4 flex items-center justify-center gap-3">
-          <button
-            class="px-4 py-2 bg-brand-indigo-700 text-white rounded-md hover:bg-brand-indigo-500 text-sm font-medium"
-            @click="useDefaultTemplate"
-          >
-            Use default template
-          </button>
-          <Link
-            :href="`/projects/${props.project.id}/templates/create`"
-            class="px-4 py-2 border border-slate-300 rounded-md bg-white text-slate-700 hover:bg-slate-50 text-sm font-medium"
-          >
-            Create custom
-          </Link>
-        </div>
-      </div>
-    </div>
-
-    <div v-else class="space-y-3">
-      <div
-        v-for="tpl in props.templates"
-        :key="tpl.id"
-        class="border border-slate-200 rounded-xl p-4 flex items-start justify-between bg-white hover:border-slate-300 transition-colors"
-      >
-        <div class="min-w-0">
-          <div class="flex items-center gap-2 flex-wrap">
-            <h2 class="font-medium text-slate-900">{{ tpl.name }}</h2>
-            <span
-              v-if="tpl.isDefault"
-              class="text-xs bg-brand-indigo-50 text-brand-indigo-700 border border-brand-indigo-200 px-2 py-0.5 rounded-full font-medium"
-              >default</span
-            >
-            <span class="text-xs text-slate-400">#{{ tpl.id }}</span>
+          <div class="min-w-0">
+            <div class="flex flex-wrap items-center gap-2">
+              <h3 class="font-heading text-[13px] font-bold text-ink-900">{{ tpl.name }}</h3>
+              <span
+                v-if="tpl.isDefault"
+                class="rounded-md bg-status-bg px-2 py-0.5 font-heading text-[11px] font-bold text-status-fg"
+              >
+                default
+              </span>
+            </div>
+            <div class="mt-2 flex flex-wrap gap-1.5">
+              <span
+                v-for="field in tpl.fields"
+                :key="field.key"
+                class="rounded-md border border-hairline bg-white px-2 py-1 font-heading text-[11px] text-ink-600"
+              >
+                {{ field.key }} · {{ field.type }}
+                <span v-if="field.isRequired" class="text-red-500">*</span>
+              </span>
+            </div>
           </div>
-          <p class="text-sm text-slate-500 mt-1">{{ tpl.fields.length }} fields</p>
-          <div class="flex flex-wrap gap-1.5 mt-2">
-            <span
-              v-for="f in tpl.fields"
-              :key="f.key"
-              class="text-xs border border-slate-200 px-2 py-1 rounded-full bg-slate-50 text-slate-700"
+          <div class="ml-4 flex shrink-0 gap-2">
+            <Link
+              :href="`/templates/${tpl.id}/edit`"
+              class="rounded-md border border-hairline bg-white px-3 py-1.5 font-heading text-[12px] font-medium text-ink-900 hover:bg-white/60"
             >
-              {{ f.key }} · {{ f.type }}<span v-if="f.isRequired" class="text-red-500">*</span>
-            </span>
+              Edit
+            </Link>
+            <button
+              type="button"
+              class="rounded-md border border-hairline bg-white px-3 py-1.5 font-heading text-[12px] font-medium text-red-600 hover:bg-red-50"
+              @click="destroyTemplate(tpl.id)"
+            >
+              Delete
+            </button>
           </div>
         </div>
-        <div class="flex gap-2 ml-4 shrink-0">
-          <Link
-            :href="`/templates/${tpl.id}/edit`"
-            class="text-sm px-3 py-1.5 border border-slate-300 rounded-md bg-white text-slate-700 hover:bg-slate-50 font-medium"
-            >Edit</Link
-          >
-          <button
-            class="text-sm px-3 py-1.5 border border-red-200 rounded-md bg-white text-red-600 hover:bg-red-50 font-medium"
-            @click="destroyTemplate(tpl.id)"
-          >
-            Delete
-          </button>
-        </div>
       </div>
-    </div>
 
-    <div class="mt-6 text-sm">
-      <Link href="/" class="text-slate-500 hover:text-brand-indigo-700 hover:underline"
-        >← Back to overview</Link
-      >
-    </div>
+      <div class="flex justify-between pt-1">
+        <button
+          type="button"
+          class="font-heading text-[13px] font-bold text-accent hover:underline"
+          @click="useDefaultTemplate"
+        >
+          + Use default template
+        </button>
+        <Link
+          :href="`/projects/${props.project.id}/templates/create`"
+          class="font-heading text-[13px] font-bold text-accent hover:underline"
+        >
+          Create custom →
+        </Link>
+      </div>
+    </ReportCard>
   </div>
 </template>

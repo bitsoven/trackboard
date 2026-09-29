@@ -91,6 +91,42 @@ export interface Registry {
       errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/session_controller').default['store']>>> | { status: 422; response: { errors: SimpleError[] } }
     }
   }
+  'password.forgot': {
+    methods: ["GET","HEAD"]
+    pattern: '/forgot-password'
+    types: {
+      body: {}
+      paramsTuple: []
+      params: {}
+      query: {}
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/password_reset_controller').default['showForgot']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/password_reset_controller').default['showForgot']>>>
+    }
+  }
+  'password.email': {
+    methods: ["POST"]
+    pattern: '/forgot-password'
+    types: {
+      body: ExtractBody<InferInput<(typeof import('#validators/password_reset').forgotPasswordValidator)>>
+      paramsTuple: []
+      params: {}
+      query: ExtractQuery<InferInput<(typeof import('#validators/password_reset').forgotPasswordValidator)>>
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/password_reset_controller').default['sendReset']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/password_reset_controller').default['sendReset']>>> | { status: 422; response: { errors: SimpleError[] } }
+    }
+  }
+  'password.reset': {
+    methods: ["POST"]
+    pattern: '/reset-password'
+    types: {
+      body: ExtractBody<InferInput<(typeof import('#validators/password_reset').resetPasswordValidator)>>
+      paramsTuple: []
+      params: {}
+      query: ExtractQuery<InferInput<(typeof import('#validators/password_reset').resetPasswordValidator)>>
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/password_reset_controller').default['reset']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/password_reset_controller').default['reset']>>> | { status: 422; response: { errors: SimpleError[] } }
+    }
+  }
   'session.destroy': {
     methods: ["POST"]
     pattern: '/logout'
@@ -415,18 +451,6 @@ export interface Registry {
       errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/portal_controller').default['store']>>> | { status: 422; response: { errors: SimpleError[] } }
     }
   }
-  'inbox.index': {
-    methods: ["GET","HEAD"]
-    pattern: '/inbox'
-    types: {
-      body: {}
-      paramsTuple: []
-      params: {}
-      query: {}
-      response: ExtractResponse<Awaited<ReturnType<import('#controllers/inbox_controller').default['index']>>>
-      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/inbox_controller').default['index']>>>
-    }
-  }
   'reports.index': {
     methods: ["GET","HEAD"]
     pattern: '/reports'
@@ -593,6 +617,30 @@ export interface Registry {
       query: {}
       response: ExtractResponse<Awaited<ReturnType<import('#controllers/team_controller').default['showAccept']>>>
       errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/team_controller').default['showAccept']>>>
+    }
+  }
+  'settings.widget': {
+    methods: ["GET","HEAD"]
+    pattern: '/settings/widget'
+    types: {
+      body: {}
+      paramsTuple: []
+      params: {}
+      query: {}
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/integration_pages_controller').default['widget']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/integration_pages_controller').default['widget']>>>
+    }
+  }
+  'team.settings': {
+    methods: ["GET","HEAD"]
+    pattern: '/settings/team'
+    types: {
+      body: {}
+      paramsTuple: []
+      params: {}
+      query: {}
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/team_controller').default['settingsIndex']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/team_controller').default['settingsIndex']>>>
     }
   }
   'settings.index': {

@@ -7,7 +7,6 @@ import { Link, Form } from '@adonisjs/inertia/vue'
 import {
   LayoutDashboard,
   FolderKanban,
-  Inbox,
   ClipboardList,
   Plug,
   Users,
@@ -87,9 +86,12 @@ const navItems = computed(() => {
       label: 'Projects',
       icon: FolderKanban,
       href: '/projects',
-      active: page.url.startsWith('/projects') && !page.url.includes('/integrations') && !page.url.includes('/team') && !page.url.includes('/settings'),
+      active:
+        page.url.startsWith('/projects') &&
+        !page.url.includes('/integrations') &&
+        !page.url.includes('/team') &&
+        !page.url.includes('/settings'),
     },
-    { label: 'Inbox', icon: Inbox, href: '/inbox', active: page.url.startsWith('/inbox') },
     {
       label: 'All Reports',
       icon: ClipboardList,

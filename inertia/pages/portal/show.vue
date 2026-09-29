@@ -40,14 +40,14 @@ function sendReply() {
   <div class="max-w-2xl mx-auto p-6">
     <div class="bg-white border rounded p-4">
       <h1 class="text-xl font-semibold">{{ report.title }}</h1>
-      <p class="text-sm text-gray-500">
+      <p class="text-sm text-ink-600">
         #{{ report.id }} · {{ report.status }} / {{ report.priority }}
       </p>
     </div>
 
     <div class="mt-6 bg-white border rounded p-4">
       <h2 class="font-medium mb-3">Conversation</h2>
-      <div v-if="thread.length === 0" class="text-sm text-gray-500">No messages yet.</div>
+      <div v-if="thread.length === 0" class="text-sm text-ink-600">No messages yet.</div>
       <div v-else class="space-y-3">
         <div
           v-for="message in thread"

@@ -9,6 +9,7 @@ import { buildDynamicSchema } from '#services/template_service'
 import { ingestReportValidator, updateReportValidator } from '#validators/report'
 import drive from '@adonisjs/drive/services/main'
 import ReportVerificationException from '#exceptions/report_verification_exception'
+import ReportNotFoundException from '#exceptions/report_not_found_exception'
 import { sendVerificationMail } from '#mails/verification_mail'
 import WebhookService from '#services/webhook_service'
 import { randomUUID } from 'node:crypto'
@@ -359,22 +360,32 @@ export default class ReportService {
       .preload('fieldValues')
       .preload('project')
       .first()
-    if (!report) throw new Error('Report not found')
+    if (!report) throw ReportNotFoundException.reportNotFound()
     return report
   }
 
   /**
-   * Map a report's template field keys to their human-readable labels.
-   * Used to render the reporter's submitted fields with friendly names.
+   * Load the report's template name plus a `key -> { label, type }` map for its
+   * fields. Used to render the reporter's submission with friendly labels and
+   * to tell long-form fields from short ones.
    */
-  async getFieldLabels(report: Report): Promise<Record<string, string>> {
-    if (!report.templateId) return {}
+  async getTemplateInfo(report: Report): Promise<{
+    template: { id: number; name: string } | null
+    fields: Record<string, { label: string; type: string; sortOrder: number }>
+  }> {
+    if (!report.templateId) return { template: null, fields: {} }
     const template = await ReportTemplate.query()
       .where('id', report.templateId)
       .preload('fields')
       .first()
-    if (!template) return {}
-    return Object.fromEntries(((template.fields as any[]) ?? []).map((f) => [f.key, f.label]))
+    if (!template) return { template: null, fields: {} }
+    const fields = Object.fromEntries(
+      ((template.fields as any[]) ?? []).map((f) => [
+        f.key,
+        { label: f.label, type: f.type, sortOrder: f.sortOrder ?? 0 },
+      ])
+    )
+    return { template: { id: template.id, name: template.name }, fields }
   }
 
   async update(

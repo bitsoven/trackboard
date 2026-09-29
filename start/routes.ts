@@ -33,6 +33,13 @@ router
 
     router.get('login', [controllers.Session, 'create'])
     router.post('login', [controllers.Session, 'store'])
+
+    router.get('forgot-password', [controllers.PasswordReset, 'showForgot']).as('password.forgot')
+    router
+      .post('forgot-password', [controllers.PasswordReset, 'sendReset'])
+      .as('password.email')
+      .use(middleware.rateLimit())
+    router.post('reset-password', [controllers.PasswordReset, 'reset']).as('password.reset')
   })
   .use(middleware.guest())
 
@@ -186,13 +193,6 @@ router
   ])
   .as('portal.messages.store')
 
-// Inbox — UI (Inertia)
-router
-  .group(() => {
-    router.get('/inbox', [() => import('#controllers/inbox_controller'), 'index']).as('inbox.index')
-  })
-  .use(middleware.auth())
-
 // Reports — UI (Inertia)
 router
   .group(() => {
@@ -277,6 +277,16 @@ router
 // Settings — account settings + per-project settings (Inertia)
 router
   .group(() => {
+    router
+      .get('/settings/widget', [
+        () => import('#controllers/integration_pages_controller'),
+        'widget',
+      ])
+      .as('settings.widget')
+    router
+      .get('/settings/team', [() => import('#controllers/team_controller'), 'settingsIndex'])
+      .as('team.settings')
+      .use(middleware.auth())
     router
       .get('/settings', [() => import('#controllers/settings_controller'), 'index'])
       .as('settings.index')

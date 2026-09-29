@@ -17,6 +17,7 @@ export default class ProjectsController {
       'projects/index' as any,
       {
         projects: projects.map((p) => new ProjectTransformer(p).toObject()),
+        breadcrumb: [{ label: 'Projects' }],
       } as any
     )
   }
@@ -57,6 +58,7 @@ export default class ProjectsController {
           requireEmailVerification: !!project.requireEmailVerification,
         },
         templates: data,
+        breadcrumb: [{ label: 'Projects', href: '/projects' }, { label: project.name }],
       } as any
     )
   }

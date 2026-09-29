@@ -2,6 +2,7 @@ import { ReportSchema } from '#database/schema'
 import type { BelongsTo, HasMany, HasOne } from '@adonisjs/lucid/types/relations'
 import { beforeCreate, belongsTo, hasMany, hasOne, column } from '@adonisjs/lucid/orm'
 import { randomUUID } from 'node:crypto'
+import Database from '@adonisjs/lucid/services/db'
 import Project from '#models/project'
 import ReportTemplate from '#models/report_template'
 import ReportFieldValue from '#models/report_field_value'
@@ -35,8 +36,12 @@ function jsonConsume(value: unknown) {
 
 export default class Report extends ReportSchema {
   @beforeCreate()
-  static assignUuid(report: Report) {
+  static async assignIdentifiers(report: Report) {
     report.id = report.id || randomUUID()
+    if (report.number === null || report.number === undefined) {
+      const row = await Database.from('reports').max({ max_number: 'number' }).first()
+      report.number = Number((row as any)?.max_number ?? 0) + 1
+    }
   }
 
   @belongsTo(() => Project, { foreignKey: 'projectId' })

@@ -1,8 +1,11 @@
 <script setup lang="ts">
-import { computed, ref, onMounted } from 'vue'
+import { computed, ref } from 'vue'
 import { Head, useForm, usePage } from '@inertiajs/vue3'
 import { Link } from '@adonisjs/inertia/vue'
 import { LayoutGrid, List } from '@lucide/vue'
+import AppShell from '~/layouts/app_shell.vue'
+import TbButton from '~/components/ui/tb_button.vue'
+import TbInput from '~/components/ui/tb_input.vue'
 
 type Project = {
   id: number
@@ -12,25 +15,16 @@ type Project = {
   createdAt: string | null
 }
 
+defineOptions({ layout: AppShell })
+
 const props = defineProps<{
   projects: Project[]
 }>()
 
 const flash = computed(() => (usePage().flash as any) || {})
 
-const showModal = ref(false)
 const viewMode = ref<'grid' | 'list'>('grid')
-
-onMounted(() => {
-  const saved = localStorage.getItem('trackboard:projects-view')
-  if (saved === 'list' || saved === 'grid') viewMode.value = saved
-})
-
-function setView(mode: 'grid' | 'list') {
-  viewMode.value = mode
-  localStorage.setItem('trackboard:projects-view', mode)
-}
-
+const showModal = ref(false)
 const form = useForm({
   name: '',
   slug: '',
@@ -62,110 +56,117 @@ const sorted = computed(() =>
 <template>
   <Head title="Projects" />
 
-  <div class="max-w-6xl p-6">
-    <div class="flex items-start justify-between mb-6">
-      <div>
-        <h1 class="text-2xl font-semibold tracking-tight">Projects</h1>
-        <p class="text-sm text-slate-500 mt-1">Workspaces that collect and organize bug reports.</p>
+  <div class="flex flex-col gap-7">
+    <div class="flex flex-wrap items-center justify-between gap-4">
+      <div class="flex flex-col gap-1.5">
+        <h1 class="font-heading text-[28px] font-bold tracking-[-0.28px] text-ink-900">Projects</h1>
+        <p class="font-heading text-[15px] text-ink-600">
+          Workspaces that collect and organize bug reports.
+        </p>
       </div>
       <div class="flex items-center gap-2">
-        <div v-if="sorted.length > 0" class="flex items-center border border-slate-200 rounded-md overflow-hidden mr-2">
+        <div
+          v-if="sorted.length > 0"
+          class="mr-2 flex items-center overflow-hidden rounded-md border border-hairline"
+        >
           <button
             type="button"
             class="p-1.5 transition-colors"
-            :class="viewMode === 'grid' ? 'bg-brand-indigo-700 text-white' : 'bg-white text-slate-400'"
+            :class="
+              viewMode === 'grid'
+                ? 'bg-accent text-white'
+                : 'bg-white text-ink-300 hover:text-ink-600'
+            "
             title="Grid view"
-            @click="setView('grid')"
+            @click="viewMode = 'grid'"
           >
             <LayoutGrid class="h-4 w-4" />
           </button>
           <button
             type="button"
             class="p-1.5 transition-colors"
-            :class="viewMode === 'list' ? 'bg-brand-indigo-700 text-white' : 'bg-white text-slate-400'"
+            :class="
+              viewMode === 'list'
+                ? 'bg-accent text-white'
+                : 'bg-white text-ink-300 hover:text-ink-600'
+            "
             title="List view"
-            @click="setView('list')"
+            @click="viewMode = 'list'"
           >
             <List class="h-4 w-4" />
           </button>
         </div>
-        <button
-          type="button"
-          class="px-4 py-2 rounded-md bg-brand-indigo-700 text-white text-sm font-medium hover:bg-brand-indigo-500"
-          @click="openModal"
-        >
-          New project
-        </button>
+        <TbButton variant="accent" size="lg" @click="openModal"> + New Project </TbButton>
       </div>
     </div>
 
     <div
       v-if="flash.success"
-      class="mb-4 border border-emerald-200 bg-emerald-50 text-emerald-700 rounded-lg p-3 text-sm"
+      class="rounded-lg border border-emerald-200 bg-emerald-50 p-3 text-sm text-emerald-700"
     >
       {{ flash.success }}
     </div>
 
     <div
       v-if="sorted.length === 0"
-      class="rounded-xl border border-dashed border-slate-300 bg-slate-50 p-10 text-center"
+      class="rounded-2xl border border-dashed border-hairline bg-white/60 p-10 text-center"
     >
-      <p class="text-sm text-slate-600 mb-3">You don't have any projects yet.</p>
-      <button
-        type="button"
-        class="inline-flex items-center px-4 py-2 rounded-md bg-brand-indigo-700 text-white text-sm font-medium hover:bg-brand-indigo-500"
-        @click="openModal"
-      >
+      <p class="font-heading text-[14px] text-ink-600">You don't have any projects yet.</p>
+      <TbButton variant="accent" class="mt-4" @click="openModal">
         Create your first project
-      </button>
+      </TbButton>
     </div>
 
     <!-- Grid view -->
-    <div v-else-if="viewMode === 'grid'" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+    <div
+      v-else-if="viewMode === 'grid'"
+      class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3"
+    >
       <Link
         v-for="p in sorted"
         :key="p.id"
         :href="`/projects/${p.id}`"
-        class="block bg-white border border-slate-200 rounded-xl p-6 hover:border-brand-indigo-400 hover:shadow-sm transition-all"
+        class="block rounded-2xl border border-hairline bg-white p-6 transition-all hover:border-accent/40 hover:shadow-sm"
       >
-        <div
-          class="h-10 w-10 rounded-lg bg-brand-indigo-100 text-brand-indigo-700 flex items-center justify-center font-semibold mb-4"
+        <span
+          class="mb-4 flex size-10 items-center justify-center rounded-[10px] bg-status-bg font-heading font-bold text-status-fg"
         >
           {{ p.name.slice(0, 1).toUpperCase() }}
-        </div>
-        <div class="text-base font-semibold truncate">{{ p.name }}</div>
-        <div class="text-xs text-slate-400 font-mono mt-1 truncate">/{{ p.slug }}</div>
-        <div class="text-xs text-slate-500 mt-3">
+        </span>
+        <span class="block truncate font-heading text-base font-semibold text-ink-900">
+          {{ p.name }}
+        </span>
+        <span class="mt-1 block truncate font-mono text-xs text-ink-300">/{{ p.slug }}</span>
+        <span class="mt-3 block text-xs text-ink-600">
           Created {{ p.createdAt ? new Date(p.createdAt).toLocaleDateString() : '' }}
-        </div>
+        </span>
       </Link>
     </div>
 
     <!-- List view -->
-    <div v-else class="bg-white border border-slate-200 rounded-xl overflow-hidden">
-      <div class="flex items-center gap-4 px-5 py-3 border-b border-slate-200 text-xs font-medium text-slate-500 uppercase tracking-wider">
-        <span class="flex-1 min-w-0">Name</span>
-        <span class="w-64 shrink-0">Slug</span>
-        <span class="w-28 shrink-0 text-right">Created</span>
-      </div>
+    <div v-else class="overflow-hidden rounded-2xl border border-hairline bg-white">
       <Link
         v-for="p in sorted"
         :key="p.id"
         :href="`/projects/${p.id}`"
-        class="flex items-center gap-4 px-5 py-4 hover:bg-slate-50 transition-colors border-b border-slate-100 last:border-b-0"
+        class="flex items-center gap-3 border-b border-hairline px-5 py-4 transition-colors last:border-b-0 hover:bg-surface"
       >
-        <div class="flex-1 min-w-0 flex items-center gap-3">
-          <div
-            class="h-8 w-8 rounded-md bg-brand-indigo-100 text-brand-indigo-700 flex items-center justify-center text-sm font-semibold shrink-0"
-          >
-            {{ p.name.slice(0, 1).toUpperCase() }}
-          </div>
-          <span class="text-sm font-medium truncate">{{ p.name }}</span>
-        </div>
-        <div class="w-64 shrink-0 text-xs text-slate-400 font-mono truncate">/{{ p.slug }}</div>
-        <div class="w-28 shrink-0 text-xs text-slate-500 text-right">
+        <span
+          class="flex size-8 shrink-0 items-center justify-center rounded-md bg-status-bg font-heading text-sm font-bold text-status-fg"
+        >
+          {{ p.name.slice(0, 1).toUpperCase() }}
+        </span>
+        <span class="min-w-0 flex-1">
+          <span class="block truncate font-heading text-sm font-medium text-ink-900">{{
+            p.name
+          }}</span>
+        </span>
+        <span class="hidden w-52 shrink-0 truncate font-mono text-xs text-ink-300 sm:block">
+          /{{ p.slug }}
+        </span>
+        <span class="w-28 shrink-0 text-right text-xs text-ink-600">
           {{ p.createdAt ? new Date(p.createdAt).toLocaleDateString() : '' }}
-        </div>
+        </span>
       </Link>
     </div>
   </div>
@@ -173,73 +174,47 @@ const sorted = computed(() =>
   <!-- New project modal -->
   <div
     v-if="showModal"
-    class="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4"
+    class="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4 font-heading"
     @click.self="closeModal"
   >
-    <div class="w-full max-w-md bg-white rounded-xl shadow-xl p-6">
-      <div class="flex items-center justify-between mb-4">
-        <h2 class="text-lg font-semibold">New project</h2>
-        <button type="button" class="text-slate-400 hover:text-slate-700" @click="closeModal">
-          ✕
-        </button>
-      </div>
-
-      <form class="space-y-4" @submit.prevent="createProject">
-        <div>
-          <label class="block text-xs font-medium text-slate-700 mb-1">Name</label>
-          <input
-            v-model="form.name"
-            type="text"
-            placeholder="Acme Web App"
-            class="w-full border border-slate-300 rounded-md px-3 py-2 text-sm"
-            :class="{ 'border-red-400': form.errors.name }"
-          />
-          <p v-if="form.errors.name" class="text-xs text-red-600 mt-1">{{ form.errors.name }}</p>
-        </div>
-
-        <div>
-          <label class="block text-xs font-medium text-slate-700 mb-1">
-            Slug <span class="text-slate-400">(optional — auto-generated)</span>
-          </label>
-          <input
-            v-model="form.slug"
-            type="text"
-            placeholder="acme-web-app"
-            class="w-full border border-slate-300 rounded-md px-3 py-2 text-sm font-mono"
-            :class="{ 'border-red-400': form.errors.slug }"
-          />
-          <p v-if="form.errors.slug" class="text-xs text-red-600 mt-1">{{ form.errors.slug }}</p>
-        </div>
-
-        <label class="flex items-start gap-3 cursor-pointer">
-          <input
-            v-model="form.requireEmailVerification"
-            type="checkbox"
-            class="mt-0.5 rounded border-slate-300"
-          />
+    <div class="w-full max-w-md rounded-2xl bg-white p-6">
+      <h2 class="text-lg font-bold text-ink-900">New project</h2>
+      <form class="mt-5 flex flex-col gap-4" @submit.prevent="createProject">
+        <TbInput
+          id="project-name"
+          v-model="form.name"
+          name="name"
+          variant="auth"
+          label="Name"
+          type="text"
+          placeholder="Acme Web App"
+          :error="form.errors.name"
+        />
+        <TbInput
+          id="project-slug"
+          v-model="form.slug"
+          name="slug"
+          variant="auth"
+          label="Slug"
+          type="text"
+          placeholder="acme-web-app"
+          hint="Optional — auto-generated from the name."
+          :error="form.errors.slug"
+        />
+        <label class="flex cursor-pointer items-start gap-3">
+          <input v-model="form.requireEmailVerification" type="checkbox" class="mt-1 rounded" />
           <span>
-            <span class="block text-sm font-medium text-slate-700">Require email verification</span>
-            <span class="block text-xs text-slate-500 mt-0.5">
+            <span class="block text-sm font-medium text-ink-900">Require email verification</span>
+            <span class="block text-xs text-ink-600">
               Reporters must confirm via a magic link before reports appear in your queue.
             </span>
           </span>
         </label>
-
         <div class="flex justify-end gap-2 pt-2">
-          <button
-            type="button"
-            class="px-4 py-2 rounded-md border border-slate-300 text-sm font-medium text-slate-700 hover:bg-slate-50"
-            @click="closeModal"
+          <TbButton variant="ghost" @click="closeModal">Cancel</TbButton>
+          <TbButton variant="accent" type="submit" :disabled="form.processing"
+            >Create project</TbButton
           >
-            Cancel
-          </button>
-          <button
-            type="submit"
-            :disabled="form.processing"
-            class="px-4 py-2 rounded-md bg-brand-indigo-700 text-white text-sm font-medium hover:bg-brand-indigo-500 disabled:opacity-50"
-          >
-            Create project
-          </button>
         </div>
       </form>
     </div>
