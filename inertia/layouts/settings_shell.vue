@@ -27,7 +27,7 @@ function comingSoon() {
         class="rounded-lg px-3.5 py-2.5 font-heading text-[14px] leading-none transition-colors"
         :class="
           props.active === 'general'
-            ? 'bg-[#edecfb] font-bold text-accent'
+            ? 'bg-status-bg font-bold text-accent'
             : 'font-medium text-ink-600 hover:bg-surface'
         "
       >
@@ -40,7 +40,7 @@ function comingSoon() {
         class="rounded-lg px-3.5 py-2.5 text-left font-heading text-[14px] leading-none transition-colors"
         :class="
           props.active === 'team'
-            ? 'bg-[#edecfb] font-bold text-accent'
+            ? 'bg-status-bg font-bold text-accent'
             : 'font-medium text-ink-600 hover:bg-surface'
         "
         @click="!firstProject && comingSoon()"

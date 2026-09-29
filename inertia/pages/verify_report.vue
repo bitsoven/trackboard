@@ -1,6 +1,9 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import { Head } from '@inertiajs/vue3'
+import AuthLayout from '~/layouts/auth.vue'
+
+defineOptions({ layout: AuthLayout })
 
 const props = defineProps<{
   status: 'success' | 'error'
@@ -14,7 +17,7 @@ const isSuccess = computed(() => props.status === 'success')
 <template>
   <Head title="Report verification" />
 
-  <div class="flex flex-1 items-center justify-center px-4 py-12">
+  <div class="flex min-h-screen items-center justify-center bg-canvas px-4 py-12">
     <div class="w-full max-w-md">
       <div class="flex flex-col items-center mb-6">
         <img :src="'/logo.svg'" alt="Trackboard" class="h-10 w-10 rounded-md" />

@@ -318,7 +318,7 @@ const inputClass =
           </div>
           <span
             v-if="props.project.requireEmailVerification"
-            class="inline-flex shrink-0 items-center gap-1 rounded-md bg-[#fff2d9] px-2 py-1 font-heading text-[11px] font-bold text-[#a47912]"
+            class="inline-flex shrink-0 items-center gap-1 rounded-md bg-avatar-amber/20 px-2 py-1 font-heading text-[11px] font-bold text-avatar-amber"
           >
             <ShieldCheck class="size-3" /> Verified
           </span>

@@ -188,7 +188,9 @@ function displayNameFor(member: Member): string {
           <span
             class="inline-flex items-center rounded-md px-2.5 py-1 font-heading text-[11px] font-bold"
             :class="
-              member.acceptedAt ? 'bg-[#ccf2f1] text-[#00b8a9]' : 'bg-[#fff2d9] text-[#a47912]'
+              member.acceptedAt
+                ? 'bg-avatar-teal/20 text-avatar-teal'
+                : 'bg-avatar-amber/20 text-avatar-amber'
             "
           >
             {{ member.acceptedAt ? 'Active' : 'Pending' }}

@@ -215,7 +215,7 @@ const hasErrors = computed(() => Object.keys(formErrors.value).length > 0)
           :list="fields"
           handle=".drag-handle"
           ghost-class="opacity-50"
-          chosen-class="ring-2 ring-accent !border-brand-indigo-500 bg-indigo-50"
+          chosen-class="ring-2 ring-accent !border-accent bg-status-bg"
           drag-class="opacity-80 rotate-1 shadow-lg"
           class="space-y-3"
           @end="onDragEnd"
@@ -226,7 +226,7 @@ const hasErrors = computed(() => Object.keys(formErrors.value).length > 0)
             class="border rounded-lg p-3 bg-surface cursor-pointer transition-all"
             :class="
               selectedIndex === idx
-                ? 'ring-2 ring-accent border-brand-indigo-500 bg-indigo-50'
+                ? 'ring-2 ring-accent !border-accent bg-status-bg'
                 : 'border-hairline hover:border-hairline'
             "
             @click="selectedIndex = idx"

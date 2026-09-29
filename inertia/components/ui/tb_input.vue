@@ -55,24 +55,22 @@ const inputClasses = computed(() => {
       'w-full border bg-white transition-colors focus:outline-none focus:ring-2 focus:border-transparent',
       'h-12 rounded-[10px] px-[14px] text-[14px] placeholder:text-ink-300',
       props.error ? 'border-red-300 focus:ring-red-500' : 'border-hairline focus:ring-accent',
-      props.disabled || props.readonly ? 'bg-slate-50 text-slate-500' : '',
+      props.disabled || props.readonly ? 'bg-surface text-ink-600' : '',
       props.disabled ? 'cursor-not-allowed' : '',
     ]
   }
   return [
-    'w-full border rounded-md px-3 py-2 text-sm bg-white placeholder:text-slate-400 transition-colors focus:outline-none focus:ring-2 focus:border-transparent',
-    props.error
-      ? 'border-red-300 focus:ring-red-500'
-      : 'border-slate-300 focus:ring-brand-teal-600',
-    props.disabled ? 'bg-slate-50 text-slate-500 cursor-not-allowed' : '',
-    props.readonly ? 'bg-slate-50 text-slate-500' : '',
+    'w-full border rounded-md px-3 py-2 text-sm bg-white placeholder:text-ink-300 text-ink-900 transition-colors focus:outline-none focus:ring-2 focus:border-transparent',
+    props.error ? 'border-red-300 focus:ring-red-500' : 'border-hairline focus:ring-accent',
+    props.disabled ? 'bg-surface text-ink-600 cursor-not-allowed' : '',
+    props.readonly ? 'bg-surface text-ink-600' : '',
   ]
 })
 
 const labelClasses = computed(() =>
   isAuth.value
     ? 'block text-[13px] font-bold text-ink-900 mb-1.5'
-    : 'block text-xs font-medium text-slate-700 mb-1'
+    : 'block text-xs font-medium text-ink-900 mb-1'
 )
 </script>
 
@@ -102,7 +100,7 @@ const labelClasses = computed(() =>
     <p v-if="props.error" :id="`${inputId}-error`" class="text-xs text-red-600 mt-1">
       {{ props.error }}
     </p>
-    <p v-else-if="props.hint" :id="`${inputId}-hint`" class="text-xs text-slate-500 mt-1">
+    <p v-else-if="props.hint" :id="`${inputId}-hint`" class="text-xs text-ink-600 mt-1">
       {{ props.hint }}
     </p>
     <slot name="hint" />

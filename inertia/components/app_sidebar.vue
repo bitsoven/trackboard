@@ -91,7 +91,7 @@ function logout() {
           class="flex items-center gap-2.5 rounded-lg px-2.5 py-[9px] transition-colors"
           :class="
             item.active
-              ? 'bg-[#edecfb] font-bold text-accent'
+              ? 'bg-status-bg font-bold text-accent'
               : 'font-medium text-ink-900 hover:bg-surface'
           "
         >

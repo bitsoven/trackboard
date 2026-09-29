@@ -77,7 +77,7 @@ const statCards = computed(() => [
     value: props.stats?.inProgress ?? 0,
     hint: 'Active work',
     icon: Loader,
-    tone: 'bg-avatar-amber/20 text-[#a47912]',
+    tone: 'bg-avatar-amber/20 text-avatar-amber',
   },
   {
     label: 'Pending Verification',
@@ -96,7 +96,7 @@ const statCards = computed(() => [
         ? `${props.stats.avgTimeToFirstResponseHours}h`
         : '—'),
     icon: CheckCircle2,
-    tone: 'bg-brand-teal-600/10 text-brand-teal-600',
+    tone: 'bg-avatar-teal/10 text-avatar-teal',
   },
 ])
 
@@ -234,35 +234,29 @@ const chartPoints = computed(() => {
     <!-- Empty state -->
     <div
       v-if="stats && stats.total === 0"
-      class="overflow-hidden rounded-2xl border border-hairline bg-white"
+      class="flex flex-col items-center rounded-2xl border border-dashed border-hairline bg-white px-6 py-12 text-center"
     >
-      <div
-        class="flex h-32 items-center justify-center"
-        style="background: linear-gradient(135deg, #4c3fe0 0%, #00b8a9 100%)"
+      <span class="flex size-12 items-center justify-center rounded-xl bg-surface text-ink-300">
+        <Inbox class="size-6" />
+      </span>
+      <h3 class="mt-4 font-heading text-[16px] font-bold text-ink-900">No reports yet</h3>
+      <p class="mx-auto mt-2 max-w-md font-heading text-[14px] leading-[1.5] text-ink-600">
+        Your widget will populate this dashboard the moment someone submits a report.
+      </p>
+      <Link
+        v-if="firstProject"
+        :href="`/projects/${firstProject.id}/settings/widget`"
+        class="mt-6 inline-flex rounded-[10px] bg-accent px-4 py-2.5 font-heading text-[14px] font-bold text-white transition-colors hover:bg-accent-strong"
       >
-        <span class="font-heading text-[14px] font-medium text-white">
-          No reports yet — your widget will populate this dashboard
-        </span>
-      </div>
-      <div class="p-6 text-center">
-        <p class="font-heading text-[14px] text-ink-600">
-          Bug reports from your widget will land here the moment someone submits one.
-        </p>
-        <Link
-          v-if="firstProject"
-          :href="`/projects/${firstProject.id}/settings/widget`"
-          class="mt-4 inline-flex rounded-[10px] bg-accent px-4 py-2.5 font-heading text-[14px] font-bold text-white hover:bg-accent-strong"
-        >
-          Install the widget
-        </Link>
-        <Link
-          v-else
-          href="/projects"
-          class="mt-4 inline-flex rounded-[10px] bg-accent px-4 py-2.5 font-heading text-[14px] font-bold text-white hover:bg-accent-strong"
-        >
-          Create your first project
-        </Link>
-      </div>
+        Install the widget
+      </Link>
+      <Link
+        v-else
+        href="/projects"
+        class="mt-6 inline-flex rounded-[10px] bg-accent px-4 py-2.5 font-heading text-[14px] font-bold text-white transition-colors hover:bg-accent-strong"
+      >
+        Create your first project
+      </Link>
     </div>
 
     <!-- Trend -->

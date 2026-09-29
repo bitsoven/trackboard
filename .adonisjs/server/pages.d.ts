@@ -19,14 +19,12 @@ declare module '@adonisjs/inertia/types' {
     'integrations/index': ExtractProps<(typeof import('../../inertia/pages/integrations/index.vue'))['default']>
     'portal/show': ExtractProps<(typeof import('../../inertia/pages/portal/show.vue'))['default']>
     'projects/index': ExtractProps<(typeof import('../../inertia/pages/projects/index.vue'))['default']>
-    'projects/settings': ExtractProps<(typeof import('../../inertia/pages/projects/settings.vue'))['default']>
     'projects/show': ExtractProps<(typeof import('../../inertia/pages/projects/show.vue'))['default']>
     'projects/team': ExtractProps<(typeof import('../../inertia/pages/projects/team.vue'))['default']>
     'reports/index': ExtractProps<(typeof import('../../inertia/pages/reports/index.vue'))['default']>
     'reports/show': ExtractProps<(typeof import('../../inertia/pages/reports/show.vue'))['default']>
     'settings/index': ExtractProps<(typeof import('../../inertia/pages/settings/index.vue'))['default']>
     'settings/widget': ExtractProps<(typeof import('../../inertia/pages/settings/widget.vue'))['default']>
-    'team/index': ExtractProps<(typeof import('../../inertia/pages/team/index.vue'))['default']>
     'templates/form': ExtractProps<(typeof import('../../inertia/pages/templates/form.vue'))['default']>
     'templates/index': ExtractProps<(typeof import('../../inertia/pages/templates/index.vue'))['default']>
     'verify_report': ExtractProps<(typeof import('../../inertia/pages/verify_report.vue'))['default']>

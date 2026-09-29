@@ -25,17 +25,17 @@ const props = withDefaults(
 
 const variantClasses: Record<Variant, string> = {
   'primary':
-    'bg-brand-indigo-700 text-white hover:bg-brand-indigo-500 focus-visible:ring-brand-indigo-700 border border-transparent font-medium',
+    'bg-accent text-white hover:bg-accent-strong focus-visible:ring-accent border border-transparent font-medium',
   'secondary':
-    'bg-white text-slate-700 border border-slate-300 hover:bg-slate-50 focus-visible:ring-brand-teal-600 font-medium',
+    'bg-white text-ink-900 border border-hairline hover:bg-surface focus-visible:ring-accent font-medium',
   'ghost':
-    'bg-transparent text-slate-600 hover:bg-slate-100 hover:text-slate-900 border border-transparent focus-visible:ring-slate-300 font-medium',
+    'bg-transparent text-ink-600 hover:bg-surface hover:text-ink-900 border border-transparent focus-visible:ring-hairline font-medium',
   'destructive':
     'bg-red-600 text-white hover:bg-red-500 focus-visible:ring-red-600 border border-transparent font-medium',
   'accent':
     'bg-accent text-white hover:bg-accent-strong focus-visible:ring-accent border border-transparent font-bold',
   'accent-outline':
-    'bg-white text-ink-900 border border-hairline hover:bg-slate-50 focus-visible:ring-accent font-bold',
+    'bg-white text-ink-900 border border-hairline hover:bg-surface focus-visible:ring-accent font-bold',
 }
 
 const sizeClasses: Record<Size, string> = {

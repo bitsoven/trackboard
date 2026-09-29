@@ -142,9 +142,9 @@ export function typeTagClasses(templateName?: string | null): string {
     case 'support':
       return 'bg-status-bg text-status-fg'
     case 'issue':
-      return 'bg-[#fff2d9] text-[#a47912]'
+      return 'bg-avatar-amber/20 text-avatar-amber'
     case 'ui':
-      return 'bg-brand-teal-600/10 text-brand-teal-600'
+      return 'bg-avatar-teal/10 text-avatar-teal'
     default:
       return 'bg-type-bg text-type-fg'
   }
@@ -172,7 +172,7 @@ export function toneForEmail(email?: string | null): 'indigo' | 'teal' | 'amber'
 export function statusPillClasses(status: string): string {
   switch (status) {
     case 'resolved':
-      return 'bg-brand-teal-600/10 text-brand-teal-600'
+      return 'bg-avatar-teal/10 text-avatar-teal'
     case 'closed':
     case 'canceled':
     case 'not_now':

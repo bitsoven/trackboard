@@ -1,5 +1,17 @@
 <script setup lang="ts">
 import { Head, router, useForm } from '@inertiajs/vue3'
+import BrandMark from '~/components/brand_mark.vue'
+import ReportAvatar from '~/components/report_avatar.vue'
+import ReportCard from '~/components/report_card.vue'
+import ReportPill from '~/components/report_pill.vue'
+import {
+  initialsFromName,
+  priorityLabel,
+  priorityPillClasses,
+  relativeTime,
+  statusLabel,
+  statusPillClasses,
+} from '~/composables/use_report_display'
 
 type Message = {
   id: number
@@ -32,59 +44,125 @@ function sendReply() {
     },
   })
 }
+
+function isTeamMessage(message: Message): boolean {
+  return message.authorType === 'team' || message.direction === 'inbound'
+}
 </script>
 
 <template>
   <Head :title="`Report #${report.id} — ${report.title}`" />
 
-  <div class="max-w-2xl mx-auto p-6">
-    <div class="bg-white border rounded p-4">
-      <h1 class="text-xl font-semibold">{{ report.title }}</h1>
-      <p class="text-sm text-ink-600">
-        #{{ report.id }} · {{ report.status }} / {{ report.priority }}
-      </p>
-    </div>
-
-    <div class="mt-6 bg-white border rounded p-4">
-      <h2 class="font-medium mb-3">Conversation</h2>
-      <div v-if="thread.length === 0" class="text-sm text-ink-600">No messages yet.</div>
-      <div v-else class="space-y-3">
-        <div
-          v-for="message in thread"
-          :key="message.id"
-          class="flex"
-          :class="message.direction === 'outbound' ? 'justify-end' : 'justify-start'"
-        >
-          <div
-            class="max-w-[80%] rounded p-3 text-sm"
-            :class="
-              message.direction === 'outbound' ? 'bg-brand text-white' : 'bg-gray-100 text-gray-900'
-            "
-          >
-            <p class="text-xs opacity-70 mb-1">
-              {{ message.authorName }} ·
-              {{ message.createdAt ? new Date(message.createdAt).toLocaleString() : '' }}
-            </p>
-            <p class="whitespace-pre-wrap">{{ message.body }}</p>
-          </div>
-        </div>
+  <div class="min-h-screen bg-canvas">
+    <div class="mx-auto flex w-full max-w-[720px] flex-col gap-6 px-4 py-8 sm:px-6 sm:py-10">
+      <div class="flex items-center gap-2.5">
+        <BrandMark :size="28" />
+        <span class="font-heading text-[19px] font-bold leading-none text-ink-900">Trackboard</span>
       </div>
 
-      <form class="mt-4" @submit.prevent="sendReply">
-        <textarea
-          v-model="replyForm.body"
-          rows="3"
-          class="w-full border rounded p-2 text-sm"
-          placeholder="Write a reply…"
-        ></textarea>
-        <button
-          type="submit"
-          class="mt-2 text-sm px-3 py-1 bg-brand text-white rounded-md disabled:opacity-50"
-          :disabled="replyForm.processing || !replyForm.body"
+      <ReportCard>
+        <div class="flex flex-wrap items-center gap-2">
+          <ReportPill :class="statusPillClasses(report.status)">
+            {{ statusLabel(report.status) }}
+          </ReportPill>
+          <ReportPill :class="priorityPillClasses(report.priority)">
+            {{ priorityLabel(report.priority) }} Priority
+          </ReportPill>
+          <span class="font-heading text-[12px] font-bold tracking-[0.44px] text-ink-300">
+            #{{ report.id }}
+          </span>
+        </div>
+        <h1
+          class="font-heading text-[22px] font-bold leading-[1.25] tracking-[-0.22px] text-ink-900 sm:text-[26px] sm:tracking-[-0.26px]"
         >
-          Send reply
-        </button>
-      </form>
+          {{ report.title }}
+        </h1>
+        <p class="font-heading text-[13px] text-ink-600">
+          This is your private portal — replies here are shared with the team handling your report.
+        </p>
+      </ReportCard>
+
+      <ReportCard label="CONVERSATION">
+        <div v-if="thread.length === 0" class="rounded-[10px] bg-surface px-4 py-6 text-center">
+          <p class="font-heading text-[14px] text-ink-600">No messages yet.</p>
+          <p class="mt-1 font-heading text-[13px] text-ink-300">
+            Send a message below and the team will be notified.
+          </p>
+        </div>
+
+        <div v-else class="flex flex-col gap-5">
+          <div v-for="message in thread" :key="message.id" class="flex items-start gap-3">
+            <ReportAvatar
+              :initials="initialsFromName(message.authorName)"
+              :tone="isTeamMessage(message) ? 'indigo' : 'amber'"
+            />
+            <div class="flex min-w-0 flex-1 flex-col gap-1">
+              <div class="flex flex-wrap items-center gap-2">
+                <p class="font-heading text-[13px] font-bold text-ink-900">
+                  {{ message.authorName }}
+                </p>
+                <span
+                  v-if="isTeamMessage(message)"
+                  class="inline-flex rounded-full bg-surface px-2 py-0.5 font-heading text-[11px] font-bold tracking-[0.3px] text-ink-300"
+                >
+                  Team
+                </span>
+                <span
+                  v-else
+                  class="font-heading text-[11px] font-bold tracking-[0.3px] text-ink-300"
+                >
+                  You
+                </span>
+                <p class="font-heading text-[12px] text-ink-300">
+                  {{ message.createdAt ? relativeTime(message.createdAt) : '' }}
+                </p>
+              </div>
+              <div
+                class="rounded-[10px] px-3.5 py-2.5"
+                :class="isTeamMessage(message) ? 'border border-hairline bg-white' : 'bg-surface'"
+              >
+                <p class="whitespace-pre-wrap font-heading text-[14px] leading-[1.5] text-ink-900">
+                  {{ message.body }}
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="h-px w-full bg-hairline" />
+
+        <form class="flex flex-col gap-3" @submit.prevent="sendReply">
+          <label
+            for="portal-reply"
+            class="font-heading text-[11px] font-bold tracking-[0.44px] text-ink-300"
+          >
+            YOUR REPLY
+          </label>
+          <textarea
+            id="portal-reply"
+            v-model="replyForm.body"
+            rows="4"
+            placeholder="Write a reply…"
+            class="min-h-[96px] w-full rounded-[10px] border border-hairline bg-surface px-3.5 py-3 font-heading text-[14px] leading-[1.5] text-ink-900 placeholder:text-ink-300 focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent/20"
+          ></textarea>
+          <p v-if="replyForm.errors.body" class="font-heading text-[13px] text-red-600">
+            {{ replyForm.errors.body }}
+          </p>
+          <div class="flex items-center justify-end">
+            <button
+              type="submit"
+              :disabled="replyForm.processing || !replyForm.body.trim()"
+              class="inline-flex shrink-0 items-center justify-center rounded-[10px] bg-accent px-5 py-3 font-heading text-[14px] font-bold text-white transition-colors hover:bg-accent-strong disabled:pointer-events-none disabled:opacity-50"
+            >
+              {{ replyForm.processing ? 'Sending…' : 'Send reply' }}
+            </button>
+          </div>
+        </form>
+      </ReportCard>
+
+      <p class="text-center font-heading text-[12px] text-ink-300">
+        © 2026 Trackboard — private portal link
+      </p>
     </div>
   </div>
 </template>
