@@ -54,6 +54,7 @@ export interface WidgetProjectConfig {
 export interface WidgetConfig {
   project: WidgetProjectConfig
   template: WidgetTemplate | null
+  templates?: WidgetTemplate[]
 }
 
 export interface RuntimeError {

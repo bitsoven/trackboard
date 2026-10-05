@@ -133,6 +133,63 @@ function useDefaultTemplate() {
   } as any)
 }
 
+function useFeatureRequestTemplate() {
+  router.post(`/projects/${props.project.id}/templates`, {
+    name: 'Feature Request',
+    isDefault: false,
+    fields: [
+      {
+        key: 'title',
+        label: 'Title',
+        type: 'text',
+        isRequired: true,
+        is_required: true,
+        options: {},
+        sortOrder: 0,
+        sort_order: 0,
+        showIf: null,
+        show_if: null,
+      },
+      {
+        key: 'description',
+        label: 'Description',
+        type: 'textarea',
+        isRequired: true,
+        is_required: true,
+        options: {},
+        sortOrder: 1,
+        sort_order: 1,
+        showIf: null,
+        show_if: null,
+      },
+      {
+        key: 'use_case',
+        label: 'Use case',
+        type: 'textarea',
+        isRequired: false,
+        is_required: false,
+        options: {},
+        sortOrder: 2,
+        sort_order: 2,
+        showIf: null,
+        show_if: null,
+      },
+      {
+        key: 'priority',
+        label: 'Priority',
+        type: 'select',
+        isRequired: true,
+        is_required: true,
+        options: { choices: ['low', 'medium', 'high', 'critical'] },
+        sortOrder: 3,
+        sort_order: 3,
+        showIf: null,
+        show_if: null,
+      },
+    ],
+  } as any)
+}
+
 const quickLinks = [
   {
     label: 'Integrations',
@@ -165,8 +222,12 @@ const inputClass =
     <!-- Main column -->
     <div class="flex min-w-0 flex-1 flex-col gap-6">
       <!-- Templates -->
-      <ReportCard label="REPORT TEMPLATES">
-        <div class="flex flex-col gap-3">
+      <ReportCard label="REPORT TYPES">
+        <p class="font-heading text-[13px] text-ink-600 -mt-1">
+          Each template is a report type shown in the widget. Reporters pick the type before filling
+          the form — e.g. Bug or Feature Request.
+        </p>
+        <div class="flex flex-col gap-3 mt-3">
           <div
             v-for="tpl in props.templates"
             :key="tpl.id"
@@ -215,13 +276,20 @@ const inputClass =
             </div>
           </div>
 
-          <div class="flex items-center justify-between pt-1">
+          <div class="flex flex-wrap items-center gap-4 pt-1">
             <button
               type="button"
               class="font-heading text-[13px] font-bold text-accent hover:underline"
               @click="useDefaultTemplate"
             >
-              + Use default template
+              + Bug Report
+            </button>
+            <button
+              type="button"
+              class="font-heading text-[13px] font-bold text-accent hover:underline"
+              @click="useFeatureRequestTemplate"
+            >
+              + Feature Request
             </button>
             <Link
               :href="`/projects/${props.project.id}/templates/create`"

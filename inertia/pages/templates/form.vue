@@ -8,6 +8,7 @@ import AppShell from '~/layouts/app_shell.vue'
 defineOptions({ layout: AppShell })
 
 type TemplateFieldDraft = {
+  _uid: string
   key: string
   label: string
   type: string
@@ -58,9 +59,15 @@ const formErrors = computed(() => page.props.errors ?? {})
 const name = ref(props.template?.name ?? '')
 const isDefault = ref(props.template?.isDefault ?? false)
 const selectedIndex = ref<number | null>(null)
+const isDragging = ref(false)
+
+function uid() {
+  return Math.random().toString(36).slice(2, 9)
+}
 
 const fields = ref<TemplateFieldDraft[]>(
   (props.template?.fields ?? []).map((f, idx) => ({
+    _uid: uid(),
     key: f.key,
     label: f.label,
     type: f.type,
@@ -73,6 +80,7 @@ const fields = ref<TemplateFieldDraft[]>(
 
 if (fields.value.length === 0) {
   fields.value.push({
+    _uid: uid(),
     key: 'title',
     label: 'Title',
     type: 'text',
@@ -85,6 +93,7 @@ if (fields.value.length === 0) {
 
 function addField() {
   fields.value.push({
+    _uid: uid(),
     key: `field_${fields.value.length + 1}`,
     label: `Field ${fields.value.length + 1}`,
     type: 'text',
@@ -103,8 +112,17 @@ function syncSortOrder() {
   fields.value.forEach((f, idx) => (f.sortOrder = idx))
 }
 
+function onDragStart() {
+  isDragging.value = true
+}
+
 function onDragEnd() {
+  isDragging.value = false
   syncSortOrder()
+}
+
+function selectField(idx: number) {
+  if (!isDragging.value) selectedIndex.value = idx
 }
 
 function buildPayload() {
@@ -212,24 +230,28 @@ const hasErrors = computed(() => Object.keys(formErrors.value).length > 0)
         </div>
 
         <VueDraggableNext
-          :list="fields"
+          v-model="fields"
           handle=".drag-handle"
-          ghost-class="opacity-50"
-          chosen-class="ring-2 ring-accent !border-accent bg-status-bg"
-          drag-class="opacity-80 rotate-1 shadow-lg"
+          ghost-class="tb-ghost"
+          chosen-class="tb-chosen"
+          drag-class="tb-drag"
+          animation="200"
+          item-key="_uid"
           class="space-y-3"
+          @start="onDragStart"
           @end="onDragEnd"
         >
           <div
             v-for="(field, idx) in fields"
-            :key="idx"
-            class="border rounded-lg p-3 bg-surface cursor-pointer transition-all"
-            :class="
+            :key="field._uid"
+            class="border rounded-lg p-3 bg-surface transition-all"
+            :class="[
               selectedIndex === idx
-                ? 'ring-2 ring-accent !border-accent bg-status-bg'
-                : 'border-hairline hover:border-hairline'
-            "
-            @click="selectedIndex = idx"
+                ? 'ring-2 ring-accent border-accent bg-status-bg'
+                : 'border-hairline hover:border-hairline',
+              isDragging ? 'cursor-grabbing' : 'cursor-pointer',
+            ]"
+            @click="selectField(idx)"
           >
             <div class="flex items-start gap-3">
               <span
@@ -515,3 +537,21 @@ const hasErrors = computed(() => Object.keys(formErrors.value).length > 0)
     </div>
   </div>
 </template>
+
+<style scoped>
+.tb-ghost {
+  opacity: 0.5;
+}
+.tb-chosen {
+  border-color: #4c3fe0 !important;
+  background-color: #f3f1ff !important;
+  box-shadow: 0 0 0 2px #4c3fe0;
+}
+.tb-drag {
+  opacity: 0.8;
+  transform: rotate(1deg);
+  box-shadow:
+    0 10px 15px -3px rgb(0 0 0 / 0.1),
+    0 4px 6px -4px rgb(0 0 0 / 0.1);
+}
+</style>

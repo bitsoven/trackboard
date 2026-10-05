@@ -147,13 +147,13 @@ test.group('Widget | error capture parsing', () => {
 test.group('Widget | i18n', () => {
   test('falls back to english and interpolates vars', ({ assert }) => {
     const i18n = new I18n('en')
-    assert.equal(i18n.t('widget.open'), 'Report a bug')
+    assert.equal(i18n.t('widget.open'), 'Fill a report')
     assert.equal(i18n.t('widget.pinned', { selector: 'div > a' }), 'Pinned: div > a')
   })
 
   test('uses requested locale dictionary', ({ assert }) => {
     const i18n = new I18n('es')
-    assert.equal(i18n.t('widget.open'), 'Reportar un error')
+    assert.equal(i18n.t('widget.open'), 'Rellenar un informe')
   })
 
   test('detects locale from explicit hint and falls back to english', ({ assert }) => {

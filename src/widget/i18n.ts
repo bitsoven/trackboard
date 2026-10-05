@@ -4,8 +4,8 @@ type Dict = Record<string, string>
 
 const dictionaries: Record<string, Dict> = {
   en: {
-    'widget.title': 'Report a bug',
-    'widget.open': 'Report a bug',
+    'widget.title': 'Fill a report',
+    'widget.open': 'Fill a report',
     'widget.close': 'Close',
     'widget.submit': 'Send report',
     'widget.sending': 'Sending…',
@@ -37,12 +37,13 @@ const dictionaries: Record<string, Dict> = {
     'widget.captureModeFullpage': 'Full page',
     'widget.captureModeElement': 'Pinned element',
     'widget.screenshotTooLarge': 'Screenshot too large, recompressing…',
+    'widget.reportTypeLabel': 'Report type',
     'widget.verifySent':
       'We sent a confirmation email to {email}. Please check your inbox and click the link to verify your report.',
   },
   es: {
-    'widget.title': 'Reportar un problema',
-    'widget.open': 'Reportar un error',
+    'widget.title': 'Rellenar un informe',
+    'widget.open': 'Rellenar un informe',
     'widget.close': 'Cerrar',
     'widget.submit': 'Enviar reporte',
     'widget.sending': 'Enviando…',
@@ -69,12 +70,13 @@ const dictionaries: Record<string, Dict> = {
     'widget.captureModeFullpage': 'Página completa',
     'widget.captureModeElement': 'Elemento fijado',
     'widget.screenshotTooLarge': 'Captura muy grande, recomprimiendo…',
+    'widget.reportTypeLabel': 'Tipo de informe',
     'widget.verifySent':
       'Enviamos un correo de confirmación a {email}. Revisa tu bandeja y haz clic en el enlace para verificar tu reporte.',
   },
   de: {
-    'widget.title': 'Problem melden',
-    'widget.open': 'Fehler melden',
+    'widget.title': 'Bericht erstellen',
+    'widget.open': 'Bericht erstellen',
     'widget.close': 'Schließen',
     'widget.submit': 'Bericht senden',
     'widget.sending': 'Wird gesendet…',
@@ -101,6 +103,7 @@ const dictionaries: Record<string, Dict> = {
     'widget.captureModeFullpage': 'Gesamte Seite',
     'widget.captureModeElement': 'Angeheftetes Element',
     'widget.screenshotTooLarge': 'Screenshot zu groß, wird neu kodiert…',
+    'widget.reportTypeLabel': 'Berichtsart',
     'widget.verifySent':
       'Wir haben eine Bestätigungs-E-Mail an {email} gesendet. Bitte prüfe dein Postfach und klicke auf den Link, um deinen Bericht zu bestätigen.',
   },

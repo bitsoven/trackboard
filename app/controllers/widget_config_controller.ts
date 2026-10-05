@@ -20,7 +20,11 @@ export default class WidgetConfigController {
       return response.unauthorized({ message: 'Invalid API key' })
     }
 
-    const template = await this.templateService.getForWidget(project.id)
+    const templates = await this.templateService.listForProject(project.id)
+    const defaultTemplate =
+      templates.find((t) => t.isDefault) ??
+      templates[0] ??
+      (await this.templateService.getForWidget(project.id))
 
     return response.json({
       data: {
@@ -28,7 +32,10 @@ export default class WidgetConfigController {
           name: project.name,
           requireEmailVerification: !!project.requireEmailVerification,
         },
-        template: template ? new ReportTemplateTransformer(template as any).toObject() : null,
+        template: defaultTemplate
+          ? new ReportTemplateTransformer(defaultTemplate as any).toObject()
+          : null,
+        templates: templates.map((t) => new ReportTemplateTransformer(t as any).toObject()),
       },
     })
   }

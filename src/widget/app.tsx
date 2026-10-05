@@ -52,9 +52,14 @@ export function WidgetApp(props: WidgetAppProps) {
   const [pinActive, setPinActive] = useState(false)
   const [banner, setBanner] = useState<string | null>(null)
   const [verifyBanner, setVerifyBanner] = useState<string | null>(null)
+  const [selectedTemplateId, setSelectedTemplateId] = useState<number | null>(null)
   const captureMode = (props.captureMode ?? 'fullpage') as CaptureMode
   const highFidelityEnabled = !!props.highFidelity
   const [showConsent, setShowConsent] = useState(false)
+
+  const templates = config?.templates ?? (config?.template ? [config.template] : [])
+  const selectedTemplate =
+    templates.find((t) => t.id === selectedTemplateId) ?? config?.template ?? templates[0] ?? null
 
   const collectorRef = useRef<ErrorCollector | null>(null)
   const stopPinRef = useRef<(() => void) | null>(null)
@@ -69,6 +74,13 @@ export function WidgetApp(props: WidgetAppProps) {
         try {
           const cfg = await fetchConfig(apiBase, projectKey)
           setConfig(cfg)
+          if (cfg.templates && cfg.templates.length > 0) {
+            const def = cfg.templates.find((t) => t.isDefault) ?? cfg.templates[0]
+            if (def) setSelectedTemplateId(def.id)
+            else if (cfg.template) setSelectedTemplateId(cfg.template.id)
+          } else if (cfg.template) {
+            setSelectedTemplateId(cfg.template.id)
+          }
           setStatus('ready')
         } catch (err) {
           setConfigError(err instanceof Error ? err.message : 'config error')
@@ -152,7 +164,7 @@ export function WidgetApp(props: WidgetAppProps) {
       setEmailError(null)
     }
 
-    for (const field of config?.template?.fields ?? []) {
+    for (const field of selectedTemplate?.fields ?? []) {
       if (!field.isRequired) continue
       // Built-in fields (title / reporterEmail) are validated separately above.
       if (field.key === 'title' || field.key === 'reporterEmail') continue
@@ -216,7 +228,7 @@ export function WidgetApp(props: WidgetAppProps) {
       title: title.trim(),
       reporterEmail: email.trim(),
       pageUrl: typeof location !== 'undefined' ? location.href : undefined,
-      templateId: config?.template?.id,
+      templateId: selectedTemplate?.id ?? config?.template?.id,
       fieldValues: values,
       browserInfo: {
         userAgent: navigator.userAgent,
@@ -305,6 +317,33 @@ export function WidgetApp(props: WidgetAppProps) {
 
         {(status === 'ready' || status === 'submitting' || status === 'error') && config && (
           <div>
+            {templates.length > 1 && (
+              <div class="tb-section">
+                <div class="tb-field">
+                  <label class="tb-label" for="tb-report-type">
+                    {i18n.t('widget.reportTypeLabel')}
+                    <span class="tb-req"> *</span>
+                  </label>
+                  <select
+                    id="tb-report-type"
+                    class="tb-input"
+                    value={String(selectedTemplate?.id ?? '')}
+                    onChange={(e: Event) => {
+                      const val = (e.target as HTMLSelectElement).value
+                      setSelectedTemplateId(val ? Number(val) : null)
+                      setValues({})
+                      setErrors({})
+                    }}
+                  >
+                    {templates.map((t) => (
+                      <option key={t.id} value={String(t.id)}>
+                        {t.name}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+            )}
             <div class="tb-section">
               <div class="tb-section-title">{i18n.t('widget.sectionDetails')}</div>
               <div class="tb-field">
@@ -342,9 +381,9 @@ export function WidgetApp(props: WidgetAppProps) {
                 )}
               </div>
 
-              {config.template && (
+              {selectedTemplate && (
                 <DynamicForm
-                  fields={config.template.fields}
+                  fields={selectedTemplate.fields}
                   values={values}
                   errors={errors}
                   i18n={i18n}
