@@ -10,7 +10,7 @@ export default defineConfig({
   esbuild: {
     jsx: 'automatic',
     jsxImportSource: 'preact',
-  },
+  } as any,
 
   build: {
     outDir: 'public/widget/v1',

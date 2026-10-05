@@ -1,0 +1,11 @@
+node_modules
+build
+tmp
+.logs
+.git
+.github
+coverage
+.nyc_output
+.vscode
+.idea
+*.log
