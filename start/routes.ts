@@ -200,6 +200,9 @@ router
       .get('/reports', [() => import('#controllers/report_pages_controller'), 'index'])
       .as('reports.index')
     router
+      .post('/reports', [() => import('#controllers/report_pages_controller'), 'store'])
+      .as('reports.store')
+    router
       .get('/reports/:id', [() => import('#controllers/report_pages_controller'), 'show'])
       .as('reports.show')
     router

@@ -35,6 +35,41 @@ export default class ReportPagesController {
       : []
     const templateNames = new Map(templates.map((t) => [t.id, t.name]))
 
+    // Projects + templates for the "New Report" modal
+    const projectsQuery =
+      user.role === 'admin'
+        ? Project.query().select('id', 'name', 'slug')
+        : Project.query().where('ownerId', user.id).select('id', 'name', 'slug')
+    const allProjects = await projectsQuery.orderBy('name', 'asc')
+    const allProjectIds = allProjects.map((p) => p.id)
+    const allTemplates = allProjectIds.length
+      ? await ReportTemplate.query()
+          .whereIn('projectId', allProjectIds)
+          .preload('fields', (q) => q.orderBy('sortOrder', 'asc'))
+          .orderBy('isDefault', 'desc')
+          .orderBy('createdAt', 'asc')
+      : []
+    const projectsForModal = allProjects.map((p) => ({
+      id: p.id,
+      name: p.name,
+      slug: p.slug,
+      templates: allTemplates
+        .filter((t) => t.projectId === p.id)
+        .map((t) => ({
+          id: t.id,
+          name: t.name,
+          isDefault: !!t.isDefault,
+          fields: (t.fields as any[]).map((f: any) => ({
+            key: f.key,
+            label: f.label,
+            type: f.type,
+            isRequired: !!f.isRequired,
+            options: f.options ?? null,
+            sortOrder: f.sortOrder ?? 0,
+          })),
+        })),
+    }))
+
     const columns = [
       {
         key: 'new',
@@ -88,8 +123,39 @@ export default class ReportPagesController {
           reports: columnReports,
         })),
         breadcrumb: [{ label: 'Reports' }],
+        projects: projectsForModal,
       } as any
     )
+  }
+
+  async store({ request, auth, response }: HttpContext) {
+    const user = auth.user!
+    const projectId = Number(request.input('projectId') ?? request.input('project_id'))
+    if (!projectId) {
+      return response.badRequest({ message: 'Project is required' })
+    }
+    const project = await Project.findOrFail(projectId)
+    if (!(await TeamService.canAccess(project.id, user.id, user.role))) {
+      return response.forbidden({ message: 'Not authorized for this project' })
+    }
+
+    const payload = request.only([
+      'templateId',
+      'template_id',
+      'title',
+      'fieldValues',
+      'field_values',
+      'priority',
+    ])
+    if ((payload as any).template_id !== undefined && (payload as any).templateId === undefined) {
+      ;(payload as any).templateId = (payload as any).template_id
+    }
+    if ((payload as any).field_values !== undefined && (payload as any).fieldValues === undefined) {
+      ;(payload as any).fieldValues = (payload as any).field_values
+    }
+
+    await this.reportService.createManual(project.id, payload as any, user.email)
+    return response.redirect().toRoute('reports.index')
   }
 
   async show({ inertia, params, auth }: HttpContext) {

@@ -463,6 +463,18 @@ export interface Registry {
       errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/report_pages_controller').default['index']>>>
     }
   }
+  'reports.store': {
+    methods: ["POST"]
+    pattern: '/reports'
+    types: {
+      body: {}
+      paramsTuple: []
+      params: {}
+      query: {}
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/report_pages_controller').default['store']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/report_pages_controller').default['store']>>>
+    }
+  }
   'reports.show': {
     methods: ["GET","HEAD"]
     pattern: '/reports/:id'

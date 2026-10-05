@@ -6,7 +6,11 @@ import ReportFieldValue from '#models/report_field_value'
 import Project from '#models/project'
 import ReportTemplate from '#models/report_template'
 import { buildDynamicSchema } from '#services/template_service'
-import { ingestReportValidator, updateReportValidator } from '#validators/report'
+import {
+  createReportValidator,
+  ingestReportValidator,
+  updateReportValidator,
+} from '#validators/report'
 import drive from '@adonisjs/drive/services/main'
 import ReportVerificationException from '#exceptions/report_verification_exception'
 import ReportNotFoundException from '#exceptions/report_not_found_exception'
@@ -386,6 +390,92 @@ export default class ReportService {
       ])
     )
     return { template: { id: template.id, name: template.name }, fields }
+  }
+
+  async createManual(
+    projectId: number,
+    payload: Record<string, unknown>,
+    reporterEmail: string
+  ): Promise<Report> {
+    const data = (await createReportValidator.validate({
+      projectId,
+      ...(payload as any),
+    })) as any
+
+    const project = await Project.findOrFail(projectId)
+
+    let template: ReportTemplate | null = null
+    if (data.templateId) {
+      template = await ReportTemplate.query()
+        .where('id', data.templateId)
+        .where('projectId', projectId)
+        .preload('fields')
+        .first()
+      if (!template) throw new Error('Template not found for this project')
+    } else {
+      template = await ReportTemplate.query()
+        .where('projectId', projectId)
+        .where('isDefault', true)
+        .preload('fields')
+        .first()
+      if (!template) {
+        template = await ReportTemplate.query()
+          .where('projectId', projectId)
+          .orderBy('createdAt', 'asc')
+          .preload('fields')
+          .first()
+      }
+    }
+
+    const fieldValues = (data.fieldValues as Record<string, unknown>) ?? {}
+    if (template) {
+      const validator = buildDynamicSchema(template)
+      await validator.validate(fieldValues)
+    }
+
+    const title = data.title as string
+    const priority = (data.priority as string) ?? 'medium'
+
+    const report = await db.transaction(async (trx) => {
+      const reportId = randomUUID()
+      const created = await Report.create(
+        {
+          id: reportId,
+          projectId: project.id,
+          templateId: template?.id ?? null,
+          title,
+          status: 'open',
+          priority,
+          reporterEmail,
+          pageUrl: null,
+          browserInfo: null,
+          consoleErrors: null,
+          networkErrors: null,
+          screenshotUrl: null,
+        },
+        { client: trx }
+      )
+      created.id = reportId
+
+      for (const [fieldKey, value] of Object.entries(fieldValues)) {
+        const storedValue = Array.isArray(value) ? JSON.stringify(value) : String(value ?? '')
+        if (storedValue === '') continue
+        await ReportFieldValue.create(
+          {
+            reportId,
+            fieldKey,
+            value: storedValue,
+          },
+          { client: trx }
+        )
+      }
+
+      await created.load('fieldValues')
+      return created
+    })
+
+    await this.notifyIntegrations(report, 'report.created')
+    return report
   }
 
   async update(

@@ -37,6 +37,7 @@ export type ScannedRoutes = {
     'portal.show': { paramsTuple: [ParamValue]; params: {'reply_to_token': ParamValue} }
     'portal.messages.store': { paramsTuple: [ParamValue]; params: {'reply_to_token': ParamValue} }
     'reports.index': { paramsTuple?: []; params?: {} }
+    'reports.store': { paramsTuple?: []; params?: {} }
     'reports.show': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'reports.update': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'reports.screenshot': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
@@ -122,6 +123,7 @@ export type ScannedRoutes = {
     'api.reports.messages.store': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'api.webhooks.inbound-email': { paramsTuple?: []; params?: {} }
     'portal.messages.store': { paramsTuple: [ParamValue]; params: {'reply_to_token': ParamValue} }
+    'reports.store': { paramsTuple?: []; params?: {} }
     'team.invite': { paramsTuple: [ParamValue]; params: {'projectId': ParamValue} }
     'team.remove': { paramsTuple: [ParamValue,ParamValue]; params: {'projectId': ParamValue,'memberId': ParamValue} }
   }

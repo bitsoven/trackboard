@@ -234,6 +234,12 @@ const routes = {
     tokens: [{"old":"/reports","type":0,"val":"reports","end":""}],
     types: placeholder as Registry['reports.index']['types'],
   },
+  'reports.store': {
+    methods: ["POST"],
+    pattern: '/reports',
+    tokens: [{"old":"/reports","type":0,"val":"reports","end":""}],
+    types: placeholder as Registry['reports.store']['types'],
+  },
   'reports.show': {
     methods: ["GET","HEAD"],
     pattern: '/reports/:id',

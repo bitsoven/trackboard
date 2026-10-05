@@ -81,6 +81,7 @@ export interface ApiDefinition {
   }
   reports: {
     index: typeof routes['reports.index']
+    store: typeof routes['reports.store']
     show: typeof routes['reports.show']
     update: typeof routes['reports.update']
     screenshot: typeof routes['reports.screenshot']

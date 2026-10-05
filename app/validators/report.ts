@@ -27,3 +27,13 @@ export const updateReportValidator = vine.compile(
     title: vine.string().trim().minLength(1).maxLength(255).optional(),
   })
 )
+
+export const createReportValidator = vine.compile(
+  vine.object({
+    projectId: vine.number(),
+    templateId: vine.number().optional().nullable(),
+    title: vine.string().trim().minLength(1).maxLength(255),
+    fieldValues: vine.object({}).allowUnknownProperties().optional(),
+    priority: vine.enum(['low', 'medium', 'high', 'critical']).optional(),
+  })
+)

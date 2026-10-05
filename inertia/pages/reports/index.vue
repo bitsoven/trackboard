@@ -1,9 +1,12 @@
 <script setup lang="ts">
-import { ref, watch } from 'vue'
-import { Head, router } from '@inertiajs/vue3'
+import { computed, ref, watch } from 'vue'
+import { Head, router, useForm } from '@inertiajs/vue3'
+import { Link } from '@adonisjs/inertia/vue'
 import { toast } from 'vue-sonner'
 import AppShell from '~/layouts/app_shell.vue'
 import ReportAvatar from '~/components/report_avatar.vue'
+import TbButton from '~/components/ui/tb_button.vue'
+import TbInput from '~/components/ui/tb_input.vue'
 import {
   displayNameFromEmail,
   initialsFromName,
@@ -33,10 +36,32 @@ type BoardColumn = {
   reports: BoardReport[]
 }
 
+type TemplateField = {
+  key: string
+  label: string
+  type: string
+  isRequired: boolean
+  options: Record<string, any> | null
+  sortOrder: number
+}
+
+type ProjectWithTemplates = {
+  id: number
+  name: string
+  slug: string
+  templates: {
+    id: number
+    name: string
+    isDefault: boolean
+    fields: TemplateField[]
+  }[]
+}
+
 defineOptions({ layout: AppShell })
 
 const props = defineProps<{
   columns: BoardColumn[]
+  projects: ProjectWithTemplates[]
 }>()
 
 /** Canonical status applied when a card lands in each column. */
@@ -131,8 +156,96 @@ function metaText(column: BoardColumn, report: BoardReport): string {
   return relativeTime(report.createdAt)
 }
 
-function comingSoon() {
-  toast.info('Reports arrive from the widget — manual creation is coming soon')
+// Manual report creation
+const showCreateModal = ref(false)
+const selectedProjectId = ref<number | null>(null)
+const selectedTemplateId = ref<number | null>(null)
+
+const createForm = useForm({
+  projectId: null as number | null,
+  templateId: null as number | null,
+  title: '',
+  priority: 'medium' as string,
+  fieldValues: {} as Record<string, any>,
+})
+
+const selectedProject = computed(
+  () => props.projects.find((p) => p.id === selectedProjectId.value) ?? null
+)
+
+const availableTemplates = computed(() => selectedProject.value?.templates ?? [])
+
+const selectedTemplate = computed(
+  () => availableTemplates.value.find((t) => t.id === selectedTemplateId.value) ?? null
+)
+
+const dynamicFields = computed(() => {
+  if (!selectedTemplate.value) return []
+  return [...selectedTemplate.value.fields].sort((a, b) => a.sortOrder - b.sortOrder)
+})
+
+function openCreateModal(prefillColumn: BoardColumn['key'] | null = null) {
+  if (props.projects.length === 0) {
+    toast.error('Create a project first to file reports')
+    return
+  }
+  // Default to first project
+  const firstProject = props.projects[0]
+  selectedProjectId.value = firstProject.id
+  const defaultTpl = firstProject.templates.find((t) => t.isDefault) ?? firstProject.templates[0]
+  selectedTemplateId.value = defaultTpl ? defaultTpl.id : null
+  createForm.reset()
+  createForm.clearErrors()
+  createForm.projectId = firstProject.id
+  createForm.templateId = defaultTpl ? defaultTpl.id : null
+  createForm.title = ''
+  createForm.priority = 'medium'
+  createForm.fieldValues = {}
+  // PrefillColumn could set initial status, but modal always creates as open
+  void prefillColumn
+  showCreateModal.value = true
+}
+
+function closeCreateModal() {
+  showCreateModal.value = false
+}
+
+function onProjectChange() {
+  const proj = props.projects.find((p) => p.id === selectedProjectId.value)
+  if (!proj) return
+  createForm.projectId = proj.id
+  const def = proj.templates.find((t) => t.isDefault) ?? proj.templates[0]
+  selectedTemplateId.value = def ? def.id : null
+  createForm.templateId = def ? def.id : null
+  createForm.fieldValues = {}
+  createForm.clearErrors()
+}
+
+function onTemplateChange() {
+  createForm.templateId = selectedTemplateId.value
+  createForm.fieldValues = {}
+  createForm.clearErrors()
+}
+
+function fieldError(key: string) {
+  return (createForm.errors as any)[`fieldValues.${key}`] ?? (createForm.errors as any)[key]
+}
+
+function submitCreate() {
+  createForm.transform((data) => ({
+    projectId: selectedProjectId.value,
+    templateId: selectedTemplateId.value,
+    title: data.title,
+    priority: data.priority,
+    fieldValues: data.fieldValues,
+  }))
+  createForm.post('/reports', {
+    preserveScroll: true,
+    onSuccess: () => {
+      closeCreateModal()
+      toast.success('Report created')
+    },
+  })
 }
 </script>
 
@@ -151,7 +264,7 @@ function comingSoon() {
       <button
         type="button"
         class="inline-flex items-center gap-2 rounded-[10px] bg-accent px-[22px] py-[13px] font-heading text-[15px] font-bold text-white transition-colors hover:bg-accent-strong"
-        @click="comingSoon"
+        @click="openCreateModal(null)"
       >
         <span class="text-[16px]">+</span> New Report
       </button>
@@ -184,7 +297,7 @@ function comingSoon() {
             type="button"
             class="flex size-[26px] items-center justify-center rounded-[13px] border border-hairline bg-transparent font-heading text-[14px] font-bold leading-none text-label hover:bg-surface"
             :aria-label="`Add report to ${column.label}`"
-            @click="comingSoon"
+            @click="openCreateModal(column.key)"
           >
             +
           </button>
@@ -258,10 +371,237 @@ function comingSoon() {
           type="button"
           class="flex w-full items-center justify-center rounded-xl border border-dashed border-hairline bg-transparent p-0 py-3.5 font-heading text-[14px] font-medium text-label transition-colors hover:bg-surface"
           :aria-label="`Add report to ${column.label}`"
-          @click="comingSoon"
+          @click="openCreateModal(column.key)"
         >
           + Add report
         </button>
+      </div>
+    </div>
+
+    <!-- Create Report Modal -->
+    <div
+      v-if="showCreateModal"
+      class="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4"
+      @click.self="closeCreateModal"
+    >
+      <div class="max-h-[90vh] w-full max-w-xl overflow-auto rounded-2xl bg-white p-6 shadow-xl">
+        <div class="flex items-center justify-between">
+          <h2 class="font-heading text-[18px] font-bold text-ink-900">Fill a report</h2>
+          <button
+            type="button"
+            class="flex size-8 items-center justify-center rounded-full bg-surface text-ink-600 hover:bg-hairline"
+            @click="closeCreateModal"
+          >
+            ✕
+          </button>
+        </div>
+        <p class="mt-1 font-heading text-[13px] text-ink-600">
+          Choose a project and report type. Fields update per template.
+        </p>
+
+        <div
+          v-if="props.projects.length === 0"
+          class="mt-6 rounded-xl border border-amber-200 bg-amber-50 p-4 text-center"
+        >
+          <p class="font-heading text-[14px] font-medium text-ink-900">No projects yet</p>
+          <p class="mt-1 font-heading text-[13px] text-ink-600">
+            Create a project to start filing reports.
+          </p>
+          <Link
+            href="/projects"
+            class="mt-3 inline-flex rounded-[10px] bg-accent px-4 py-2 font-heading text-[13px] font-bold text-white hover:bg-accent-strong"
+          >
+            Go to Projects
+          </Link>
+        </div>
+
+        <form v-else class="mt-6 flex flex-col gap-5" @submit.prevent="submitCreate">
+          <!-- Project -->
+          <div class="flex flex-col gap-1.5">
+            <label class="font-heading text-[13px] font-bold text-ink-900">Project</label>
+            <select
+              v-model="selectedProjectId"
+              class="h-11 w-full rounded-[10px] border border-hairline bg-white px-3 font-heading text-[14px] text-ink-900 focus:border-accent focus:ring-2 focus:ring-accent/20 focus:outline-none"
+              @change="onProjectChange"
+            >
+              <option v-for="p in props.projects" :key="p.id" :value="p.id">
+                {{ p.name }} — /{{ p.slug }}
+              </option>
+            </select>
+            <p v-if="createForm.errors.projectId" class="font-heading text-[12px] text-red-500">
+              {{ createForm.errors.projectId }}
+            </p>
+          </div>
+
+          <!-- Report type -->
+          <div class="flex flex-col gap-1.5">
+            <label class="font-heading text-[13px] font-bold text-ink-900">Report type</label>
+            <select
+              v-model="selectedTemplateId"
+              class="h-11 w-full rounded-[10px] border border-hairline bg-white px-3 font-heading text-[14px] text-ink-900 focus:border-accent focus:ring-2 focus:ring-accent/20 focus:outline-none"
+              @change="onTemplateChange"
+            >
+              <option v-if="availableTemplates.length === 0" :value="null" disabled>
+                No templates for this project
+              </option>
+              <option v-for="t in availableTemplates" :key="t.id" :value="t.id">
+                {{ t.name }}
+              </option>
+            </select>
+            <p v-if="createForm.errors.templateId" class="font-heading text-[12px] text-red-500">
+              {{ createForm.errors.templateId }}
+            </p>
+            <p v-if="selectedTemplate" class="font-heading text-[12px] text-ink-300">
+              {{ selectedTemplate.fields.length }} field(s) —
+              {{ selectedTemplate.isDefault ? 'default' : 'custom' }}
+            </p>
+          </div>
+
+          <!-- Title -->
+          <TbInput
+            id="create-title"
+            v-model="createForm.title"
+            label="Title"
+            placeholder="Short summary"
+            :error="(createForm.errors as any).title"
+          />
+
+          <!-- Priority -->
+          <div class="flex flex-col gap-1.5">
+            <label class="font-heading text-[13px] font-bold text-ink-900">Priority</label>
+            <select
+              v-model="createForm.priority"
+              class="h-11 w-full rounded-[10px] border border-hairline bg-white px-3 font-heading text-[14px] text-ink-900 focus:border-accent focus:ring-2 focus:ring-accent/20 focus:outline-none"
+            >
+              <option value="low">Low</option>
+              <option value="medium">Medium</option>
+              <option value="high">High</option>
+              <option value="critical">Critical</option>
+            </select>
+          </div>
+
+          <!-- Dynamic fields -->
+          <div
+            v-if="dynamicFields.length > 0"
+            class="flex flex-col gap-4 rounded-xl border border-hairline bg-surface/50 p-4"
+          >
+            <p class="font-heading text-[12px] font-bold tracking-[0.44px] text-ink-300">DETAILS</p>
+            <div v-for="field in dynamicFields" :key="field.key" class="flex flex-col gap-1.5">
+              <label class="font-heading text-[13px] font-bold text-ink-900">
+                {{ field.label }}
+                <span v-if="field.isRequired" class="text-red-500">*</span>
+              </label>
+
+              <textarea
+                v-if="field.type === 'textarea'"
+                :value="createForm.fieldValues[field.key] ?? ''"
+                :placeholder="field.label"
+                rows="3"
+                class="min-h-[80px] w-full rounded-[10px] border border-hairline bg-white px-3 py-2.5 font-heading text-[14px] text-ink-900 placeholder:text-ink-300 focus:border-accent focus:ring-2 focus:ring-accent/20 focus:outline-none"
+                @input="
+                  createForm.fieldValues[field.key] = ($event.target as HTMLTextAreaElement).value
+                "
+              />
+              <select
+                v-else-if="field.type === 'select' || field.type === 'radio'"
+                :value="createForm.fieldValues[field.key] ?? ''"
+                class="h-11 w-full rounded-[10px] border border-hairline bg-white px-3 font-heading text-[14px] text-ink-900 focus:border-accent focus:ring-2 focus:ring-accent/20 focus:outline-none"
+                @change="
+                  createForm.fieldValues[field.key] = ($event.target as HTMLSelectElement).value
+                "
+              >
+                <option value="" disabled>Select {{ field.label }}</option>
+                <option
+                  v-for="choice in field.options?.choices ?? []"
+                  :key="choice"
+                  :value="choice"
+                >
+                  {{ choice }}
+                </option>
+              </select>
+              <div v-else-if="field.type === 'checkbox'" class="flex flex-wrap gap-2">
+                <label
+                  v-for="choice in field.options?.choices ?? []"
+                  :key="choice"
+                  class="flex items-center gap-1.5 rounded-full border border-hairline bg-white px-3 py-1.5 font-heading text-[13px] text-ink-900"
+                >
+                  <input
+                    type="checkbox"
+                    :checked="
+                      Array.isArray(createForm.fieldValues[field.key]) &&
+                      (createForm.fieldValues[field.key] as any[]).includes(choice)
+                    "
+                    class="rounded border-hairline text-accent focus:ring-accent"
+                    @change="
+                      (() => {
+                        const arr = Array.isArray(createForm.fieldValues[field.key])
+                          ? [...(createForm.fieldValues[field.key] as any[])]
+                          : []
+                        if (($event.target as HTMLInputElement).checked) arr.push(choice)
+                        else {
+                          const idx = arr.indexOf(choice)
+                          if (idx > -1) arr.splice(idx, 1)
+                        }
+                        createForm.fieldValues[field.key] = arr
+                      })()
+                    "
+                  />
+                  {{ choice }}
+                </label>
+                <p
+                  v-if="!field.options?.choices?.length"
+                  class="font-heading text-[12px] text-ink-300"
+                >
+                  No choices configured
+                </p>
+              </div>
+              <input
+                v-else-if="field.type === 'number'"
+                :value="createForm.fieldValues[field.key] ?? ''"
+                type="number"
+                :placeholder="field.label"
+                class="h-11 w-full rounded-[10px] border border-hairline bg-white px-3 font-heading text-[14px] text-ink-900 placeholder:text-ink-300 focus:border-accent focus:ring-2 focus:ring-accent/20 focus:outline-none"
+                @input="
+                  createForm.fieldValues[field.key] = ($event.target as HTMLInputElement).value
+                "
+              />
+              <input
+                v-else-if="field.type === 'date'"
+                :value="createForm.fieldValues[field.key] ?? ''"
+                type="date"
+                class="h-11 w-full rounded-[10px] border border-hairline bg-white px-3 font-heading text-[14px] text-ink-900 focus:border-accent focus:ring-2 focus:ring-accent/20 focus:outline-none"
+                @input="
+                  createForm.fieldValues[field.key] = ($event.target as HTMLInputElement).value
+                "
+              />
+              <input
+                v-else
+                :value="createForm.fieldValues[field.key] ?? ''"
+                type="text"
+                :placeholder="field.label"
+                class="h-11 w-full rounded-[10px] border border-hairline bg-white px-3 font-heading text-[14px] text-ink-900 placeholder:text-ink-300 focus:border-accent focus:ring-2 focus:ring-accent/20 focus:outline-none"
+                @input="
+                  createForm.fieldValues[field.key] = ($event.target as HTMLInputElement).value
+                "
+              />
+              <p v-if="fieldError(field.key)" class="font-heading text-[12px] text-red-500">
+                {{ fieldError(field.key) }}
+              </p>
+            </div>
+          </div>
+
+          <div class="flex justify-end gap-2 pt-2">
+            <TbButton variant="ghost" type="button" @click="closeCreateModal">Cancel</TbButton>
+            <TbButton
+              variant="accent"
+              type="submit"
+              :disabled="createForm.processing"
+              :loading="createForm.processing"
+            >
+              Fill a report
+            </TbButton>
+          </div>
+        </form>
       </div>
     </div>
   </div>
